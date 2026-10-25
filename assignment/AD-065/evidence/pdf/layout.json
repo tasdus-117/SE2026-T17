@@ -1,0 +1,325 @@
+[
+  {
+    "page": 1,
+    "main": true,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 2,
+    "main": true,
+    "overflow": [],
+    "minDiagramPt": 8.969745264504953,
+    "diagramText": [
+      {
+        "text": "",
+        "printedPt": 8.969745264504953
+      },
+      {
+        "text": "",
+        "printedPt": 8.969745264504953
+      },
+      {
+        "text": "",
+        "printedPt": 8.969745264504953
+      },
+      {
+        "text": "implements",
+        "printedPt": 8.969745264504953
+      },
+      {
+        "text": "",
+        "printedPt": 8.969745264504953
+      },
+      {
+        "text": "",
+        "printedPt": 8.969745264504953
+      },
+      {
+        "text": "",
+        "printedPt": 8.969745264504953
+      },
+      {
+        "text": "",
+        "printedPt": 8.969745264504953
+      },
+      {
+        "text": "",
+        "printedPt": 8.969745264504953
+      },
+      {
+        "text": "",
+        "printedPt": 8.969745264504953
+      }
+    ]
+  },
+  {
+    "page": 3,
+    "main": true,
+    "overflow": [],
+    "minDiagramPt": 8.219014084507043,
+    "diagramText": [
+      {
+        "text": "Deployment / test",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Owned DB",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "App / Store",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Client",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "alt",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "[Write failure]",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "[Commit",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "succeeds]",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Store owns writes",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "7-day event retention",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Add nullable detail",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Deploy v2 writer",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "POST v1 command",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Bearer token",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "BEGIN IMMEDIATE",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Read state and identity",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "State and saved result",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Validate new command",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "or replay saved result",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "New only: HP, key, event",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "ROLLBACK",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "500 / retry identity",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "COMMIT",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "200 / outcome",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Verify HP with DB",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "v2 response fault",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Restart v1 writer",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Legacy column writes",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "Compatible schema",
+        "printedPt": 8.219014084507043
+      },
+      {
+        "text": "v2 data preserved",
+        "printedPt": 8.219014084507043
+      }
+    ]
+  },
+  {
+    "page": 4,
+    "main": true,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 5,
+    "main": true,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 6,
+    "main": true,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 7,
+    "main": true,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 8,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 9,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 10,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 11,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 12,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 13,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 14,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 15,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 16,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 17,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 18,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 19,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 20,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 21,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 22,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  },
+  {
+    "page": 23,
+    "main": false,
+    "overflow": [],
+    "minDiagramPt": null,
+    "diagramText": []
+  }
+]

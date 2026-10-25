@@ -1,0 +1,8 @@
+{
+  "originalPromptMatches": true,
+  "unchangedCharacterizationTests": true,
+  "requiredFilesExist": 24,
+  "reportSourceLineReferencesWithinFiles": true,
+  "mainSectionCount": 7,
+  "limitation": "Line bounds and existence checks do not establish semantic accuracy; source and report were reviewed separately."
+}

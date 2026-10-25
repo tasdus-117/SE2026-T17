@@ -1,0 +1,21 @@
+{
+  "pdf": "../submission/BT2_23001901_AD-065.pdf",
+  "pages": 23,
+  "mainPages": 7,
+  "appendixPages": 16,
+  "a4": true,
+  "identity": true,
+  "declaration": true,
+  "unicodeText": true,
+  "embeddedUnicodeFonts": true,
+  "englishDiagramSources": true,
+  "diagramCount": 2,
+  "layoutOverflow": false,
+  "commitsExist": true,
+  "p95Recalculated": 583.7435000000003,
+  "minimumDiagramPt": [
+    8.969745264504953,
+    8.219014084507043
+  ],
+  "visualReview": "See visual-review.md; automatic checks do not replace visual inspection."
+}

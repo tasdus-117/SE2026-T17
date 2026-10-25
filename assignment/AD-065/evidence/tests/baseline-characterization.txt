@@ -1,0 +1,8 @@
+Actual first execution before refactoring, baseline fd4df4c:
+Command: node --test assignment/AD-065/implementation/test/characterization.test.mjs
+✔ characterization: all live HP values lose exactly one HP (0.7464ms)
+✔ characterization: forbidden precedes terminal conflict (0.5665ms)
+✔ characterization: malformed stored health fails closed (0.1817ms)
+tests 3, pass 3, fail 0, cancelled 0, skipped 0, todo 0
+duration_ms 78.5441
+Transcribed from the actual tool output in this session; not an independently rerun log.

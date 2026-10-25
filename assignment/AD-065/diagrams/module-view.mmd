@@ -1,0 +1,22 @@
+---
+config:
+  theme: neutral
+  themeVariables:
+    fontFamily: Arial
+    fontSize: 19px
+  flowchart:
+    htmlLabels: false
+---
+flowchart TB
+  API["Transport / HTTP v1\nAuthenticate and parse intent"] --> APP["Combat application service\nCoordinate atomic command"]
+  APP --> DOMAIN["Combat domain / Match\nSole business-rule owner\nPlayerId and Health"]
+  APP --> PORT["UnitOfWork interface\ntransaction / match / save\ncommand / remember / event"]
+  STORE["SQLite Store implementation\nPersistent data owner\nBEGIN IMMEDIATE to COMMIT"] -. implements .-> PORT
+  STORE --> DB[("SQLite / WAL / FULL\nMatches + commands + events\nOne atomic transaction")]
+  MIG["Migration manager\nAdd nullable event detail\nKeep v1 compatibility"] --> DB
+  RET["Operational retention\nPurge events older than 7 days\nKeep command identities"] --> STORE
+  MET["Load and metrics tools\n764 concurrent tasks\np95 target 4.5 seconds"] --> API
+  BOOT["Composition root\nWire concrete adapters"] --> API
+  BOOT --> STORE
+  classDef boundary fill:#e8f0f8,stroke:#285275,stroke-width:2px;
+  class STORE,DB boundary;

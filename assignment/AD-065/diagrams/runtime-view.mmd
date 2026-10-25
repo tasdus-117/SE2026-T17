@@ -1,0 +1,40 @@
+---
+config:
+  theme: neutral
+  themeVariables:
+    fontFamily: Arial
+    fontSize: 18px
+  sequence:
+    mirrorActors: false
+    actorMargin: 20
+    messageMargin: 16
+    messageFontSize: 18
+    noteFontSize: 18
+    actorFontSize: 18
+    width: 115
+---
+sequenceDiagram
+  participant Client
+  participant App as App / Store
+  participant DB as Owned DB
+  participant Ops as Deployment / test
+  Ops->>DB: Add nullable detail
+  Ops->>App: Deploy v2 writer
+  Client->>App: POST v1 command<br/>Bearer token
+  App->>DB: BEGIN IMMEDIATE<br/>Read state and identity
+  DB-->>App: State and saved result
+  App->>App: Validate new command<br/>or replay saved result
+  App->>DB: New only: HP, key, event
+  alt Write failure
+    App->>DB: ROLLBACK
+    App-->>Client: 500 / retry identity
+  else Commit succeeds
+    App->>DB: COMMIT
+    App-->>Client: 200 / outcome
+  end
+  Ops->>App: Verify HP with DB
+  App-->>Ops: v2 response fault
+  Ops->>App: Restart v1 writer
+  App->>DB: Legacy column writes
+  DB-->>Ops: Compatible schema<br/>v2 data preserved
+  Note over App,DB: Store owns writes<br/>7-day event retention
