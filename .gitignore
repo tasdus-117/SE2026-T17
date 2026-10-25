@@ -1,0 +1,6 @@
+node_modules/
+tmp/
+*.sqlite*
+assignment/AD-065/report/*.aux
+assignment/AD-065/report/*.log
+assignment/AD-065/report/*.out

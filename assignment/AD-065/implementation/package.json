@@ -1,0 +1,1 @@
+{"name":"ad065-authoritative-slice","private":true,"type":"module","engines":{"node":">=25.9.0"},"scripts":{"test":"node --test test/*.test.mjs","load":"node tools/load.mjs","start":"node src/server.mjs","check":"node tools/check.mjs"}}
