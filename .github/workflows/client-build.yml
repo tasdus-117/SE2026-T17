@@ -1,0 +1,78 @@
+name: Client Build & Export
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'client/**'
+      - '.github/workflows/client-build.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'client/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        lfs: true
+
+    - name: Import GPG key
+      uses: crazy-max/ghaction-import-gpg@v6
+      with:
+        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+
+    - name: Export Godot project
+      uses: firebelley/godot-export@v5.2.1
+      with:
+        godot_executable_download_url: https://downloads.tuxfamily.org/godotengine/4.2.1/Godot_v4.2.1-stable_linux_x86_64.zip
+        godot_export_templates_download_url: https://downloads.tuxfamily.org/godotengine/4.2.1/Godot_v4.2.1-stable_export_templates.tpz
+        relative_project_path: ./client/
+        export_debug: false
+
+    - name: Upload Linux build
+      uses: actions/upload-artifact@v3
+      with:
+        name: arena-linux
+        path: ./client/build/linux/*
+
+    - name: Upload Windows build
+      uses: actions/upload-artifact@v3
+      with:
+        name: arena-windows
+        path: ./client/build/windows/*
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install GDScript Analyzer
+      run: pip install gdtoolkit
+
+    - name: Lint GDScript files
+      working-directory: ./client
+      run: gdformat --check scripts/ || true
+
+  version-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check project.godot version
+      working-directory: ./client
+      run: |
+        if ! grep -q "^config/version=" project.godot; then
+          echo "Version string missing in project.godot"
+          exit 1
+        fi
