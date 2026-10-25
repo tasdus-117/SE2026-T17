@@ -21,7 +21,8 @@ services:
       dockerfile: Dockerfile
     environment:
       SERVER_ADDR: :7777
-      TICK_HZ: ${TICK_HZ:-20}
+      TICK_HZ: ${TICK_HZ:-30}
+      GAME_AUTH_SECRET: ${GAME_AUTH_SECRET:?set GAME_AUTH_SECRET to at least 16 bytes}
     ports:
       - "7777:7777/udp"
     restart: unless-stopped

@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"database/sql"
+	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -15,6 +17,17 @@ import (
 )
 
 func main() {
+	check := flag.Bool("check", false, "validate the 49-day partition boundary without a database")
+	flag.Parse()
+	if *check {
+		now := time.Date(2026, 10, 25, 12, 0, 0, 0, time.UTC)
+		if !storage.PartitionShouldDrop(time.Date(2026, 9, 5, 0, 0, 0, 0, time.UTC), now, storage.RetentionDays) || storage.PartitionShouldDrop(time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC), now, storage.RetentionDays) {
+			fmt.Fprintln(os.Stderr, "49-day partition boundary check failed")
+			os.Exit(1)
+		}
+		fmt.Println("PASS: 49-day partition boundary")
+		return
+	}
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	url := os.Getenv("DATABASE_URL")
 	if url == "" { logger.Error("DATABASE_URL is required"); os.Exit(2) }

@@ -11,7 +11,7 @@ import (
 	"game3d/internal/network"
 )
 func main(){
-	logger:=slog.New(slog.NewJSONHandler(os.Stdout,nil));hz:=20
+	logger:=slog.New(slog.NewJSONHandler(os.Stdout,nil));hz:=30
 	if raw:=os.Getenv("TICK_HZ");raw!=""{if raw!="20"&&raw!="30"{logger.Error("TICK_HZ must be 20 or 30");os.Exit(2)};if raw=="30"{hz=30}}
 	world:=game.NewWorld(hz,20,1000);aux:=modules.NewSupervisor(logger)
 	addr:=os.Getenv("SERVER_ADDR");if addr==""{addr=":7777"};server,err:=network.Listen(addr,world,hz,logger,aux);if err!=nil{logger.Error("listen failed","error",err);os.Exit(1)};defer func(){if closeErr:=server.Close();closeErr!=nil{logger.Error("server socket close failed","error",closeErr)}}()
