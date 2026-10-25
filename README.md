@@ -10,7 +10,7 @@
 ├── internal/network/               # bounded UDP ingress, binary protocol, snapshots
 ├── internal/modules/               # isolated auxiliary service supervisor
 ├── internal/storage/               # retention job and capacity logging guard
-├── migrations/001_activity_logs.sql
+├── migrations/001_partitioned_logs.sql
 ├── test/load/simulator_786.go      # standalone 786 bot simulator and SLO assertions
 ├── docker-compose.yml
 ├── Makefile
@@ -50,7 +50,7 @@ long-duration production soak test.
 
 ## Retention and operations
 
-Apply `migrations/001_activity_logs.sql` once; `cmd/retention` runs its purge
+Apply `migrations/001_partitioned_logs.sql` once; `cmd/retention` runs its purge
 immediately and then hourly. Complete daily partitions are dropped only after
 their end boundary is at or before `NOW() - INTERVAL '49 days'`.
 The capacity guard compares
