@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: game
+      POSTGRES_USER: game
+      POSTGRES_PASSWORD: game
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U game -d game"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SERVER_ADDR: :7777
+      TICK_HZ: ${TICK_HZ:-30}
+      GAME_AUTH_SECRET: ${GAME_AUTH_SECRET:?set GAME_AUTH_SECRET to at least 16 bytes}
+    ports:
+      - "7777:7777/udp"
+    restart: unless-stopped
+  retention:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ["/retention"]
+    environment:
+      DATABASE_URL: postgres://game:game@db:5432/game?sslmode=disable
+      STORAGE_CAPACITY_BYTES: ${STORAGE_CAPACITY_BYTES:-21474836480}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  pgdata:
