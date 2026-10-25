@@ -1,4 +1,4 @@
-# GAME-3D-03: Small Arena - Multiplayer 3D Authoritative Server
+# PR1: GAME-3D-03 – AD-066 
 
 [![CI Build](https://github.com/tasdus-117/SE2026-T17/workflows/CI/badge.svg)](https://github.com/tasdus-117/SE2026-T17/actions)
 
