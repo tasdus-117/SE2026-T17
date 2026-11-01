@@ -1,1 +1,1 @@
-Player, stationary bot, pickup and HUD prefabs will be introduced in their respective implementation tasks.
+Task 1.4 contains unscripted Player, Bot and WeaponPickup primitive prefabs. Player uses only CharacterController collision; Bot uses a static CapsuleCollider; Pickup uses a trigger BoxCollider and a kinematic Rigidbody without gravity. The HUD and all gameplay components remain for later tasks.

@@ -54,3 +54,9 @@ The bootstrap scene is the installed URP template's camera, directional light,
 and global volume. It contains no arena, entities, or match behavior. Template
 tutorial code and default multi-device Input Actions were removed. URP asset
 GUIDs were preserved when moving assets into `_Project/Settings`.
+
+Task 1.4 adds `Arena_MVP.unity` as the enabled startup scene. It uses the same
+rendering infrastructure, a fixed overview camera, five static geometry colliders,
+and one linked primitive prefab instance each for Player, Bot and WeaponPickup.
+The prefabs contain no MonoBehaviours. Camera following, locomotion, Health,
+combat, input, collection and match lifecycle wiring remain for later tasks.

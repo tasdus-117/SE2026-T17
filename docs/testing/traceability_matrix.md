@@ -55,3 +55,17 @@ domain-level evidence only; the full SRS scenario statuses above remain Planned.
 
 Execution environment, mutation results, reproduction command and artifact paths:
 [`task_1_2_verification.md`](task_1_2_verification.md).
+
+## Task 1.4 structural arena coverage
+
+`ArenaLayoutTests.cs` adds 22 PlayMode cases for scene loading, counts, layers,
+primitive component restrictions, collider configuration, floor/wall geometry,
+supported/separate spawns and render infrastructure. These compile independently;
+Unity execution is blocked by license error 198. Saved-file geometry/reference
+assertions are executed separately by `tools/Verify-ArenaLayout.ps1`.
+
+This contributes structural evidence to FR-002 / AC-002 / TC-001 and TC-004,
+and the placeholder positioning/component portions of FR-003/004. Full TC-001
+still requires initialization, Health/stats/pickup/HUD readiness and Playing;
+TC-004 still requires repeated actual movement/jumping against walls and corners.
+No whole gameplay TC is marked Passed. See `task_1_4_verification.md`.

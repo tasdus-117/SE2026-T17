@@ -65,8 +65,8 @@ foreach ($pipeline in [regex]::Matches($quality, 'customRenderPipeline: .*guid: 
     Assert-Scaffold ($guids.ContainsKey($pipeline.Groups[1].Value)) 'Quality profile refers to a missing URP asset.'
 }
 $buildSettings = [IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/EditorBuildSettings.asset'))
-Assert-Scaffold ($buildSettings -match 'path: Assets/_Project/Scenes/Bootstrap.unity') 'Bootstrap scene is not configured.'
-Assert-Scaffold (Test-Path -LiteralPath 'Assets/_Project/Scenes/Bootstrap.unity') 'Bootstrap scene is missing.'
+Assert-Scaffold ($buildSettings -match 'path: Assets/_Project/Scenes/Arena_MVP.unity') 'Arena scene is not configured.'
+Assert-Scaffold (Test-Path -LiteralPath 'Assets/_Project/Scenes/Arena_MVP.unity') 'Arena scene is missing.'
 
 $manifest = Get-Content -LiteralPath 'Packages/manifest.json' -Raw | ConvertFrom-Json
 $lock = Get-Content -LiteralPath 'Packages/packages-lock.json' -Raw | ConvertFrom-Json

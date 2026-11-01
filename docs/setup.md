@@ -35,11 +35,11 @@ by this task. Cinemachine selection belongs to later camera setup.
 3. Let package resolution and import finish. Confirm zero compilation errors and
    record any lockfile changes; do not delete the lockfile to hide a mismatch.
 4. Verify Force Text serialization and Visible Meta Files (already configured).
-5. Open `Assets/_Project/Scenes/Bootstrap.unity`. It is the URP template camera,
-   directional light and volume, with no gameplay. Graphics and quality settings
-   retain the template's URP asset GUIDs and quality profiles; the PC pipeline is
-   also explicitly assigned as the default render pipeline. The scene is enabled
-   in build settings.
+5. Open `Assets/_Project/Scenes/Arena_MVP.unity`, the enabled startup scene from
+   Task 1.4. It contains the bounded placeholder arena and three unscripted prefab
+   instances, a fixed overview camera, directional light and global volume.
+   `Bootstrap.unity` remains as the original template reference and is not enabled
+   in build settings. Graphics/quality settings retain the verified URP assets.
 6. Run the scaffold checks from PowerShell at the repository root:
 
    ```powershell
@@ -74,6 +74,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/Run-DomainTests.ps1 -M
 This invokes NUnit's own test builder and execution runner, saves NUnit XML, and
 tests isolated compiled mutations. See `testing/task_1_2_verification.md` for
 scope and evidence. It does not replace licensed Unity import verification.
+
+Task 1.4's saved-file geometry/reference checks and compile-only PlayMode checks:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Verify-ArenaLayout.ps1
+```
+
+After license activation, run `SmallArena.Tests.PlayMode.ArenaLayoutTests` in
+Unity's PlayMode Test Runner. These 22 cases load and unload `Arena_MVP` for
+isolation. They verify the placeholder stage and must be reviewed when later tasks
+intentionally add gameplay components. See `testing/task_1_4_verification.md`.
 
 ## Git and asset ownership
 
