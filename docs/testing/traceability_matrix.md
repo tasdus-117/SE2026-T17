@@ -87,3 +87,22 @@ configuration is checked separately with `tools/Verify-Input.ps1`.
 
 No whole SRS TC changes status. Details and execution evidence are in
 `task_1_5_verification.md`.
+
+## Task 1.6 initialization coverage
+
+Domain readiness factories add four executed cases: the standalone suite now has
+34 passing cases, with all 13 existing targeted mutations detected.
+`MatchInitializationTests.cs` defines 34 native PlayMode cases; these compile but
+execution is blocked by Unity license error 198. ArenaLayoutTests adds a
+serialized-scene coordinator check (23 layout cases in total).
+
+| SRS mapping | Added assertions | Remaining acceptance evidence |
+| --- | --- | --- |
+| FR-001 / AC-001 / TC-001 | Explicit references, structural readiness and successful one-time Playing/event foundation through a test-only full-readiness provider | Native execution and real Health/stats/pickup/HUD initialization |
+| FR-001 / TC-029 | Missing/null, duplicate, aliased, inactive, wrong-layer and cross-scene references; diagnostics; no Playing on failure | Native PlayMode execution; eventual action-consumer gating |
+| FR-017 / AC-017 | IsPlaying query and repeated/reentrant start rejection; event once | Health-driven Victory, combat/pickup rejection and cancellation in M6 |
+| NFR-004/007 / TC-034/037 | Local state/event ownership, explicit injection, scene serialization checks and full assembly compilation | Complete runtime integration and native scenario evidence |
+
+The production M1 scene intentionally stays Initializing: valid placeholders do
+not replace real dependencies. Full TC-001/028/029 remain Planned. See
+`task_1_6_verification.md` for gate interpretation and execution results.

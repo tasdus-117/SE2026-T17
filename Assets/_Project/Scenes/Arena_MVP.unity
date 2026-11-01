@@ -1074,6 +1074,71 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1002, guid: c00cd046a91f4224a8cd2a93b19f2475, type: 3}
   m_PrefabInstance: {fileID: 2200001}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2000003 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1001, guid: cf2ac3b249e940d4af247e7ec57e65f7, type: 3}
+  m_PrefabInstance: {fileID: 2000001}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2100003 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1001, guid: b96b867047e7441e85512756c7e690cc, type: 3}
+  m_PrefabInstance: {fileID: 2100001}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2200003 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1001, guid: c00cd046a91f4224a8cd2a93b19f2475, type: 3}
+  m_PrefabInstance: {fileID: 2200001}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2300001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2300002}
+  - component: {fileID: 2300003}
+  m_Layer: 0
+  m_Name: _GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2300002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2300001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2300003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2300001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb91c94bf0914bef84458eec8b8c5a34, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  playerInstance: {fileID: 2000003}
+  botInstance: {fileID: 2100003}
+  pickupInstance: {fileID: 2200003}
+  sceneCamera: {fileID: 330585545}
+  autoStart: 0
+  readinessProvider: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1085,3 +1150,4 @@ SceneRoots:
   - {fileID: 2000002}
   - {fileID: 2100002}
   - {fileID: 2200002}
+  - {fileID: 2300002}

@@ -37,7 +37,9 @@ by this task. Cinemachine selection belongs to later camera setup.
 4. Verify Force Text serialization and Visible Meta Files (already configured).
 5. Open `Assets/_Project/Scenes/Arena_MVP.unity`, the enabled startup scene from
    Task 1.4. It contains the bounded placeholder arena and three unscripted prefab
-   instances, a fixed overview camera, directional light and global volume.
+   instances, a fixed overview camera, directional light, global volume and the
+   Task 1.6 `_GameManager` with explicit entity/Camera references. Auto-start is
+   off and full readiness is unassigned, so M1 remains Initializing.
    `Bootstrap.unity` remains as the original template reference and is not enabled
    in build settings. Graphics/quality settings retain the verified URP assets.
 6. Run the scaffold checks from PowerShell at the repository root:
@@ -64,8 +66,9 @@ No gameplay tests are implemented in Task 1.1. The four `AssemblyInfo.cs` files
 contain identity attributes only, ensuring each assembly has a source file without
 adding game behavior. Future EditMode/PlayMode cases remain Planned.
 
-Task 1.2 adds the pure match-state rules and 30 NUnit cases. Run them without an
-Editor license or package downloads using the bundled compiler, runtime and NUnit:
+The pure domain suite has 34 NUnit cases after Task 1.6's readiness factories.
+Run them without an Editor license or package downloads using the bundled
+compiler, runtime and NUnit:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/Run-DomainTests.ps1 -MutationChecks
@@ -82,8 +85,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/Verify-ArenaLayout.ps1
 ```
 
 After license activation, run `SmallArena.Tests.PlayMode.ArenaLayoutTests` in
-Unity's PlayMode Test Runner. These 22 cases load and unload `Arena_MVP` for
-isolation. They verify the placeholder stage and must be reviewed when later tasks
+Unity's PlayMode Test Runner. These 23 cases load and unload `Arena_MVP` for
+isolation, including the Task 1.6 coordinator gate check. They verify the
+placeholder stage and must be reviewed when later tasks
 intentionally add gameplay components. See `testing/task_1_4_verification.md`.
 
 ## Input adapter verification
@@ -114,6 +118,20 @@ The adapter remains unattached to the placeholder Player. At later composition,
 assign its InputActionAsset explicitly before enabling; missing/invalid action
 configuration logs a diagnostic and leaves the component disabled. The global
 project-wide action asset is not used.
+
+## Scene startup verification
+
+Run `SmallArena.Tests.PlayMode.MatchInitializationTests` after a successful
+licensed Editor import. Its 34 cases exercise structural readiness, failure
+diagnostics, full-readiness gating, events, reentrancy and auto-start. The extra
+arena layout case checks the actual serialized coordinator bindings.
+
+`ValidateSceneReadiness()` may return true for M1's three placeholders and Camera;
+it does not enter Playing. `TryStartMatch()` uses `ValidateMatchReadiness()` and
+requires a real `IMatchReadinessProbe`. Keep `_GameManager.readinessProvider`
+unassigned and autoStart off until those dependencies exist. Do not introduce a
+temporary success provider in Runtime. Failed manual start attempts log the full
+readiness diagnostic. See `testing/task_1_6_verification.md`.
 
 ## Git and asset ownership
 

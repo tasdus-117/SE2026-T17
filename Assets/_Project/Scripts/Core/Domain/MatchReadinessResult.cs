@@ -13,6 +13,10 @@ namespace SmallArena.Domain
 
         public bool IsReady { get; }
 
+        public static MatchReadinessResult Success() => new MatchReadinessResult(true);
+
+        public static MatchReadinessResult Fail(string diagnosticMessage) => new MatchReadinessResult(false, diagnosticMessage);
+
         // A default struct is safely not ready and has an empty diagnostic.
         public string DiagnosticMessage => diagnosticMessage ?? string.Empty;
     }

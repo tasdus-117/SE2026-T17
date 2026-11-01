@@ -1,9 +1,9 @@
 # Assembly boundaries
 
 Task 1.1 created four project assemblies. Domain contains the Task 1.2 pure match
-rules. Runtime adds the Task 1.5 input adapter; PlayMode.Tests contains the arena
-configuration/layout and simulated-input fixtures. Runtime composition into the
-placeholder Player prefab is deferred to later integration.
+rules. Runtime contains the input adapter and Task 1.6 scene coordinator/readiness
+contract. PlayMode.Tests covers configuration, layout, input and initialization.
+Input/motor/combat composition into the placeholder Player remains deferred.
 
 | Assembly | Allowed assembly references | Engine access |
 | --- | --- | --- |
@@ -21,6 +21,45 @@ Domain also overrides automatic precompiled references with an empty list to
 prevent implicit third-party plugin dependencies. Runtime must never reference
 either test assembly. Use scene/prefab references and local instance events later;
 do not introduce global singleton, service-locator, or event-bus dependencies.
+
+## Scene startup contract (Task 1.6)
+
+`GameManager` owns one instance of the Domain state machine and forwards its
+instance event through `OnMatchStateChanged`. `CurrentState` and `IsPlaying` are
+read-only queries. It has no static Instance, Update loop, movement, damage or
+physics-query responsibility. Awake binds forwarding idempotently; destruction
+unsubscribes. Calls before Awake are supported without duplicate subscriptions.
+
+Inspector/Configure wiring supplies three distinct entity GameObjects, a Camera,
+and an optional full-readiness provider. Structural validation checks active
+same-scene role roots on named layers, exactly one root per role (including
+inactive extras), and an active same-scene Camera. Same-role visual descendants
+do not count as separate entities. Traversal is startup-only and scoped to the
+manager's own scene; no global object discovery is used.
+
+The task requests structural success with three valid entity references while
+also prohibiting Playing before real Health/HUD initialization. Two probes
+preserve both requirements:
+
+| Probe | Meaning |
+| --- | --- |
+| ValidateSceneReadiness | Entities/counts/layers/camera are structurally valid; returns Success without changing state |
+| ValidateMatchReadiness | Structural validation plus an explicitly wired IMatchReadinessProbe's real dependency validation |
+
+TryStartMatch uses the full probe, rechecks structure after the provider returns,
+and delegates its result to Domain.StartMatch. Failures log a diagnostic and stay
+Initializing. Reentrant starts/configuration and repeated starts cannot cause
+duplicate transitions. Provider exceptions become failed readiness; state-event
+subscriber exceptions preserve normal C# propagation and the committed state.
+
+`Arena_MVP` now has `_GameManager` wired to the actual prefab GameObjects and
+Camera. Its autoStart is false and readinessProvider is unassigned. It stays
+Initializing in M1, even when structural validation succeeds. Enabling autoStart
+without full readiness also fails closed. The future provider must validate real
+bot HP 10, player stats, initialized/uncollected pickup and bound initial HUD;
+there is no production dummy provider or serialized readiness bypass. Test-only
+provider substitutes exercise the successful transition without adding gameplay
+components to the production scene.
 
 ## Input adapter contract (Task 1.5)
 
@@ -83,4 +122,4 @@ Task 1.4 adds `Arena_MVP.unity` as the enabled startup scene. It uses the same
 rendering infrastructure, a fixed overview camera, five static geometry colliders,
 and one linked primitive prefab instance each for Player, Bot and WeaponPickup.
 The prefabs contain no MonoBehaviours. Camera following, locomotion, Health,
-combat, input, collection and match lifecycle wiring remain for later tasks.
+combat, input, collection and full match integration remain for later tasks.

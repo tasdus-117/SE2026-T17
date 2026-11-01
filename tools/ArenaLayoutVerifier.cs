@@ -25,7 +25,7 @@ internal static class ArenaLayoutVerifier
         public Dictionary<long, Record> Records;
         public IEnumerable<Record> OfType(string type) => Records.Values.Where(item => item.Type == type);
         public Record Only(string type) => OfType(type).Single();
-        public Record Named(string name) => OfType("GameObject").Single(item => Text(item.Data, "m_Name") == name);
+        public Record Named(string name) => OfType("GameObject").Where(item => !item.Stripped).Single(item => Text(item.Data, "m_Name") == name);
         public Record Component(Record owner, string type) => Sequence(Field(owner.Data, "m_Component"))
             .Select(node => Records[Id(Field(Map(node), "component"))]).Single(item => item.Type == type);
     }
@@ -167,10 +167,11 @@ internal static class ArenaLayoutVerifier
 
         var instances = scene.OfType("PrefabInstance").ToArray();
         Check(instances.Length == 3, "Expected exactly three prefab instances.");
-        Check(!scene.OfType("GameObject").Any(item => names.Contains(Text(item.Data, "m_Name"))), "Entities must be linked prefab instances, not loose duplicates.");
-        Check(!scene.OfType("GameObject").Any(item => new[] { expectedLayers["Player"], expectedLayers["Bot"], expectedLayers["Pickup"] }.Contains((int)Number(item.Data, "m_Layer"))), "Loose duplicate on an entity layer.");
+        Check(!scene.OfType("GameObject").Where(item => !item.Stripped).Any(item => names.Contains(Text(item.Data, "m_Name"))), "Entities must be linked prefab instances, not loose duplicates.");
+        Check(!scene.OfType("GameObject").Where(item => !item.Stripped).Any(item => new[] { expectedLayers["Player"], expectedLayers["Bot"], expectedLayers["Pickup"] }.Contains((int)Number(item.Data, "m_Layer"))), "Loose duplicate on an entity layer.");
         var spawns = new Dictionary<string, Vector3> { { "Player", new Vector3(0, 1, -4) }, { "Bot", new Vector3(0, 1, 4) }, { "WeaponPickup", new Vector3(-3, 0.3f, 0) } };
         var entityBoxes = new Dictionary<string, Box>();
+        var entityObjects = new Dictionary<string, long>();
         var roots = Sequence(Field(scene.Only("SceneRoots").Data, "m_Roots")).Select(Id).ToHashSet();
         Check(roots.SetEquals(scene.OfType("Transform").Where(item => item.Stripped || Id(Field(item.Data, "m_Father")) == 0).Select(item => item.Id)), "SceneRoots must include every root transform exactly once.");
         foreach (var name in names)
@@ -193,6 +194,12 @@ internal static class ArenaLayoutVerifier
             var stripped = scene.OfType("Transform").Single(item => item.Stripped && Id(Field(item.Data, "m_PrefabInstance")) == instance.Id);
             Check(roots.Contains(stripped.Id), "Prefab instance is missing from SceneRoots.");
             Check(Id(Field(stripped.Data, "m_CorrespondingSourceObject")) == transform.Id, "Stripped transform source mismatch.");
+            var strippedObject = scene.OfType("GameObject").Single(item => item.Stripped && Id(Field(item.Data, "m_PrefabInstance")) == instance.Id);
+            Check(Id(Field(strippedObject.Data, "m_CorrespondingSourceObject")) == prefab.Only("GameObject").Id,
+                "Stripped GameObject source mismatch.");
+            Check(Text(Map(Field(strippedObject.Data, "m_CorrespondingSourceObject")), "guid") == guid,
+                "Stripped GameObject prefab GUID mismatch.");
+            entityObjects[name] = strippedObject.Id;
             var collider = prefab.Records.Values.Single(item => item.Type == "CharacterController" || item.Type == "CapsuleCollider" || item.Type == "BoxCollider");
             var box = Bounds(transform, collider, position);
             entityBoxes[name] = box;
@@ -204,7 +211,22 @@ internal static class ArenaLayoutVerifier
             for (var second = first + 1; second < names.Length; second++)
                 Check(!entityBoxes[names[first]].Overlaps(entityBoxes[names[second]]), "Entity spawns overlap.");
         Check(scene.OfType("Camera").Count() == 1 && scene.OfType("Light").Count(item => Number(item.Data, "m_Type") == 1) == 1, "Missing overview camera/directional light.");
-        Check(scene.OfType("MonoBehaviour").All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))), "Scene contains a non-rendering script.");
+        var managerGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Core/GameManager.cs.meta"));
+        var managerObject = scene.Named("_GameManager");
+        var manager = scene.Component(managerObject, "MonoBehaviour");
+        Check(Text(Map(Field(manager.Data, "m_Script")), "guid") == managerGuid, "Coordinator script GUID mismatch.");
+        Check(Id(Field(manager.Data, "m_GameObject")) == managerObject.Id && Number(manager.Data, "m_Enabled") == 1,
+            "Coordinator ownership/enabled state mismatch.");
+        Check(scene.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == managerGuid) == 1,
+            "Expected exactly one GameManager component.");
+        Check(Id(Field(manager.Data, "playerInstance")) == entityObjects["Player"], "GameManager Player binding mismatch.");
+        Check(Id(Field(manager.Data, "botInstance")) == entityObjects["Bot"], "GameManager Bot binding mismatch.");
+        Check(Id(Field(manager.Data, "pickupInstance")) == entityObjects["WeaponPickup"], "GameManager Pickup binding mismatch.");
+        Check(Id(Field(manager.Data, "sceneCamera")) == scene.Only("Camera").Id, "GameManager Camera binding mismatch.");
+        Check(Number(manager.Data, "autoStart") == 0 && Id(Field(manager.Data, "readinessProvider")) == 0,
+            "M1 must not fake full readiness or auto-start an incomplete match.");
+        Check(scene.OfType("MonoBehaviour").All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))
+            || item.Id == manager.Id), "Unexpected scene gameplay script.");
         var build = Read(System.IO.Path.Combine(root, "ProjectSettings/EditorBuildSettings.asset")).Only("EditorBuildSettings");
         var startScene = Map(Sequence(Field(build.Data, "m_Scenes")).First());
         Check(Text(startScene, "path") == "Assets/_Project/Scenes/Arena_MVP.unity" && Number(startScene, "enabled") == 1, "Arena must be the enabled startup scene.");
@@ -214,6 +236,7 @@ internal static class ArenaLayoutVerifier
             AssertionsPassed = assertions, UnityYamlFilesParsed = parsed.Count,
             Scene = "Assets/_Project/Scenes/Arena_MVP.unity", LinkedEntityInstances = instances.Length,
             FloorMetres = "16 x 16", WallHeightMetres = 3,
+            GameManagerWiredToPrefabRootsAndCamera = true, M1AutoStart = false, M1FullReadinessProviderAssigned = false,
             Spawns = spawns.ToDictionary(pair => pair.Key, pair => new[] { pair.Value.X, pair.Value.Y, pair.Value.Z }),
             VerificationMode = "Saved-file references and geometry only; Unity import and native physics require licensed PlayMode execution."
         }, new JsonSerializerOptions { WriteIndented = true }));
