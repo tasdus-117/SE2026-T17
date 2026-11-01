@@ -1,3 +1,99 @@
+# Small Arena — SRS online FFA
+
+Phiên bản 0.3 — 2026-11-01 (Asia/Bangkok). Nguồn xác nhận sản phẩm: yêu cầu chủ dự án trong `docs/prompts/create_roadmap_prompt.md`; nguồn phê duyệt nền Git: chỉ thị chủ dự án trong phiên này. Prompt được giữ nguyên, không tự động đưa vào commit. CONFIRMED không đồng nghĩa đã triển khai. Tất cả yêu cầu online dưới đây có implementation status TODO; mọi TC online đều Planned.
+
+## Quyền sở hữu và phạm vi hiện hành
+
+Phần online trước mốc `HISTORICAL` là nguồn yêu cầu CURRENT. [Roadmap](../docs/ROADMAP.md), [kiến trúc](../docs/ARCHITECTURE.md), [protocol](../docs/PROTOCOL.md), [kiểm thử](../docs/TESTING.md) triển khai kế hoạch từ các ID này; [learning plan](learning-roadmap.md) chỉ phục vụ học. Không tạo SRS riêng theo nhánh.
+
+Small Arena là game Windows PC Unity + C#, bốn người FFA (1v1v1v1), combat trong một arena 3D có terrain và walls. Một người chạy host gồm server authority và local client; demo chính là host + ba remote clients. Fall Guys chỉ gợi ý movement/camera; Brawlhalla chỉ là tham chiếu, không tự bổ sung luật. Không có matchmaking, late admission, respawn, account registration, inventory, combo, alternate attack hay percentage damage. Host migration OUT OF SCOPE. 2v2 và thêm loại vũ khí là FUTURE, ngoài baseline khoảng 60 ngày tính từ 2026-11-01.
+
+CONFIRMED = chủ dự án xác nhận; PROPOSED = đề nghị cần duyệt; UNDECIDED = chưa chọn. CURRENT/FUTURE/OUT OF SCOPE là chiều độc lập với trạng thái quyết định và trạng thái triển khai TODO/IN_PROGRESS/BLOCKED/DONE. Chưa có Editor/package pin, gameplay, build hay test online được chứng minh. Nền Git đã duyệt không phải phê duyệt framework hoặc chứng nhận game chạy được.
+
+## Yêu cầu chức năng CURRENT
+
+Mọi dòng là CONFIRMED, Must, CURRENT. Chi tiết tham số trong sổ quyết định vẫn chưa được duyệt. Mỗi dòng định nghĩa một AC và TC mới tương ứng; TC được mô tả đầy đủ trong [TESTING](../docs/TESTING.md). Không tái dùng ID offline.
+
+| ID | Nghĩa vụ và kết quả quan sát được | Acceptance ID / kiểm chứng Planned |
+| --- | --- | --- |
+| FR-101 | Nền Unity/C# Windows có thể tái tạo; một arena skeleton; client và headless server artifacts phục vụ kiểm chứng, không bắt buộc thuê server | AC-101: clean checkout tái tạo đúng phiên bản đã duyệt, tạo hai artifacts và smoke-run; TC-101 |
+| FR-102 | Keyboard movement và jump; nhân vật quay theo hướng di chuyển, đánh phía trước hướng đó; camera third-person elevated follow, fixed heading, không mouse orbit, chỉ bind local owner | AC-102: điều khiển độc lập trên từng instance, camera không theo remote; tám hướng/jump và đổi facing đúng; TC-102 |
+| FR-103 | Terrain/wall collision; ring-out theo boundary tường minh; ở trên không không tự bị loại | AC-103: wall cản movement/hit; nhảy trong boundary sống, vượt boundary bị loại server-side; TC-103 |
+| FR-104 | Private room theo code, capacity bốn; chỉ owner start khi bốn người connected và loading/initialization hoàn tất; FFA duy nhất | AC-104: người thứ năm/mã sai bị từ chối, start sớm bị chặn, start hợp lệ đúng một lần; TC-104 |
+| FR-105 | Server spawn bốn participant duy nhất tại điểm hợp lệ, gán ownership và khóa admission khi Playing; reconnect chỉ phục hồi thành viên cũ | AC-105: mỗi identity có một avatar, không late join/spawn lặp; TC-105 |
+| FR-106 | Server quyết định movement hợp lệ và đồng bộ pose/facing; client gửi intent, không quyết định vị trí cuối | AC-106: speed/teleport/air-jump giả không vượt luật; các client hội tụ state sau correction; TC-106 |
+| FR-107 | LMB basic unarmed attack gây HP damage và knockback; server kiểm identity, alive/match state, cooldown, range, forward geometry, obstruction và dedup target/hit | AC-107: hit hợp lệ một lần; spam, wall, behind, out-of-range, self, fake damage không được áp dụng; TC-107 |
+| FR-108 | Server sở hữu HP/knockback; HP không âm; HP=0 OR ring-out vào một elimination flow; reason HP_DEPLETED hoặc RING_OUT; exactly once kể cả cùng step | AC-108: một contender-removal và một spectator transition; eliminated không move/attack/pickup/ảnh hưởng game; TC-108 |
+| FR-109 | Xử lý toàn bộ eliminations trong cùng authoritative step trước outcome; còn một thắng, không còn ai draw; >=2 tiếp tục tới time limit rồi draw; duration configurable chưa có giá trị đầu | AC-109: không có winner sớm khi hai người cuối cùng bị loại cùng step; kết quả chỉ phát một lần; TC-109 |
+| FR-110 | FIRST online MVP có ít nhất một melee weapon type; unarmed tự nhặt khi valid contact; server xử contention/ownership; không stack, giữ tối đa một; E chỉ drop | AC-110: hai người tranh cùng pickup chỉ một thắng; E không collect; drop/held/available đồng nhất trên bốn clients; TC-110 |
+| FR-111 | Vũ khí đầu tăng damage đúng 2x và knockback displacement mục tiêu đúng 2x unarmed; không suy từ force multiplier | AC-111: so sánh damage trên target đủ HP và displacement trong điều kiện chuẩn, tolerance duyệt trước đo; TC-111 |
+| FR-112 | Disconnect không nhận input mới; avatar vẫn vulnerable và chịu arena rules; grace configurable; xác minh returning identity, phục hồi HP/weapon/elimination/match hiện tại; không duplicate/reset/revive | AC-112: reconnect trước grace giữ cùng participant; người bị loại trở lại spectator; TC-112 |
+| FR-113 | Hết grace gây forfeit, bỏ contender và đánh giá outcome; host departure/loss kết thúc session, thông báo rõ, không tạo winner/draw từ host loss | AC-113: forfeiture áp dụng một lần; host loss là Aborted phân biệt Finished; TC-113 |
+| FR-114 | HUD hiển thị HP, held weapon, match/time/results, lỗi room/connection; eliminated được spectate tới kết thúc hoặc leave; spectator controls còn PROPOSED | AC-114: UI khớp authoritative state cả sau reconnect, eliminated không điều khiển gameplay; TC-114 |
+
+## Yêu cầu chất lượng và bằng chứng CURRENT
+
+Các nghĩa vụ dưới đây CONFIRMED/Must; ngưỡng định lượng chưa được duyệt phải ghi UNDECIDED, không biến ngưỡng offline thành tiêu chuẩn online.
+
+| ID | Nghĩa vụ | Acceptance / Planned test |
+| --- | --- | --- |
+| NFR-101 | Protocol được version hóa và lưu GitHub; ownership, validation, ordering, compatibility, reconnect được mô tả; framework adapter sau duyệt | AC-N101: review protocol đối chiếu traffic/log và test trên commit thực; TC-115 |
+| NFR-102 | Có latency simulation và test tái tạo, giữ raw observations kể cả lỗi | AC-N102: baseline + delay/jitter/loss + reconnect được chạy, báo cấu hình và đo thực; TC-116 |
+| NFR-103 | Cheat/negative cases chứng minh server từ chối input/state bất hợp lệ | AC-N103: từng case có expected/actual và authoritative audit; TC-117 |
+| NFR-104 | Load test phù hợp bốn người/match; không nhập assignment-scale concurrency | AC-N104: host+3 và headless+4 được đo theo kế hoạch đã duyệt, giữ raw CPU/memory/tick/bandwidth/errors; TC-118 |
+| NFR-105 | CI tạo client Windows và headless server từ cùng commit; licensing/secrets xử lý hợp lệ | AC-N105: clean CI run lưu hai artifacts, logs, hashes, phiên bản và smoke evidence; TC-119 |
+| NFR-106 | Release tích hợp chạy full FFA, room, weapon, reconnect, latency và bằng chứng bắt buộc | AC-N106: reviewer chạy demo từ artifacts theo TC, lưu kết quả và defects; TC-120 |
+
+## Use cases và luồng trận
+
+| ID | Actor / trigger / flow | Alternative / trace |
+| --- | --- | --- |
+| UC-101 | Host tạo private room, chia code; ba clients join; tất cả load xong; owner start; server spawn và Playing | Sai code/full/not loaded/late admission bị chặn; FR-104–105; TC-104–105 |
+| UC-102 | Contender di chuyển/jump, quay theo movement, LMB đánh; server kiểm movement/hit rồi HP và knockback | Wall/miss/cooldown/spam bị reject; FR-102–107; TC-102–107 |
+| UC-103 | Unarmed contact pickup → server cấp một owner; E → server drop | Tranh chấp không tạo hai ownership; HP không reset; FR-110–111; TC-110–111 |
+| UC-104 | HP=0 hoặc vượt boundary → server loại một lần → spectator → batch outcome | Một contender thắng; zero/timeout draw; FR-108–109, FR-114; TC-108–109, TC-114 |
+| UC-105 | Mất kết nối → no new input, avatar vulnerable → xác minh identity → snapshot → resume hoặc spectate | Hết grace forfeit; host loss Aborted; FR-112–113; TC-112–113 |
+
+## Sổ quyết định gameplay hiện hành
+
+Không mang 10 HP/1 damage hoặc tham số D-07–09 cũ thành PvP defaults. Initial HP, base damage, knockback distance, range, cooldown, tốc độ/jump, simulation rate, match duration và reconnect grace đều UNDECIDED. Phải ghi config/version được duyệt trước test. Không có damage phần trăm hay combo trong CURRENT.
+
+| ID | Trạng thái | Đề nghị / việc cần duyệt và hệ quả |
+| --- | --- | --- |
+| O-01 | PROPOSED | WASD + Space; camera-relative XZ với yaw cố định; giữ facing cuối khi đứng yên; jump chỉ grounded/fresh press. Keyboard movement/jump và facing theo movement đã CONFIRMED, mapping chi tiết cần thử |
+| O-02 | PROPOSED | Armed chạm pickup khác thì bỏ qua; không auto-swap; drop tại điểm hợp lệ gần phía trước với collision query; khóa immediate re-pickup bằng khoảng cách/thời gian configurable chưa chọn |
+| O-03 | PROPOSED | Elimination thả weapon tại vị trí an toàn; weapon rơi khỏi boundary được trả về approved spawn; initial count/positions và respawn delay chưa duyệt |
+| O-04 | PROPOSED | Server tie-break pickup bằng thứ tự contact trong step rồi stable participant ID; cùng HP/ring-out ghi cả observed flags nhưng primary reason HP_DEPLETED; không hai elimination events |
+| O-05 | PROPOSED | Intentional leave forfeit ngay, interruption dùng grace; reuse idempotent contender-removal với LEFT và RECONNECT_EXPIRED, tách khỏi hai elimination causes |
+| O-06 | PROPOSED | Step order: validate inputs → simulate movement/combat → batch HP/ring-out removals → batch leave/grace expiry → evaluate contenders → timeout; host loss luôn Aborted. Priority chi tiết cần duyệt, không thay luật batch confirmed |
+| O-07 | PROPOSED | Reconnect sau Finished chỉ xem result trong session còn tồn tại; sau Aborted từ chối. Connection generation mới vô hiệu kết nối cũ, sequence/tick window loại input cũ/trùng/quá trễ; window và rate cap chưa chọn |
+| O-08 | PROPOSED | Spectator chuyển giữa contender còn sống bằng nút; ready button riêng không cần cho baseline, loading readiness bắt buộc; sau result return room rồi owner start matchId mới là optional repeat-session flow |
+| O-09 | UNDECIDED | Duyệt tham số tuning, reference hardware, tolerance 2x, network/load budgets và acceptable correction trước execution; không tự điền default lịch sử |
+
+## Lịch sử ID và supersession
+
+Bảo toàn nguyên văn SRS v0.2 ở phần HISTORICAL bên dưới để giữ nghĩa FR-001–017, NFR-001–007, UC-001–006, AC-001–017, AC-N01–N07, TC-001–037, D-01–D-12, R-01–R-11. Những ID này RETIRED khỏi current release gate; không có ID nào được đánh dấu implemented. Các đoạn tiếng Anh, link và thông số bên dưới chỉ là bản lưu lịch sử, không phải quyết định hiện hành.
+
+| Nhóm lịch sử | Trạng thái / thay thế hiện hành / lý do |
+| --- | --- |
+| FR-001–004 / AC tương ứng / UC-001 / TC-001, TC-009, TC-029 | REPLACED bởi FR-101, FR-104–105: không auto-start một player/bot; start bốn participants có readiness |
+| FR-005–007 / UC-002–003 / TC-002–008 | REVISED qua FR-102–103, FR-106: local owner, movement facing, network authority và ring-out |
+| FR-008–011 / UC-004 / TC-010–016, TC-022, TC-030 | REPLACED bởi FR-107–108, FR-114: LMB, PvP damage/HP chưa chọn, forward theo facing; không bot 10 HP |
+| FR-012–014 / UC-005 / TC-017–023 | REPLACED bởi FR-110–111: auto pickup, E drop, 2x damage/displacement, contention; không E collect |
+| FR-015–017 / UC-006 / TC-024–028 | REPLACED bởi FR-108–109, FR-113–114: elimination batch, draw/timeout, spectator, Aborted; không bot-only Victory |
+| NFR-001–007 / AC-N01–N07 / TC-031–037 | RETIRED targets offline; NFR-101–106 thêm current evidence gates; FPS/response/hardware targets cũ không được mặc nhiên duyệt |
+| D-01–03 | Fixed-heading follow được xác nhận ở FR-102; root fixed +Z bị thay bằng movement facing; damping/axes vẫn O-01 |
+| D-04–06 | J/E collect/no drop bị thay bởi LMB, auto pickup/E drop và FR-111; số 2 HP không phải base damage current |
+| D-07–09 | Tuning cũ giữ lịch sử; current UNDECIDED O-09 |
+| D-10–12 | Bot victory/auto-start/closed no-ring-out bị thay bởi FR-103–105, FR-108–109 |
+| M1–M7, Part 7 future networking, R-08 | Lịch sử offline; hiện dùng A/B/C trong roadmap, networking sớm bắt buộc; chỉ 2v2/extra weapons là future |
+
+Phiên bản 0.3 bổ sung baseline online và bảng supersession, giữ toàn bộ v0.2; không chứng nhận code, test, giá dịch vụ hay framework đã duyệt. Các official sources hiện hành tập trung tại [kiến trúc](../docs/ARCHITECTURE.md).
+
+---
+
+## HISTORICAL — Bản lưu v0.2, không áp dụng cho current release
+
 # Software Requirements Specification & Technical Design
 
 ## Document metadata

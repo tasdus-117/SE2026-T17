@@ -1,61 +1,31 @@
-# Project State
+# Project State — handoff nhánh tài liệu
 
-Last Updated: 2026-11-01 (Asia/Bangkok)
-Project: SE2026-T17 / Small Arena / Unity 3D Arena Combat Game
-Current Phase: Initial workflow setup; requirements draft exists locally
-Current Goal: Establish verified persistent memory without application changes
-Current Branch: chore/23001901/project-agent-setup
-Base Branch: main at b5054a61258e8a4d274fe56198dd5d0a5304124b
-Task ID: WF-003 (clean integration workflow); BASE-001 (pending baseline approval)
-Last Verified Commit: b5054a61258e8a4d274fe56198dd5d0a5304124b (first commit)
+Last updated: 2026-11-01 (Asia/Bangkok). Project: SE2026-T17 / Small Arena, owner 23001901.
 
-## Current Status
-The base commit tracks only README.md (`git init`). No Unity project, game source, game tests or build configuration was found in this checkout outside the excluded assignment worktree. Local untracked SRS v0.2 describes an offline player-versus-stationary-bot MVP; Unity/C#/URP and package choices remain proposals. Source sections inspected were targeted, not the entire SRS.
+## Branch/base/evidence
 
-## Completed
-- SETUP-001: AGENTS.md and four memory documents created; safety and consistency checked. Work remains uncommitted.
-- WF-002 / WF-003: Branch architecture, clean staging, assignment reuse and cross-branch memory policies persisted locally; no integration performed.
+- Current branch: `docs/23001901/online-ffa-roadmap`, tạo với owner approval từ `long23001901` tại `1d7a6c91fb7c2a3ef2fa233c1d5efe5cc60b462e`.
+- Integration baseline: owner đã duyệt commit setup này cho Unity/C# mới; `long23001901` đã tạo/push với upstream `origin/long23001901`, live remote tip kiểm bằng ls-remote đúng SHA. Đây là nền tài liệu, không runnable game.
+- Last verified committed documentation: setup commit `1d7a6c9`. Online content đang kiểm trước commit; commit/push task còn PENDING tại snapshot này. PR NONE created. **Awaiting integration into long23001901**; không merge/cherry-pick/PR trong task.
+- Setup memory trước đây ghi uncommitted/not pushed/Unity proposed/integration absent đã stale: live Git chứng minh setup docs/reference files đã tracked/pushed, owner xác nhận Unity/C# online và đã phê duyệt foundation. Các historical WORK_LOG/DECISIONS không bị viết lại.
 
-## In Progress
-- No application task selected or started in this worktree.
+## Current goal và kết quả
 
-## Blockers
-- BASE-001 is BLOCKED on owner foundation/start-commit decision. No approved integration baseline or pinned toolchain exists.
+- BASE-001 DONE: approved integration creation/push, không import assignment/Godot/Go. Docs kế thừa memory theo ancestry, không cần chuyển commit.
+- DOC-001 IN_PROGRESS: Vietnamese SRS v0.3 giữ full v0.2 với retired IDs, 19-feature roadmap A/B/C + D future/E optional, architecture NGO/Mirror official comparison, protocol và TC-101–120 Planned; README/learning/instructions/memory được reconcile trong nhánh này.
+- Product CONFIRMED: Windows Unity/C#, host+3 remote FFA, private code rooms, one arena, movement/jump/facing/fixed-heading camera, melee HP+knockback, weapon auto pickup/E drop/2x, HP/ring-out unified elimination, spectator/results, reconnect/forfeit/host abort và protocol/load/latency/cheat/CI evidence bắt buộc trong first MVP. 2v2/additional weapons FUTURE.
+- Chưa có Unity Assets/Packages/ProjectSettings, game implementation, online test harness, CI workflow hoặc verified build command trên baseline này. Historical assignment Node/SQLite evidence không chứng minh gameplay/3D/WAN/reconnect.
 
-## Known Issues
-- README.md contains no project onboarding instructions.
-- Existing AD-065 evidence notes describe historical snapshots; they are not current implementation/test proof. The separate worktree was checked only for branch/status, not implementation contents.
+## Kiểm chứng và giới hạn
 
-## Next Action
-Review BASE-001 proposal below; obtain explicit foundation/start-commit and documentation incorporation approval before creating long23001901. PLAN-001 must reconcile the local Unity draft with the selected foundation.
+Git status/branch/ops/refs/history/ancestry, repository remote identity, clean assignment worktree và prompt hash đã kiểm. Markdown checks PASS: 52 local links/11 anchors; 14 FR/6 NFR/5 UC, 20 AC/20 TC unique và traceability; 19-feature dependency DAG; historical SRS exact normalized preservation; WORK_LOG append-only; UTF-8/fences/common secret patterns và semantic MVP review. `git diff --check` không whitespace error. Chi tiết/fixed check failures trong WORK_LOG. Gameplay/build/load/latency/cheat tests NOT RUN; mọi online TC vẫn Planned. Official tech/licensing/pricing sources đã đọc ngày 2026-11-01, không installed inventory hoặc approval.
 
-## Personal Integration Baseline
-- long23001901 does not exist in local or cached remote refs. Active setup branch is not a game development baseline.
-- All inspected lines share b5054a61258e8a4d274fe56198dd5d0a5304124b; assignment, Go spike and Godot/.NET lines diverge independently. Live git ls-remote --heads origin on 2026-11-01 confirmed all cached branch tips and absence of long23001901. No fetch or ref update performed.
-- origin/tasdus117 at 1257ad73e57a238d2a86bdddb6f72c1278977541 contains Godot client scripts/project and .NET 8 server, tests and CI files. It descends from c7fbd30 (Release v1 Small Arena 3D) and 674b40b (AD-066). Approval/completeness UNVERIFIED. project.godot references scenes/main.tscn, absent from tracked inventory; test commands also need validation.
-- origin/feature/system-skeleton at db886ddf2bdd5986cd4fc5140ca2e34b46700bc8 contains a Go authoritative server/retention spike, tests and migrations, not a client foundation.
-- assignment/AD-065-23001901 at f4835ce contains an isolated Node.js assignment slice/report/evidence, not a complete game. Its history/worktree must remain intact.
-- No unconditional safe game base is recommended: foundation approval and runnable completeness are unverified. If owner selects the existing Godot/.NET project, candidate exact base is 1257ad73e57a238d2a86bdddb6f72c1278977541, preserving its history without unrelated branch imports. If owner selects a fresh Unity foundation, candidate clean root is b5054a61258e8a4d274fe56198dd5d0a5304124b, which contains no game code. Neither choice is approved. The earlier Godot/.NET provisional preference is not an approval or evidence of readiness.
-- Memory plan: review and explicitly commit only AGENTS.md and the four docs on the setup branch if authorized; after base approval, bring that dedicated documentation commit into integration only with explicit cherry-pick/integration approval. Reconcile state with chosen codebase and preserve its existing docs. Do not import assignment implementation or stage unrelated paths. No such operation performed.
+## Uncommitted work và preservation
 
-## Relevant Files
-- ../AGENTS.md
-- TASKS.md (SETUP-001 and PLAN-001)
-- ../Long_document/srs.md (metadata, sections 1.1–1.3 and 2.1–2.2)
-- ../Long_document/learning-roadmap.md
-- DECISIONS.md; WORK_LOG.md
+12 task-related Markdown paths dự kiến: README.md, AGENTS.md, Long_document/{srs,learning-roadmap}.md, docs/{ROADMAP,ARCHITECTURE,PROTOCOL,TESTING,PROJECT_STATE,TASKS,DECISIONS,WORK_LOG}.md. Chỉ explicit paths này được stage. Preexisting `docs/prompts/create_roadmap_prompt.md` giữ nguyên/untracked, SHA256 `13A8FA34DAA474C0F8CFCB058AA9649721BFA08C9281E9005B46472C1EDF3DC8`. `.ad065-worktree/` và assignment ref tại f4835ce untouched; main b5054a6 và setup 1d7a6c9 không đổi. Không tự stage untracked prompt hoặc generated/source/config files.
 
-## Verification Status
-Read-only Git/discovery checks and setup documentation checks executed; see WORK_LOG.md. No application build, gameplay test, C# compilation or benchmark run: no corresponding project/test setup found here.
+## Blockers và exact next action
 
-## Git Status
-- Personal branch created/switched with explicit user approval; base and protected main ref unchanged.
-- New untracked setup files: AGENTS.md and docs/{PROJECT_STATE,TASKS,DECISIONS,WORK_LOG}.md; nothing staged.
-- Preserved preexisting untracked paths: .ad065-worktree/, AD-065-prompt.md, Long_document/, Persistent_Project_Memory_Task_Manage.md.
-- Existing assignment worktree: assignment/AD-065-23001901 at f4835ce35aea6bff79ce5fcd266813abb3c733bd; clean at inspection, untouched.
-- Push status: setup branch not pushed, no upstream configured and absent from live remote heads. PR status: none created; remote PR existence UNVERIFIED. No commit/push/merge performed; remote heads verified read-only on 2026-11-01.
+TECH-001 TODO: owner/team review recommendation NGO + Unity Transport + MPS/Relay và candidate Unity 6.3 LTS, chọn đúng một framework, pin compatible exact versions, license/runner/modules/service budget/identity plan; O-01–09 tuning/drop/reconnect/ordering/spectator details còn PROPOSED/UNDECIDED. Không còn blocker cho documentation độc lập.
 
-## Open Questions
-- Who approves SRS proposals, and which exact Editor/package patches should be pinned?
-- Which candidate foundation is approved? Personal PR target is long23001901 once established; shared target, coding conventions, verified test/build procedure and delivery schedule remain UNKNOWN.
-- Which local reference documents should later be versioned? Do not automatically stage all untracked paths.
+Sau docs commit/push, owner review tài liệu và TECH-001; integration vào long23001901 cần authorization riêng (chưa có). Sau successful authorized integration mới reconcile integration memory, xin feature branch từ latest approved integration để làm GAME-001/F-001. Acceptance F-001 là FR-101/AC-101/TC-101: clean reproducible pins, client/headless artifacts/smoke và README commands từ thực tế. F-003 early two→four/different-network spike tiếp ngay, không làm offline game lớn trước networking. Không tiếp tục implementation trong task tài liệu.
