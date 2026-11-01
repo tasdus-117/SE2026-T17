@@ -40,3 +40,18 @@ standalone performance and usability cases retain the methods in the SRS.
 For executed cases, append commit/build ID, Editor/package versions, approved
 parameters, tester/date, machine, actual outcome, log/result path and defect link.
 Do not mark a whole TC Passed from a partial scaffold check.
+
+## Task 1.2 executed domain coverage
+
+The standalone NUnit run executes 30 cases in `MatchStateTests.cs`. These are
+domain-level evidence only; the full SRS scenario statuses above remain Planned.
+
+| SRS mapping | Executed coverage | Remaining integration evidence |
+| --- | --- | --- |
+| AC-001 / TC-001, TC-029 | Initializing, immutable/default/failed readiness, successful startup, repeated start rejection | Actual missing references, entity counts, HP/stats/pickup/HUD readiness and blocked input |
+| AC-015 / TC-024 | Once-only Playing-to-Victory transition, duplicate and reentrant requests | Health clamp, once-only defeat emission and GameManager event wiring |
+| AC-017 / TC-026 | Terminal Victory, rejected restart/victory, IsPlaying false | Actual punch/damage/collection rejection and pending-hit cancellation (TC-027) |
+| AC-N04, AC-N07 / TC-034, TC-037 | Encapsulation, local events, isolated instances, engine-free compiled domain, automated tests and targeted mutation detection | Remaining module ownership and health/damage/cooldown/pickup test suites |
+
+Execution environment, mutation results, reproduction command and artifact paths:
+[`task_1_2_verification.md`](task_1_2_verification.md).

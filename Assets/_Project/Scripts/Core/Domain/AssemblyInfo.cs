@@ -1,2 +1,2 @@
-// Assembly identity only; gameplay rules are introduced in a later task.
+// Assembly identity; pure match rules live alongside this file.
 [assembly: System.Reflection.AssemblyDescription("Small Arena pure domain rules")]

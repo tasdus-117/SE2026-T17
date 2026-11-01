@@ -64,6 +64,17 @@ No gameplay tests are implemented in Task 1.1. The four `AssemblyInfo.cs` files
 contain identity attributes only, ensuring each assembly has a source file without
 adding game behavior. Future EditMode/PlayMode cases remain Planned.
 
+Task 1.2 adds the pure match-state rules and 30 NUnit cases. Run them without an
+Editor license or package downloads using the bundled compiler, runtime and NUnit:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Run-DomainTests.ps1 -MutationChecks
+```
+
+This invokes NUnit's own test builder and execution runner, saves NUnit XML, and
+tests isolated compiled mutations. See `testing/task_1_2_verification.md` for
+scope and evidence. It does not replace licensed Unity import verification.
+
 ## Git and asset ownership
 
 - The baseline commit is `8b47fe0` (`chore: establish clean project baseline and import specs`).
