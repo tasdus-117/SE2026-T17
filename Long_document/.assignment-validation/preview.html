@@ -1,0 +1,491 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><style>*{box-sizing:border-box}body{background:#ddd;margin:0;color:#171717;font-family:Arial,sans-serif;font-size:9.5pt;line-height:1.14}.sheet{background:white;width:186mm;margin:16px auto;padding:0;display:flow-root}h1{font-size:15pt;margin:0 0 7px}h2{font-size:12pt;margin:0 0 6px}h3{font-size:10.5pt;margin:7px 0 4px}p{margin:4px 0}table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:9pt;line-height:1.12;margin:4px 0}th,td{border:1px solid #aaa;padding:3px;overflow-wrap:anywhere;vertical-align:top}pre{font-size:8.6pt;line-height:1.12;background:#f3f3f3;padding:4px;white-space:pre-wrap}code{font-family:Consolas,monospace;font-size:.94em}a{color:#17456a}blockquote{border-left:2px solid #aaa;padding-left:8px;margin:7px}svg{display:block;width:100%;height:auto;max-width:100%}.diagram{margin:5px 0}</style><body><article class="sheet" data-block="1"><style>
+@page { size: A4; margin: 12mm; }
+@media print {
+  body { font-family: Arial, sans-serif; font-size: 9.5pt; line-height: 1.14; color: #171717; }
+  h1 { font-size: 15pt; margin: 0 0 7px; }
+  h2 { font-size: 12pt; margin: 0 0 6px; }
+  h3 { font-size: 10.5pt; margin: 7px 0 4px; }
+  p { margin: 4px 0; }
+  table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9pt; line-height: 1.12; margin: 4px 0; }
+  th, td { border: 1px solid #aaa; padding: 3px; vertical-align: top; overflow-wrap: anywhere; }
+  pre { font-size: 8.6pt; line-height: 1.12; padding: 4px; white-space: pre-wrap; }
+  code { font-family: Consolas, monospace; font-size: .94em; }
+  svg { display: block; width: 100%; height: auto; max-width: 100%; }
+  table, pre, svg { break-inside: avoid; }
+}
+</style>
+
+<h1>Bài tập cá nhân 2 — Phân tích kiến trúc và chất lượng thiết kế</h1>
+<p><strong>ĐỒNG VŨ HOÀNG LONG · MSSV 23001901 · AD-065</strong><br><strong>Nhóm SE2026-T17 · GAME-3D-03 · 3 tín chỉ · Vai trò: Member</strong><br><strong>Small Arena: Multiplayer 3D Authoritative Server</strong><br>Repository: <a href="https://github.com/tasdus-117/SE2026-T17">tasdus-117/SE2026-T17</a>, nhánh <code>main</code>. Kiểm tra ngày <strong>24/10/2026, Asia/Bangkok</strong>; HEAD: <code>b5054a61258e8a4d274fe56198dd5d0a5304124b</code>.</p>
+<p><strong>Tôi chịu trách nhiệm về toàn bộ nội dung bài làm và đã khai báo việc sử dụng AI.</strong></p>
+<p><strong>Chứng cứ:</strong> [R] HEAD chỉ có <code>README.md:1</code>, <code>git init</code>; không có gameplay/server/migration/test. [S] v0.2 là nháp: MVP offline một người chơi, bot đứng yên 10 HP, một pickup; multiplayer là Future Scope. Server/database dưới đây là mở rộng AD-065. <strong>VERIFIED:</strong> đã kiểm tra; <strong>SPECIFIED:</strong> được quy định; <strong>PROPOSED:</strong> thiết kế đề xuất; <strong>PLANNED:</strong> dự kiến thực hiện/test; <strong>UNVERIFIED:</strong> chưa đủ chứng cứ. Confirmed/Proposed/Future Scope là trạng thái riêng của SRS; Confirmed không có nghĩa đã triển khai.</p>
+<h2>1. Architecture drivers và kịch bản chất lượng — Phiên 1</h2>
+<p>Cơ sở: [L4] “Requirements shape architecture”, “Quality attribute scenario”, “Constraints narrow the design space”; [L5] “Maintainability as change capacity”. Đúng ba Architecture Driver được ưu tiên theo khả năng chi phối cấu trúc và hậu quả khi vi phạm:</p>
+<table>
+<thead>
+<tr>
+<th>Driver và nguồn</th>
+<th>Lý do ưu tiên, hệ quả kiến trúc và rủi ro</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>D1 — Performance:</strong> AD-065, 764 người dùng/tác vụ đồng thời, p95 ≤4,5 giây (<strong>SPECIFIED</strong>)</td>
+<td>Quyết định giới hạn hàng đợi, phân vùng theo trận và đo thời gian xuyên suốt; bỏ qua gây tắc nghẽn, timeout. Không suy ra 764 request/giây hoặc 764 người trong một trận.</td>
+</tr>
+<tr>
+<td><strong>D2 — Quyền quyết định và nhất quán:</strong> [S] §4.3 FR-009–010, FR-014–017; §7.1–7.2 Future Scope và AD-065</td>
+<td>Server tương lai sở hữu HP, pickup và trạng thái trận; một luồng xử lý logic mỗi trận bảo vệ invariant. Bỏ qua gây sát thương lặp, tranh chấp pickup và kết quả sai. Quy tắc thắng FFA chưa được xác nhận.</td>
+</tr>
+<tr>
+<td><strong>D3 — Thay đổi an toàn trong giới hạn vận hành:</strong> AD-065, đổi schema phải rollback được; lưu dữ liệu vận hành 7 ngày; phản hồi yêu cầu thay đổi trong 12 giờ</td>
+<td>Ownership rõ, schema tương thích hai phiên bản, triển khai có cổng kiểm tra. Bỏ qua có thể mất dữ liệu, không phục hồi được hoặc chậm phân tích thay đổi. [S] §4.1.2 loại database khỏi MVP; đây là ràng buộc bài tập cho kiến trúc mở rộng.</td>
+</tr>
+</tbody></table>
+<h3>Kịch bản Performance sáu thành phần</h3>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Kịch bản và điều kiện đo đề xuất</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Source</strong></td>
+<td>764 client/tác vụ đã kết nối hợp lệ, phân bổ vào <strong>191 trận × 4 người</strong>, giả định theo tầm nhìn tối đa bốn người/trận [S] §1.1, §7; không mở rộng quy mô một trận.</td>
+</tr>
+<tr>
+<td><strong>Stimulus</strong></td>
+<td>Mỗi client phát <code>SubmitAttackV1</code> hợp lệ theo lịch một lần/giây; mỗi client tối đa một request chưa hoàn tất. Mức phát dự kiến 764 request/giây chỉ đúng nếu độ trễ cho phép, không phải hệ quả của concurrency.</td>
+</tr>
+<tr>
+<td><strong>Environment</strong></td>
+<td>Hoạt động ổn định, mạng và máy đo được ghi cấu hình; làm nóng 2 phút, đo 10 phút, lặp 3 lần. Ghi CPU/RAM, tick rate, RTT, jitter, build, schema, seed và phân bố request. Đây là workload <strong>PROPOSED</strong>, chưa phải baseline được nhóm duyệt.</td>
+</tr>
+<tr>
+<td><strong>Artifact</strong></td>
+<td>Gateway → MatchApp → Combat; kho trạng thái authoritative trong RAM. Ghi kết quả trận là đường giao dịch riêng.</td>
+</tr>
+<tr>
+<td><strong>Response</strong></td>
+<td>Xác thực client, kiểm tra sequence/tick/state/cooldown/hit; xử lý một lần và trả kết quả authoritative hoặc lỗi có nghĩa. Giới hạn hàng đợi; không nhận thêm vô hạn.</td>
+</tr>
+<tr>
+<td><strong>Measurable Response</strong></td>
+<td><strong>p95 Response Time ≤4,5 giây</strong> từ lúc client gửi đến khi nhận kết quả xử lý cuối cùng, gồm mạng và hàng đợi; không dùng ACK nhận lệnh làm kết quả. Tính nearest-rank trên mẫu thô mỗi lần chạy; ghi riêng tỷ lệ thành công, lỗi, timeout, throughput thực và độ trễ server. Timeout 5 giây là mẫu thất bại, không loại khỏi thống kê. Đề xuất điều kiện phụ: không timeout/lỗi ngoài lỗi nghiệp vụ dự kiến; không đạt bằng cách từ chối nhanh tải hợp lệ.</td>
+</tr>
+</tbody></table>
+<p><strong>Giới hạn:</strong> workload đóng có thể tự giảm throughput; cần báo thời gian chờ phát và thử lịch mở để phát hiện coordinated omission. Chưa đo D1; 4,5 giây không bảo đảm combat thời gian thực. [S] §4.4 NFR-001 (p95 frame time ≤25 ms), NFR-002 (hình ảnh ≤100 ms), TC-031–032 là mục tiêu <strong>Proposed của client offline</strong>, không thay thế chỉ tiêu server.</p>
+<p><strong>Performance–Reliability/Consistency:</strong> SQL transaction mỗi hit tăng durability nhưng thêm độ trễ/khóa; RAM có thể mất khi crash. <strong>PROPOSED:</strong> xử lý tuần tự mỗi trận trong RAM, chỉ xác nhận lưu kết quả sau commit riêng. Chấp nhận crash hủy trận có thông báo; yêu cầu phục hồi giữa trận sẽ buộc xem lại. Tải D1, kill-process và ghi lặp phải kiểm chứng trade-off; chưa có kết quả.</p>
+</article><article class="sheet" data-block="2"><h2>2. Kiến trúc, ranh giới và quyền sở hữu — Phiên 2</h2>
+<p>Toàn bộ phần này là <strong>PROPOSED</strong> cho mở rộng AD-065; không thêm server/database vào cổng nghiệm thu offline. [L4] “Three views of one system”, “Data ownership”, “Concurrency changes the design”; [L5] “Information hiding”, “Separation of concerns”, SOLID-D. Nguồn nghiệp vụ: [S] §3.1, §4.3, §7.1–7.2.</p>
+<h3>2.1 Module View</h3>
+<div class="diagram"><svg id="diagram0" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 1261.671875px;" viewBox="4 4 1261.671875 384" role="graphics-document document" aria-roledescription="flowchart-v2"><style>#diagram0{font-family:Arial;font-size:20px;fill:#000000;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#diagram0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#diagram0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#diagram0 .error-icon{fill:#552222;}#diagram0 .error-text{fill:#552222;stroke:#552222;}#diagram0 .edge-thickness-normal{stroke-width:1px;}#diagram0 .edge-thickness-thick{stroke-width:3.5px;}#diagram0 .edge-pattern-solid{stroke-dasharray:0;}#diagram0 .edge-thickness-invisible{stroke-width:0;fill:none;}#diagram0 .edge-pattern-dashed{stroke-dasharray:3;}#diagram0 .edge-pattern-dotted{stroke-dasharray:2;}#diagram0 .marker{fill:#666;stroke:#666;}#diagram0 .marker.cross{stroke:#666;}#diagram0 svg{font-family:Arial;font-size:20px;}#diagram0 p{margin:0;}#diagram0 .label{font-family:Arial;color:#000000;}#diagram0 .cluster-label text{fill:#333;}#diagram0 .cluster-label span{color:#333;}#diagram0 .cluster-label span p{background-color:transparent;}#diagram0 .label text,#diagram0 span{fill:#000000;color:#000000;}#diagram0 .node rect,#diagram0 .node circle,#diagram0 .node ellipse,#diagram0 .node polygon,#diagram0 .node path{fill:#eee;stroke:#999;stroke-width:1px;}#diagram0 .rough-node .label text,#diagram0 .node .label text,#diagram0 .image-shape .label,#diagram0 .icon-shape .label{text-anchor:middle;}#diagram0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#diagram0 .rough-node .label,#diagram0 .node .label,#diagram0 .image-shape .label,#diagram0 .icon-shape .label{text-align:center;}#diagram0 .node.clickable{cursor:pointer;}#diagram0 .root .anchor path{fill:#666!important;stroke-width:0;stroke:#666;}#diagram0 .arrowheadPath{fill:#333333;}#diagram0 .edgePaths .path{stroke:#666;stroke-width:1px;}#diagram0 .flowchart-link{stroke:#666;fill:none;}#diagram0 .edgeLabel{background-color:white;text-align:center;}#diagram0 .edgeLabel p{background-color:white;}#diagram0 .edgeLabel rect{opacity:0.5;background-color:white;fill:white;}#diagram0 .labelBkg{background-color:rgba(255, 255, 255, 0.5);}#diagram0 .cluster rect{fill:hsl(0, 0%, 98.9215686275%);stroke:#707070;stroke-width:1px;}#diagram0 .cluster text{fill:#333;}#diagram0 .cluster span{color:#333;}#diagram0 .node .collapsed-indicator{fill:#707070;stroke:none;opacity:0.6;}#diagram0 .node .collapsed-separator{stroke:#707070;stroke-width:0.75px;}#diagram0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:Arial;font-size:12px;background:hsl(-160, 0%, 93.3333333333%);border:1px solid #707070;border-radius:2px;pointer-events:none;z-index:100;}#diagram0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#000000;}#diagram0 rect.text{fill:none;stroke-width:0;}#diagram0 .icon-shape,#diagram0 .image-shape{background-color:white;text-align:center;}#diagram0 .icon-shape p,#diagram0 .image-shape p{background-color:white;padding:2px;}#diagram0 .icon-shape .label rect,#diagram0 .image-shape .label rect{opacity:0.5;background-color:white;fill:white;}#diagram0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#diagram0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#diagram0 .node .neo-node{stroke:#999;}#diagram0 [data-look="neo"].node rect,#diagram0 [data-look="neo"].cluster rect,#diagram0 [data-look="neo"].node polygon{stroke:url(#diagram0-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram0 [data-look="neo"].swimlane.cluster rect{filter:none;}#diagram0 [data-look="neo"].node path{stroke:url(#diagram0-gradient);stroke-width:1px;}#diagram0 [data-look="neo"].node .outer-path{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram0 [data-look="neo"].node .neo-line path{stroke:#999;filter:none;}#diagram0 [data-look="neo"].node circle{stroke:url(#diagram0-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram0 [data-look="neo"].node circle .state-start{fill:#000000;}#diagram0 [data-look="neo"].icon-shape .icon{fill:url(#diagram0-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram0 [data-look="neo"].icon-shape .icon-neo path{stroke:url(#diagram0-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram0 :root{--mermaid-font-family:Arial;}</style><g><marker id="diagram0_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram0_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram0_flowchart-v2-pointEnd-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram0_flowchart-v2-pointStart-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></polygon></marker><marker id="diagram0_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="diagram0_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="diagram0_flowchart-v2-circleEnd-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refY="5" refX="12.25" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="diagram0_flowchart-v2-circleStart-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-2" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="diagram0_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram0_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram0_flowchart-v2-crossEnd-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="17.7" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5;"></path></marker><marker id="diagram0_flowchart-v2-crossStart-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="-3.5" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"><g class="cluster" id="diagram0-Server" data-look="neo"><rect style="" x="334.0625" y="12" width="624" height="368"></rect><g class="cluster-label" transform="translate(581.0234375, 12)"><foreignObject width="130.078125" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5;"><span class="nodeLabel"><p>Server đề xuất</p></span></div></foreignObject></g></g></g><g class="edges edgePaths"><path d="M510.0625,274.3L532.9914321881345,274.3Q540.0625,274.3 540.0625,267.22893218813454L540.0625,232.07106781186548Q540.0625,225 547.1335678118655,225L566.0625,225" id="diagram0-L_G_A_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 95.97171020507812 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_G_A_0" data-points="W3sieCI6NTEwLjA2MjUsInkiOjI3NC4zfSx7IngiOjU0MC4wNjI1LCJ5IjoyNzQuM30seyJ4Ijo1NDAuMDYyNSwieSI6MjI1fSx7IngiOjU3MC4wNjI1LCJ5IjoyMjV9XQ==" data-look="neo" marker-end="url(#diagram0_flowchart-v2-pointEnd-margin)"></path><path d="M722.0625,225L778.0625,225" id="diagram0-L_A_D_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 52 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_A_D_0" data-points="W3sieCI6NzIyLjA2MjUsInkiOjIyNX0seyJ4Ijo3ODIuMDYyNSwieSI6MjI1fV0=" data-look="neo" marker-end="url(#diagram0_flowchart-v2-pointEnd-margin)"></path><path d="M722.0625,216.89999999999998L744.9914321881345,216.89999999999998Q752.0625,216.89999999999998 752.0625,209.8289321881345L752.0625,133.47106781186548Q752.0625,126.4 759.1335678118655,126.4L778.0625,126.4" id="diagram0-L_A_P_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 137.17172241210938 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_A_P_0" data-points="W3sieCI6NzIyLjA2MjUsInkiOjIxNi44OTk5OTk5OTk5OTk5OH0seyJ4Ijo3NTIuMDYyNSwieSI6MjE2Ljg5OTk5OTk5OTk5OTk4fSx7IngiOjc1Mi4wNjI1LCJ5IjoxMjYuNH0seyJ4Ijo3ODIuMDYyNSwieSI6MTI2LjR9XQ==" data-look="neo" marker-end="url(#diagram0_flowchart-v2-pointEnd-margin)"></path><path d="M510.0625,103.69999999999999L534.1125,103.69999999999999Q540.0625,103.69999999999999 540.0625,109.64999999999998L540.0625,109.64999999999998Q540.0625,115.59999999999997 546.0125,115.59999999999997L778.0625,115.6" id="diagram0-L_S_P_0" class="edge-thickness-normal edge-pattern-dotted edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_S_P_0" data-points="W3sieCI6NTEwLjA2MjUsInkiOjEwMy42OTk5OTk5OTk5OTk5OX0seyJ4Ijo1NDAuMDYyNSwieSI6MTAzLjY5OTk5OTk5OTk5OTk5fSx7IngiOjU0MC4wNjI1LCJ5IjoxMTUuNTk5OTk5OTk5OTk5OTd9LHsieCI6NzgyLjA2MjUsInkiOjExNS42fV0=" data-look="neo" marker-end="url(#diagram0_flowchart-v2-pointEnd-margin)"></path><path d="M510.0625,285.1L532.9914321881345,285.1Q540.0625,285.1 540.0625,292.1710678118655L540.0625,327.3289321881345Q540.0625,334.4 547.1335678118655,334.4L778.0625,334.4" id="diagram0-L_G_O_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 307.9716796875 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_G_O_0" data-points="W3sieCI6NTEwLjA2MjUsInkiOjI4NS4xfSx7IngiOjU0MC4wNjI1LCJ5IjoyODUuMX0seyJ4Ijo1NDAuMDYyNSwieSI6MzM0LjR9LHsieCI6NzgyLjA2MjUsInkiOjMzNC40fV0=" data-look="neo" marker-end="url(#diagram0_flowchart-v2-pointEnd-margin)"></path><path d="M722.0625,233.1L744.9914321881345,233.1Q752.0625,233.1 752.0625,240.17106781186547L752.0625,316.5289321881345Q752.0625,323.59999999999997 759.1335678118655,323.59999999999997L778.0625,323.59999999999997" id="diagram0-L_A_O_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 137.17173767089844 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_A_O_0" data-points="W3sieCI6NzIyLjA2MjUsInkiOjIzMy4xfSx7IngiOjc1Mi4wNjI1LCJ5IjoyMzMuMX0seyJ4Ijo3NTIuMDYyNSwieSI6MzIzLjU5OTk5OTk5OTk5OTk3fSx7IngiOjc4Mi4wNjI1LCJ5IjozMjMuNTk5OTk5OTk5OTk5OTd9XQ==" data-look="neo" marker-end="url(#diagram0_flowchart-v2-pointEnd-margin)"></path><path d="M164,279.7L324.0625,279.7L354.0625,279.7" id="diagram0-L_C_G_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 186.0625 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_C_G_0" data-points="W3sieCI6MTY0LCJ5IjoyNzkuN30seyJ4IjozMjQuMDYyNSwieSI6Mjc5Ljd9LHsieCI6MzU4LjA2MjUsInkiOjI3OS43fV0=" data-look="neo" marker-end="url(#diagram0_flowchart-v2-pointEnd-margin)"></path><path d="M510.0625,92.89999999999998L968.0625,92.89999999999998L1086.6008071881345,92.89999999999998Q1093.671875,92.89999999999998 1093.671875,99.97106781186545L1093.671875,185.57081730979797Q1093.671875,192.64188512166345 1100.7429428118655,192.64188512166345L1109.671875,192.64188512166345" id="diagram0-L_S_DB_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 690.02294921875 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_S_DB_0" data-points="W3sieCI6NTEwLjA2MjUsInkiOjkyLjg5OTk5OTk5OTk5OTk4fSx7IngiOjk2OC4wNjI1LCJ5Ijo5Mi44OTk5OTk5OTk5OTk5OH0seyJ4IjoxMDkzLjY3MTg3NSwieSI6OTIuODk5OTk5OTk5OTk5OTh9LHsieCI6MTA5My42NzE4NzUsInkiOjE5Mi42NDE4ODUxMjE2NjM0NX0seyJ4IjoxMTEzLjY3MTg3NSwieSI6MTkyLjY0MTg4NTEyMTY2MzQ1fV0=" data-look="neo" marker-end="url(#diagram0_flowchart-v2-pointEnd-margin)"></path><path d="M934.0625,329L968.0625,329L1086.6008071881345,329Q1093.671875,329 1093.671875,321.9289321881345L1093.671875,224.42918269020208Q1093.671875,217.3581148783366 1100.7429428118655,217.3581148783366L1109.671875,217.3581148783366" id="diagram0-L_O_DB_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 277.9229736328125 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_O_DB_0" data-points="W3sieCI6OTM0LjA2MjUsInkiOjMyOX0seyJ4Ijo5NjguMDYyNSwieSI6MzI5fSx7IngiOjEwOTMuNjcxODc1LCJ5IjozMjl9LHsieCI6MTA5My42NzE4NzUsInkiOjIxNy4zNTgxMTQ4NzgzMzY2fSx7IngiOjExMTMuNjcxODc1LCJ5IjoyMTcuMzU4MTE0ODc4MzM2Nn1d" data-look="neo" marker-end="url(#diagram0_flowchart-v2-pointEnd-margin)"></path></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(646.0625, 115.09999999999997)"><g class="label" data-id="L_S_P_0" transform="translate(-61.734375, -15)"><foreignObject width="123.46875" height="30"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>hiện thực port</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(244.03125, 279.2)"><g class="label" data-id="L_C_G_0" transform="translate(-40.03125, -15)"><foreignObject width="80.0625" height="30"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>ý định v1</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(1040.8671875, 92.89999999999998)"><g class="label" data-id="L_S_DB_0" transform="translate(-32.8046875, -15)"><foreignObject width="65.609375" height="30"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>kết quả</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(1040.8671875, 328.5)"><g class="label" data-id="L_O_DB_0" transform="translate(-13.3515625, -15)"><foreignObject width="26.703125" height="30"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>log</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="diagram0-flowchart-C-0" data-look="neo" transform="translate(88, 279.7)"><rect class="basic label-container" style="" x="-76" y="-27" width="152" height="54"></rect><g class="label" style="" transform="translate(-60, -15)"><rect></rect><foreignObject width="120" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>UnityClient</p></span></div></foreignObject></g></g><g class="node default" id="diagram0-flowchart-G-1" data-look="neo" transform="translate(434.0625, 279.7)"><rect class="basic label-container" style="" x="-76" y="-27" width="152" height="54"></rect><g class="label" style="" transform="translate(-60, -15)"><rect></rect><foreignObject width="120" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Gateway</p></span></div></foreignObject></g></g><g class="node default" id="diagram0-flowchart-A-2" data-look="neo" transform="translate(646.0625, 225)"><rect class="basic label-container" style="" x="-76" y="-27" width="152" height="54"></rect><g class="label" style="" transform="translate(-60, -15)"><rect></rect><foreignObject width="120" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>MatchApp</p></span></div></foreignObject></g></g><g class="node default" id="diagram0-flowchart-D-3" data-look="neo" transform="translate(858.0625, 225)"><rect class="basic label-container" style="" x="-76" y="-27" width="152" height="54"></rect><g class="label" style="" transform="translate(-60, -15)"><rect></rect><foreignObject width="120" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Combat</p></span></div></foreignObject></g></g><g class="node default" id="diagram0-flowchart-P-4" data-look="neo" transform="translate(858.0625, 121)"><rect class="basic label-container" style="" x="-76" y="-27" width="152" height="54"></rect><g class="label" style="" transform="translate(-60, -15)"><rect></rect><foreignObject width="120" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Port</p></span></div></foreignObject></g></g><g class="node default" id="diagram0-flowchart-S-5" data-look="neo" transform="translate(434.0625, 98.29999999999998)"><rect class="basic label-container" style="" x="-76" y="-27" width="152" height="54"></rect><g class="label" style="" transform="translate(-60, -15)"><rect></rect><foreignObject width="120" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>MatchStore</p></span></div></foreignObject></g></g><g class="node default" id="diagram0-flowchart-O-6" data-look="neo" transform="translate(858.0625, 329)"><rect class="basic label-container" style="" x="-76" y="-27" width="152" height="54"></rect><g class="label" style="" transform="translate(-60, -15)"><rect></rect><foreignObject width="120" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Telemetry</p></span></div></foreignObject></g></g><g class="node default" id="diagram0-flowchart-DB-19" data-look="neo" transform="translate(1185.671875, 205.00000000000003)"><path d="M0,13.382899628252789 a72,13.382899628252789 0,0,0 144,0 a72,13.382899628252789 0,0,0 -144,0 l0,67.38289962825279 a72,13.382899628252789 0,0,0 144,0 l0,-67.38289962825279" class="basic label-container outer-path" style="" transform="translate(-72, -47.07434944237918)"></path><g class="label" style="" transform="translate(-60, -11)"><rect></rect><foreignObject width="120" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Database</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="diagram0-drop-shadow" height="130%" width="130%"><feDropShadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></feDropShadow></filter></defs><defs><filter id="diagram0-drop-shadow-small" height="150%" width="150%"><feDropShadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></feDropShadow></filter></defs><linearGradient id="diagram0-gradient" gradientUnits="objectBoundingBox" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="hsl(0, 0%, 83.3333333333%)" stop-opacity="1"></stop><stop offset="100%" stop-color="hsl(0, 0%, 88.9215686275%)" stop-opacity="1"></stop></linearGradient></svg></div>
+
+<p>Mũi tên trong server là <strong>phụ thuộc mã</strong>, cạnh DB là truy cập dữ liệu, cạnh client là contract mạng. <strong>Port = <code>IMatchResults</code>, thuộc MatchApp</strong>; composition root gắn MatchStore vào port. Server là một đơn vị triển khai; domain không import DB. Không có broker/event bus; phản hồi và snapshot là thông điệp mạng trực tiếp.</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Trách nhiệm, hợp đồng chính và quy tắc sở hữu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UnityClient</td>
+<td>Đổi input thành ý định, hiển thị snapshot; không quyết định HP hay người thắng. MVP vẫn dùng authority cục bộ.</td>
+</tr>
+<tr>
+<td>Gateway</td>
+<td><code>SubmitAttackV1</code>, <code>CollectPickupV1</code>; gắn danh tính từ kết nối, kiểm tra payload, quota và routing; không tính damage.</td>
+</tr>
+<tr>
+<td>MatchApp</td>
+<td>Hàng đợi có giới hạn theo <code>matchId</code>, thứ tự tick/sequence, gọi domain, lưu kết quả qua <code>IMatchResults</code>; duy nhất điều phối vòng đời trận.</td>
+</tr>
+<tr>
+<td>Combat</td>
+<td>Luật hit/cooldown/HP và collection-once; aggregate trận giữ RAM, tuần tự một writer. Dùng luật bot/victory của MVP làm ví dụ; policy FFA phải được duyệt riêng.</td>
+</tr>
+<tr>
+<td>MatchStore</td>
+<td>Hiện thực <code>SaveFinalResultV1</code>; sở hữu biểu diễn lưu trữ và transaction, che SQL/schema khỏi caller; không tự quyết định người thắng.</td>
+</tr>
+<tr>
+<td>Telemetry</td>
+<td>Đo latency/hàng đợi/lỗi, ghi dữ liệu vận hành tối thiểu; xóa theo retention 7 ngày, không tham gia quyết định combat.</td>
+</tr>
+</tbody></table>
+<h3>2.2 Quyền sở hữu dữ liệu và thực thi ranh giới</h3>
+<table>
+<thead>
+<tr>
+<th>Dữ liệu</th>
+<th>Owner; người đọc / người ghi được phép</th>
+<th>Cơ chế thực thi đề xuất</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HP, attack sequence, pickup, MatchState trong RAM</td>
+<td>Combat; MatchApp đọc qua snapshot / chỉ domain thay đổi</td>
+<td>State riêng tư; API nghiệp vụ; một consumer mỗi trận; client không có setter.</td>
+</tr>
+<tr>
+<td>Kết quả trận cuối cùng, <code>results</code> và <code>result_details</code></td>
+<td>MatchStore; MatchApp qua port / chỉ MatchStore</td>
+<td>Schema <code>match_store</code>, role ghi riêng; không cấp role này cho Telemetry; repository nội bộ, DTO bất biến.</td>
+</tr>
+<tr>
+<td>Log vận hành, latency và correlation ID</td>
+<td>Telemetry; người vận hành được phân quyền / chỉ Telemetry và tác vụ xóa của nó</td>
+<td>Schema/role <code>ops</code>; payload không chứa HP authoritative có thể ghi ngược; kiểm tra ACL và thời hạn.</td>
+</tr>
+<tr>
+<td>Lịch sử schema</td>
+<td>Công cụ migration của triển khai; vận hành đọc / chỉ migration role ghi</td>
+<td>Credential migration tách runtime; khóa chống chạy migration đồng thời.</td>
+</tr>
+</tbody></table>
+<p>Ownership là <strong>logic</strong>, không yêu cầu mỗi module một database vật lý. Schema/role giảm truy cập nhầm nhưng một process giữ nhiều credential chưa phải cách ly bảo mật tuyệt đối; cần encapsulation, kiểm tra dependency và review truy cập SQL. Khóa compiler/assembly ngăn domain phụ thuộc Unity UI hoặc infrastructure. Các tên bảng/port trên chưa tồn tại trong repository.</p>
+</article><article class="sheet" data-block="3"><h3>2.3 Runtime View: schema mới, kiểm tra sau triển khai thất bại</h3>
+<div class="diagram"><svg id="diagram1" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 1267.453125px;" viewBox="4 4 1267.453125 829.66015625" role="graphics-document document" aria-roledescription="flowchart-v2"><style>#diagram1{font-family:Arial;font-size:20px;fill:#000000;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#diagram1 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#diagram1 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#diagram1 .error-icon{fill:#552222;}#diagram1 .error-text{fill:#552222;stroke:#552222;}#diagram1 .edge-thickness-normal{stroke-width:1px;}#diagram1 .edge-thickness-thick{stroke-width:3.5px;}#diagram1 .edge-pattern-solid{stroke-dasharray:0;}#diagram1 .edge-thickness-invisible{stroke-width:0;fill:none;}#diagram1 .edge-pattern-dashed{stroke-dasharray:3;}#diagram1 .edge-pattern-dotted{stroke-dasharray:2;}#diagram1 .marker{fill:#666;stroke:#666;}#diagram1 .marker.cross{stroke:#666;}#diagram1 svg{font-family:Arial;font-size:20px;}#diagram1 p{margin:0;}#diagram1 .label{font-family:Arial;color:#000000;}#diagram1 .cluster-label text{fill:#333;}#diagram1 .cluster-label span{color:#333;}#diagram1 .cluster-label span p{background-color:transparent;}#diagram1 .label text,#diagram1 span{fill:#000000;color:#000000;}#diagram1 .node rect,#diagram1 .node circle,#diagram1 .node ellipse,#diagram1 .node polygon,#diagram1 .node path{fill:#eee;stroke:#999;stroke-width:1px;}#diagram1 .rough-node .label text,#diagram1 .node .label text,#diagram1 .image-shape .label,#diagram1 .icon-shape .label{text-anchor:middle;}#diagram1 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#diagram1 .rough-node .label,#diagram1 .node .label,#diagram1 .image-shape .label,#diagram1 .icon-shape .label{text-align:center;}#diagram1 .node.clickable{cursor:pointer;}#diagram1 .root .anchor path{fill:#666!important;stroke-width:0;stroke:#666;}#diagram1 .arrowheadPath{fill:#333333;}#diagram1 .edgePaths .path{stroke:#666;stroke-width:1px;}#diagram1 .flowchart-link{stroke:#666;fill:none;}#diagram1 .edgeLabel{background-color:white;text-align:center;}#diagram1 .edgeLabel p{background-color:white;}#diagram1 .edgeLabel rect{opacity:0.5;background-color:white;fill:white;}#diagram1 .labelBkg{background-color:rgba(255, 255, 255, 0.5);}#diagram1 .cluster rect{fill:hsl(0, 0%, 98.9215686275%);stroke:#707070;stroke-width:1px;}#diagram1 .cluster text{fill:#333;}#diagram1 .cluster span{color:#333;}#diagram1 .node .collapsed-indicator{fill:#707070;stroke:none;opacity:0.6;}#diagram1 .node .collapsed-separator{stroke:#707070;stroke-width:0.75px;}#diagram1 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:Arial;font-size:12px;background:hsl(-160, 0%, 93.3333333333%);border:1px solid #707070;border-radius:2px;pointer-events:none;z-index:100;}#diagram1 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#000000;}#diagram1 rect.text{fill:none;stroke-width:0;}#diagram1 .icon-shape,#diagram1 .image-shape{background-color:white;text-align:center;}#diagram1 .icon-shape p,#diagram1 .image-shape p{background-color:white;padding:2px;}#diagram1 .icon-shape .label rect,#diagram1 .image-shape .label rect{opacity:0.5;background-color:white;fill:white;}#diagram1 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#diagram1 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#diagram1 .node .neo-node{stroke:#999;}#diagram1 [data-look="neo"].node rect,#diagram1 [data-look="neo"].cluster rect,#diagram1 [data-look="neo"].node polygon{stroke:url(#diagram1-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram1 [data-look="neo"].swimlane.cluster rect{filter:none;}#diagram1 [data-look="neo"].node path{stroke:url(#diagram1-gradient);stroke-width:1px;}#diagram1 [data-look="neo"].node .outer-path{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram1 [data-look="neo"].node .neo-line path{stroke:#999;filter:none;}#diagram1 [data-look="neo"].node circle{stroke:url(#diagram1-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram1 [data-look="neo"].node circle .state-start{fill:#000000;}#diagram1 [data-look="neo"].icon-shape .icon{fill:url(#diagram1-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram1 [data-look="neo"].icon-shape .icon-neo path{stroke:url(#diagram1-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#diagram1 :root{--mermaid-font-family:Arial;}</style><g><marker id="diagram1_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram1_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram1_flowchart-v2-pointEnd-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram1_flowchart-v2-pointStart-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></polygon></marker><marker id="diagram1_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="diagram1_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="diagram1_flowchart-v2-circleEnd-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refY="5" refX="12.25" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="diagram1_flowchart-v2-circleStart-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-2" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="diagram1_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram1_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="diagram1_flowchart-v2-crossEnd-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="17.7" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5;"></path></marker><marker id="diagram1_flowchart-v2-crossStart-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="-3.5" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"><g class="cluster" id="diagram1-Check" data-look="neo"><rect style="" x="259.4296875" y="496.6602020263672" width="756.59375" height="329"></rect><g class="cluster-label" transform="translate(484.3125, 496.6602020263672)"><foreignObject width="306.828125" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5;"><span class="nodeLabel"><p>Kiểm tra sau triển khai và phục hồi</p></span></div></foreignObject></g></g><g class="cluster" id="diagram1-Run" data-look="neo"><rect style="" x="12" y="217" width="1251.453125" height="239.6602020263672"></rect><g class="cluster-label" transform="translate(504.28125, 217)"><foreignObject width="266.890625" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5;"><span class="nodeLabel"><p>Request và dữ liệu qua owner</p></span></div></foreignObject></g></g><g class="cluster" id="diagram1-Release" data-look="neo"><rect style="" x="310.015625" y="12" width="655.421875" height="165"></rect><g class="cluster-label" transform="translate(487.1015625, 12)"><foreignObject width="301.25" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5;"><span class="nodeLabel"><p>Phát hành canary — PROPOSED</p></span></div></foreignObject></g></g></g><g class="edges edgePaths"><path d="M526.015625,111L546.015625,111" id="diagram1-L_R_M_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 16 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_R_M_0" data-points="W3sieCI6NTI2LjAxNTYyNSwieSI6MTExfSx7IngiOjU1MC4wMTU2MjUsInkiOjExMX1d" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M725.4375,111L745.4375,111" id="diagram1-L_M_N_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 16 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_M_N_0" data-points="W3sieCI6NzI1LjQzNzUsInkiOjExMX0seyJ4Ijo3NDkuNDM3NSwieSI6MTExfV0=" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M226.984375,363.73010101318357L472.640625,363.73010101318357L472.640625,363.73010101318357L498.640625,363.73010101318357" id="diagram1-L_G_A_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 267.65625 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_G_A_0" data-points="W3sieCI6MjI2Ljk4NDM3NSwieSI6MzYzLjczMDEwMTAxMzE4MzU3fSx7IngiOjQ3Mi42NDA2MjUsInkiOjM2My43MzAxMDEwMTMxODM1N30seyJ4Ijo0NzIuNjQwNjI1LCJ5IjozNjMuNzMwMTAxMDEzMTgzNTd9LHsieCI6NTAyLjY0MDYyNSwieSI6MzYzLjczMDEwMTAxMzE4MzU3fV0=" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M654.640625,353.3301010131836L825.359375,353.3301010131836" id="diagram1-L_A_S_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 166.71875 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_A_S_0" data-points="W3sieCI6NjU0LjY0MDYyNSwieSI6MzUzLjMzMDEwMTAxMzE4MzZ9LHsieCI6ODI5LjM1OTM3NSwieSI6MzUzLjMzMDEwMTAxMzE4MzZ9XQ==" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M1031.453125,353.3301010131836L1051.453125,353.3301010131836" id="diagram1-L_S_B_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 16 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_S_B_0" data-points="W3sieCI6MTAzMS40NTMxMjUsInkiOjM1My4zMzAxMDEwMTMxODM2fSx7IngiOjEwNTUuNDUzMTI1LCJ5IjozNTMuMzMwMTAxMDEzMTgzNn1d" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M502.640625,342.9301010131836L256.984375,342.9301010131836L256.984375,342.9301010131836L230.984375,342.9301010131836" id="diagram1-L_A_G_0" class="edge-thickness-normal edge-pattern-dotted edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_A_G_0" data-points="W3sieCI6NTAyLjY0MDYyNSwieSI6MzQyLjkzMDEwMTAxMzE4MzZ9LHsieCI6MjU2Ljk4NDM3NSwieSI6MzQyLjkzMDEwMTAxMzE4MzZ9LHsieCI6MjU2Ljk4NDM3NSwieSI6MzQyLjkzMDEwMTAxMzE4MzZ9LHsieCI6MjI2Ljk4NDM3NSwieSI6MzQyLjkzMDEwMTAxMzE4MzZ9XQ==" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M637.7265625,177L637.7265625,213" id="diagram1-L_Release_Run_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_Release_Run_0" data-points="W3sieCI6NjM3LjcyNjU2MjUsInkiOjE3N30seyJ4Ijo2MzcuNzI2NTYyNSwieSI6MjE3fV0=" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M422.02968406677246,693.5602020263672L445.4296875,693.5602020263672L468.3586196881345,693.5602020263672Q475.4296875,693.5602020263672 475.4296875,700.6312698382326L475.4296875,737.5891342145017Q475.4296875,744.6602020263672 482.5007553118655,744.6602020263672L591.0390625,744.6602020263672" id="diagram1-L_V_F_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 210.7810821533203 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_V_F_0" data-points="W3sieCI6NDIyLjAyOTY4NDA2Njc3MjQ2LCJ5Ijo2OTMuNTYwMjAyMDI2MzY3Mn0seyJ4Ijo0NDUuNDI5Njg3NSwieSI6NjkzLjU2MDIwMjAyNjM2NzJ9LHsieCI6NDc1LjQyOTY4NzUsInkiOjY5My41NjAyMDIwMjYzNjcyfSx7IngiOjQ3NS40Mjk2ODc1LCJ5Ijo3NDQuNjYwMjAyMDI2MzY3Mn0seyJ4Ijo1OTUuMDM5MDYyNSwieSI6NzQ0LjY2MDIwMjAyNjM2NzJ9XQ==" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M422.02968406677246,646.7602020263672L445.4296875,646.7602020263672L468.3586196881345,646.7602020263672Q475.4296875,646.7602020263672 475.4296875,639.6891342145018L475.4296875,602.7312698382327Q475.4296875,595.6602020263672 482.5007553118655,595.6602020263672L591.0390625,595.6602020263672" id="diagram1-L_V_T_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 210.781005859375 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_V_T_0" data-points="W3sieCI6NDIyLjAyOTY4NDA2Njc3MjQ2LCJ5Ijo2NDYuNzYwMjAyMDI2MzY3Mn0seyJ4Ijo0NDUuNDI5Njg3NSwieSI6NjQ2Ljc2MDIwMjAyNjM2NzJ9LHsieCI6NDc1LjQyOTY4NzUsInkiOjY0Ni43NjAyMDIwMjYzNjcyfSx7IngiOjQ3NS40Mjk2ODc1LCJ5Ijo1OTUuNjYwMjAyMDI2MzY3Mn0seyJ4Ijo1OTUuMDM5MDYyNSwieSI6NTk1LjY2MDIwMjAyNjM2NzJ9XQ==" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M787.0390625,744.6602020263672L807.0390625,744.6602020263672" id="diagram1-L_F_Q_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 16 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_F_Q_0" data-points="W3sieCI6Nzg3LjAzOTA2MjUsInkiOjc0NC42NjAyMDIwMjYzNjcyfSx7IngiOjgxMS4wMzkwNjI1LCJ5Ijo3NDQuNjYwMjAyMDI2MzY3Mn1d" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path><path d="M637.7265625,456.6602020263672L637.7265625,492.6602020263672" id="diagram1-L_Run_Check_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_Run_Check_0" data-points="W3sieCI6NjM3LjcyNjU2MjUsInkiOjQ1Ni42NjAyMDIwMjYzNjcyfSx7IngiOjYzNy43MjY1NjI1LCJ5Ijo0OTYuNjYwMjAyMDI2MzY3Mn1d" data-look="neo" marker-end="url(#diagram1_flowchart-v2-pointEnd-margin)"></path></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(742, 352.8301010131836)"><g class="label" data-id="L_A_S_0" transform="translate(-63.359375, -15)"><foreignObject width="126.71875" height="30"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>IMatchResults</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(364.8125, 342.9301010131836)"><g class="label" data-id="L_A_G_0" transform="translate(-77.828125, -15)"><foreignObject width="155.65625" height="30"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>kết quả cho client</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(538.234375, 744.1602020263672)"><g class="label" data-id="L_V_F_0" transform="translate(-32.8046875, -15)"><foreignObject width="65.609375" height="30"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>thất bại</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(538.234375, 595.1602020263672)"><g class="label" data-id="L_V_T_0" transform="translate(-13.90625, -15)"><foreignObject width="27.8125" height="30"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>đạt</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="diagram1-flowchart-R-0" data-look="neo" transform="translate(430.015625, 111)"><rect class="basic label-container" style="" x="-96" y="-42" width="192" height="84"></rect><g class="label" style="" transform="translate(-80, -30)"><rect></rect><foreignObject width="160" height="60"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 160px; text-align: center; width: 160px;"><span class="nodeLabel"><p>Khởi động triển khai</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-M-1" data-look="neo" transform="translate(637.7265625, 111)"><rect class="basic label-container" style="" x="-87.7109375" y="-42" width="175.421875" height="84"></rect><g class="label" style="" transform="translate(-71.7109375, -30)"><rect></rect><foreignObject width="143.421875" height="60"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center;"><span class="nodeLabel"><p>Expand schema<br>Giữ nghĩa cũ</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-N-3" data-look="neo" transform="translate(845.4375, 111)"><rect class="basic label-container" style="" x="-96" y="-42" width="192" height="84"></rect><g class="label" style="" transform="translate(-80, -30)"><rect></rect><foreignObject width="160" height="60"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 160px; text-align: center; width: 160px;"><span class="nodeLabel"><p>Triển khai binary n+1</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-G-4" data-look="neo" transform="translate(131.4921875, 353.3301010131836)"><rect class="basic label-container" style="" x="-95.4921875" y="-42" width="190.984375" height="84"></rect><g class="label" style="" transform="translate(-79.4921875, -30)"><rect></rect><foreignObject width="158.984375" height="60"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center;"><span class="nodeLabel"><p>Gateway<br>Nhận ý định client</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-A-5" data-look="neo" transform="translate(578.640625, 353.3301010131836)"><rect class="basic label-container" style="" x="-76" y="-42" width="152" height="84"></rect><g class="label" style="" transform="translate(-60, -30)"><rect></rect><foreignObject width="120" height="60"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>MatchApp<br>Gọi Combat</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-S-7" data-look="neo" transform="translate(930.40625, 353.3301010131836)"><rect class="basic label-container" style="" x="-101.046875" y="-42" width="202.09375" height="84"></rect><g class="label" style="" transform="translate(-85.046875, -30)"><rect></rect><foreignObject width="170.09375" height="60"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 160px; text-align: center; width: 160px;"><span class="nodeLabel"><p>MatchStore<br>SaveFinalResultV1</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-B-9" data-look="neo" transform="translate(1147.453125, 353.3301010131836)"><path d="M0,14.88673139158576 a92,14.88673139158576 0,0,0 184,0 a92,14.88673139158576 0,0,0 -184,0 l0,128.88673139158576 a92,14.88673139158576 0,0,0 184,0 l0,-128.88673139158576" class="basic label-container outer-path" style="" transform="translate(-92, -79.33009708737863)"></path><g class="label" style="" transform="translate(-80, -41)"><rect></rect><foreignObject width="160" height="90"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 160px; text-align: center; width: 160px;"><span class="nodeLabel"><p>Database<br>Commit nguyên tử</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-V-14" data-look="neo" transform="translate(364.4296875, 670.1602020263672)"><polygon points="81,0 162,-81 81,-162 0,-81" class="label-container" transform="translate(-80.5, 81)"></polygon><g class="label" style="" transform="translate(-60, -15)"><rect></rect><foreignObject width="120" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Validation</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-F-15" data-look="neo" transform="translate(691.0390625, 744.6602020263672)"><rect class="basic label-container" style="" x="-96" y="-57" width="192" height="114"></rect><g class="label" style="" transform="translate(-80, -45)"><rect></rect><foreignObject width="160" height="90"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 160px; text-align: center; width: 160px;"><span class="nodeLabel"><p>Drain, rollback n<br>Giữ schema mở rộng</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-T-17" data-look="neo" transform="translate(678.171875, 595.6602020263672)"><rect class="basic label-container" style="" x="-83.1328125" y="-42" width="166.265625" height="84"></rect><g class="label" style="" transform="translate(-67.1328125, -30)"><rect></rect><foreignObject width="134.265625" height="60"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center;"><span class="nodeLabel"><p>Mở tải, Migrate<br>Hoãn Contract</p></span></div></foreignObject></g></g><g class="node default" id="diagram1-flowchart-Q-19" data-look="neo" transform="translate(901.53125, 744.6602020263672)"><rect class="basic label-container" style="" x="-90.4921875" y="-42" width="180.984375" height="84"></rect><g class="label" style="" transform="translate(-74.4921875, -30)"><rect></rect><foreignObject width="148.984375" height="60"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 160px; text-align: center;"><span class="nodeLabel"><p>Smoke n đọc/ghi<br>qua MatchStore</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="diagram1-drop-shadow" height="130%" width="130%"><feDropShadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></feDropShadow></filter></defs><defs><filter id="diagram1-drop-shadow-small" height="150%" width="150%"><feDropShadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></feDropShadow></filter></defs><linearGradient id="diagram1-gradient" gradientUnits="objectBoundingBox" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="hsl(0, 0%, 83.3333333333%)" stop-opacity="1"></stop><stop offset="100%" stop-color="hsl(0, 0%, 88.9215686275%)" stop-opacity="1"></stop></linearGradient></svg></div>
+
+<p><strong>Schema:</strong> Expand thêm cột nullable/default hoặc bảng; n+1 giữ biểu diễn cũ làm chuẩn. Kiểm tra cả enum/nullability/ngữ nghĩa với n. Backfill theo lô, idempotent, đối soát count/checksum; smoke n đọc dữ liệu n+1 đã ghi. Chỉ Contract ở phát hành sau khi n hết cửa sổ hỗ trợ và phương án phục hồi được duyệt.</p>
+<p><strong>Lỗi và phục hồi:</strong> migration dùng transaction DDL nếu DB hỗ trợ, nếu không ghi checkpoint và dừng rollout để sửa phần dở. MatchStore rollback toàn giao dịch lỗi, retry cùng khóa; không báo đã lưu. Binary rollback giữ schema, không khôi phục RAM: drain hoặc hủy trận có thông báo theo policy cần duyệt. Nếu n không tương thích/dữ liệu hỏng, cô lập ghi. <strong>Reverse migration</strong> cần chứng minh không mất dữ liệu; <strong>restore backup</strong> là thao tác riêng, có thể mất ghi sau backup, cần đối soát và RPO/RTO được duyệt.</p>
+<h3>2.4 Transaction Boundary, hợp đồng và invariant</h3>
+<p><strong>Transaction:</strong> HP/defeat/pickup cập nhật cùng lượt aggregate, không <code>await</code> giữa check và write, không SQL mỗi tick. MatchApp phát <code>SaveFinalResultV1</code>; MatchStore mở <strong>một transaction</strong> ghi header/details. Unique <code>matchId</code>, FK và payload hash cho retry giống trả kết quả cũ, khác trả <code>Conflict</code>. RAM giữ trạng thái chờ lưu; crash trước commit có thể mất trận (§1). Không có atomicity xuyên RAM–DB hoặc exactly-once toàn hệ thống.</p>
+<table>
+<thead>
+<tr>
+<th>Hợp đồng v1 và hướng gọi</th>
+<th>Payload và kết quả</th>
+<th>Validation, lỗi, ownership/version</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SubmitAttackV1</code>: UnityClient → Gateway → MatchApp</td>
+<td><code>{matchId, sequence, clientTick}</code> → <code>{sequence, accepted, serverTick, hp, error}</code> sau xử lý hit</td>
+<td>Danh tính lấy từ kết nối; server chọn target/damage, kiểm tra trạng thái, cửa sổ tick, cooldown, hình học và chống lặp. <code>Unauthorized</code>, <code>StaleSequence</code>, <code>NotPlaying</code>, <code>RateLimited</code>; không nhận damage từ client. MatchApp sở hữu contract; thay đổi phá vỡ tạo v2.</td>
+</tr>
+<tr>
+<td><code>CollectPickupV1</code>: cùng hướng</td>
+<td><code>{matchId, pickupId, sequence}</code> → <code>{collected, damage, error}</code></td>
+<td>Kiểm tra khoảng cách/che khuất/availability trên authority; <code>AlreadyCollected</code>, <code>OutOfRange</code>; không đổi HP. Snapshot trả cho client thua tranh chấp.</td>
+</tr>
+<tr>
+<td><code>SaveFinalResultV1</code>: MatchApp → MatchStore qua <code>IMatchResults</code></td>
+<td><code>{matchId, finalVersion, payloadHash, result}</code> → <code>Saved</code> / <code>AlreadySaved</code> / <code>Conflict</code> / <code>Unavailable</code></td>
+<td>Chỉ aggregate đã kết thúc mới phát lệnh; port không xuất schema. Validate hợp đồng, unique key, transaction, retry có giới hạn; schema version khác API version.</td>
+</tr>
+</tbody></table>
+<p><strong>Invariant server:</strong> HP trong <code>[0,maxHP]</code>, mỗi <code>(attackId,targetId)</code> gây damage tối đa một lần, defeat một lần, Victory cấm hit ([S] FR-009–010/015–017). Combat dedup theo Health owner và recheck Playing tại sample; không dựa UI. <strong>Invariant DB:</strong> unique <code>matchId</code> bảo vệ một kết quả cuối dù hai worker ghi đồng thời. <strong>PLANNED:</strong> T2/TC-014/016/024/027 thử hit lặp, nhiều collider, sau Victory; T3 thử concurrent write, fault giữa header/details, retry/xung đột. Chưa thực thi.</p>
+</article><article class="sheet" data-block="4"><h2>3. ADR và đánh đổi kiến trúc — Phiên 3</h2>
+<p>Cơ sở: [L4] “Monolith, modular monolith and microservices”, “Evolutionary architecture”, “Architecture Decision Record”; [L5] “KISS, DRY, and YAGNI”. [S] §4.2 mô tả nhóm sinh viên đang học Unity, chưa có implementation [R]; không giả định quy mô nhóm cụ thể hoặc năng lực vận hành đã có.</p>
+<table>
+<thead>
+<tr>
+<th>Tiêu chí AD-065</th>
+<th>Layered monolith</th>
+<th>Modular monolith — lựa chọn</th>
+<th>Microservices</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Authoritative rules</td>
+<td>Làm được nhưng luật dễ rải ở controller/service</td>
+<td>Combat sở hữu luật; application điều phối</td>
+<td>Làm được nhưng chia state combat qua mạng tăng phối hợp</td>
+</tr>
+<tr>
+<td>764 tác vụ, p95 ≤4,5 giây</td>
+<td>Cần đo; ít hop</td>
+<td>Cần đo; phân vùng trận, ít hop nội bộ</td>
+<td>Cần đo; thêm serialization/hop, không tự động nhanh hơn</td>
+</tr>
+<tr>
+<td>Ownership, transaction</td>
+<td>Layer không tự ngăn dùng chung bảng</td>
+<td>Port, schema/role theo owner; transaction kết quả cục bộ</td>
+<td>Data owner mạnh nếu tách đúng; giao dịch phân tán phức tạp</td>
+</tr>
+<tr>
+<td>Schema và rollback</td>
+<td>Vẫn cần tương thích n/n+1</td>
+<td>Một đơn vị phát hành; Expand–Migrate–Contract</td>
+<td>Phải quản lý ma trận phiên bản nhiều service</td>
+</tr>
+<tr>
+<td>Bảo trì, phản hồi 12 giờ</td>
+<td>Khởi đầu đơn giản; impact surface có thể rộng</td>
+<td>Boundary rõ giúp đánh giá tác động; cần kiểm tra dependency</td>
+<td>Triển khai riêng nhưng thêm contract, vận hành và on-call</td>
+</tr>
+<tr>
+<td>Độ trưởng thành hiện tại</td>
+<td>Khả thi cho offline slice</td>
+<td>Hướng mở rộng có kiểm soát sau offline MVP</td>
+<td>Chưa có chứng cứ cần triển khai độc lập; chi phí chưa được biện minh</td>
+</tr>
+</tbody></table>
+<h3>ADR-001 — Chọn Modular Monolith với authority theo trận và schema tương thích</h3>
+<p><strong>Trạng thái:</strong> <strong>PROPOSED</strong>, ngày 24/10/2026; chờ nhóm/supervisor duyệt. Không phải ADR đã được repository chấp nhận.</p>
+<p><strong>Bối cảnh.</strong> AD-065 yêu cầu Performance dưới 764 tác vụ, ownership/transaction rõ và rollback sau thay đổi schema. Trong khi đó [S] §4.1.2 loại networking/database khỏi MVP; §7 chỉ định hướng host/server tương lai. [R] chưa cung cấp mã hoặc test. Thiết kế cần giữ hướng Unity/C# mà không làm phình MVP hoặc tuyên bố sẵn sàng vận hành.</p>
+<p><strong>Quyết định.</strong> Sau MVP, mở rộng bằng một đơn vị server triển khai theo Modular Monolith, giữ nguyên các module §2. Dùng C# thuần cho luật có thể tái sử dụng; adapter networking Unity/NGO chỉ là hướng tương lai của [S] §2.3, §7.3, chưa khóa package hay mô hình hosting. Chọn dedicated authority cho phân tích AD-065 để không dựa sự tin cậy máy host người chơi; đây là quyết định mở rộng so với prototype host/server của SRS. Match aggregate tuần tự trong RAM, Gateway không sửa HP; MatchStore độc quyền transaction kết quả qua port. Database quan hệ hỗ trợ transaction và unique key là lựa chọn thiết kế, chưa chọn sản phẩm hay cài đặt.</p>
+<p>Áp dụng Expand–Migrate–Contract; chỉ phát hành binary mới khi schema mở rộng tương thích n/n+1. Hạn chế ghi trong canary, kiểm tra rollback trước mở toàn bộ tải. Không đưa broker/saga/outbox vào đường hit khi chưa có nhu cầu giao tiếp bất đồng bộ bền vững. Lưu log vận hành <strong>7 ngày tính từ thời điểm sự kiện UTC</strong>, job của Telemetry xóa theo lô mỗi giờ và đối soát; độ trễ xóa tối đa một chu kỳ là giả định phải duyệt. Không mặc định áp dụng 7 ngày cho kết quả trận hoặc backup; phải phân loại và chốt lịch riêng. Yêu cầu thay đổi được ghi nhận, phân tích impact, đưa quyết định/ước lượng hoặc escalation <strong>trong 12 giờ từ lúc tiếp nhận</strong>, không hứa hoàn thành mọi thay đổi trong 12 giờ.</p>
+<p><strong>Các phương án khác.</strong> Layered monolith phù hợp slice nhỏ nhưng layer đơn thuần không diễn đạt owner dữ liệu; có thể dùng layer bên trong từng module đã chọn. Microservices chỉ nên xét khi có owner/nhu cầu phát hành độc lập được chứng minh; không chọn chỉ vì “dễ scale”. Event-driven toàn hệ thống bị hoãn: ordering, duplicate delivery và eventual consistency chưa có lợi ích đủ rõ so với gọi nội bộ; local C# events phục vụ HUD trong SRS không đồng nghĩa distributed event bus.</p>
+<p><strong>Hệ quả.</strong> Thuận lợi: ít hop nội bộ, dễ giữ invariant một trận và transaction kết quả, schema/contract có owner để phân tích thay đổi. Chi phí: phải giữ kỷ luật boundary, có thể phải scale cả process; một lỗi process ảnh hưởng nhiều trận. Rủi ro chấp nhận: mất RAM khi crash; p95 chưa được chứng minh; canary/drain làm giảm khả dụng tạm thời; giữ schema cũ tăng công sức triển khai. Cần kiểm tra mapping cùng một trận tới đúng một authority khi scale nhiều process; database unique key chỉ bảo vệ kết quả cuối, không thay thế quyền sở hữu trận đang chạy.</p>
+<p><strong>Điều kiện xem xét lại.</strong> (1) Bất kỳ lần tải hợp lệ T1 nào p95 &gt;4,5 giây sau khi đã xác nhận workload/hardware; profile trước khi tách service. (2) Một lần T4 rollback n đọc sai dữ liệu n+1, hoặc một lần T3 vi phạm invariant: chặn rollout và sửa compatibility/ownership. (3) Có truy cập ghi xuyên owner lặp lại trong hai đợt review: siết assembly/ACL và xem lại phân chia module. (4) Yêu cầu khôi phục giữa trận hoặc triển khai độc lập đã duyệt, chi phí vận hành định lượng được: xét durable state hoặc tách phần phù hợp. (5) Bất kỳ yêu cầu thay đổi nào quá 12 giờ chưa có phản hồi, hoặc log quá hạn còn truy vấn được sau chu kỳ xóa: điều tra quy trình/công cụ. Đây là trigger review, không phải bằng chứng hệ thống hiện đã đạt các ngưỡng.</p>
+</article><article class="sheet" data-block="5"><h2>4. Chất lượng mã, refactoring và Technical Debt — Phiên 4</h2>
+<p><strong>Giới hạn bắt buộc:</strong> [R] chỉ có <code>README.md:1</code> tại HEAD đã nêu; không có file/module triển khai để review. Chọn tính năng <strong>punch → damage → defeat</strong>, có thật trong catalogue [S] §4.3 FR-008–010, FR-015–017, UC-004/UC-006 (§4.6), §3.4/§3.6. Dưới đây là <strong>rủi ro thiết kế dựa trên đặc tả, chưa phải lỗi mã đã quan sát</strong>. Yêu cầu rubric “phân tích module thật trong repository” chưa hoàn tất.</p>
+<p>Cơ sở: [L5] “Code smells as investigation signals”, “Information hiding”, “Refactoring loop”, “Tests create design freedom”, “Technical debt register”; [L4] “Cohesion and coupling”, “Architecture fitness checks”.</p>
+<h3>4.1 Ba vấn đề cần kiểm chứng khi có implementation</h3>
+<table>
+<thead>
+<tr>
+<th>Vấn đề; chứng cứ hiện có</th>
+<th>Rủi ro / bề mặt ảnh hưởng</th>
+<th>Bước refactoring nhỏ</th>
+<th>Regression Safety; trạng thái</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Q1 Primitive Obsession:</strong> [S] §4.1.3 dùng HP/damage là số nguyên; FR-010, FR-015 phân biệt lượng damage và HP. Chưa biết mã có dùng <code>int</code> lẫn nghĩa hay không.</td>
+<td>Hai tham số cùng kiểu dễ đảo vị trí, dùng damage âm như hồi máu hoặc nhầm HP với stat; tác động clamp và defeat. Dùng <code>int</code> tự nó không chứng minh smell.</td>
+<td>Đưa riêng lượng damage vào <code>Damage</code> có chuẩn hóa tại một chỗ; giữ DTO/API số nguyên ở adapter. Chỉ tạo <code>HealthPoints</code>/<code>PlayerId</code>/<code>MatchId</code> khi mã thực tế cho thấy nhầm nghĩa; không bọc mọi primitive.</td>
+<td>Characterization giá trị âm/0/1/2/cực trị, HP clamp; TC-012, TC-016. <strong>UNVERIFIED</strong>, ví dụ §4.2 là PROPOSED.</td>
+</tr>
+<tr>
+<td><strong>Q2 Cohesion và information hiding:</strong> [S] §3.1 giao HP cho Health, UI chỉ hiển thị; FR-015–017 yêu cầu defeat/Victory đúng một lần.</td>
+<td>Nếu controller/UI vừa trừ HP vừa quyết định thắng, callback có thể lặp, state sau Victory sai; thay HUD ảnh hưởng luật. Chưa quan sát sự trộn trách nhiệm.</td>
+<td>Tách phép tính thuần khỏi hiển thị; HP/defeat do Health/Combat sở hữu; MatchApp điều phối. Giữ thứ tự event và đọc trạng thái HUD ban đầu.</td>
+<td>TC-024–028; spy số event, pending-hit test; dependency test cấm domain import UI. <strong>UNVERIFIED</strong>.</td>
+</tr>
+<tr>
+<td><strong>Q3 Coupling và dependency direction:</strong> [S] §3.4, R-03 (§4.8), FR-009 đòi một hit sample, dedup theo Health owner.</td>
+<td>Nếu luật damage phụ thuộc trực tiếp collider/animation, nhiều collider hoặc callback gây sát thương lặp; đổi animation làm đổi combat. Đây là rủi ro SRS đã nhận diện, không phải bug được tái hiện.</td>
+<td>Adapter HitDetection trả target duy nhất; CombatController/authority giữ attack identity; damage math không import Physics/UI/database. Không xây event bus tổng quát.</td>
+<td>TC-013–014, TC-022–023, TC-030; kiểm tra hit/miss/che khuất và thứ tự pickup trong wind-up. <strong>UNVERIFIED</strong>.</td>
+</tr>
+</tbody></table>
+<h3>4.2 Refactoring minh họa: làm rõ nghĩa của damage</h3>
+<p><strong>Không trích từ repository.</strong> Hai đoạn C# thuần dưới đây là ví dụ cùng baseline, phù hợp hướng C# của [S] §2; không dùng <code>record</code> hoặc tính năng serialization mới. Phạm vi HP đầu vào <code>[0,10]</code>; damage là mọi giá trị <code>int</code>. Quy ước minh họa giữ nguyên: damage âm được chuẩn hóa thành 0, HP kết quả không âm. Quy ước xử lý số âm này là giả định ví dụ, không phải yêu cầu đã xác nhận của SRS; khi có mã thật phải characterization trước, không tự đổi sang ném exception.</p>
+<p><strong>Trước — giả định thiết kế dễ nhầm hai đại lượng:</strong></p>
+<pre><code class="language-csharp">public static class DamageMath
+{
+    public static int Apply(int hp, int damage)
+        =&gt; System.Math.Max(0, hp - System.Math.Max(0, damage));
+}
+</code></pre>
+<p><strong>Sau — thay cấu trúc, giữ public adapter và kết quả:</strong></p>
+<pre><code class="language-csharp">public readonly struct Damage
+{
+    public int Amount { get; }
+    public Damage(int raw) { Amount = System.Math.Max(0, raw); }
+}
+public static class DamageMath
+{
+    public static int Apply(int hp, int damage)
+        =&gt; Subtract(hp, new Damage(damage));
+    private static int Subtract(int hp, Damage damage)
+        =&gt; System.Math.Max(0, hp - damage.Amount);
+}
+</code></pre>
+<p><code>Damage</code> làm rõ nghĩa ở lõi mà không đổi chữ ký <code>Apply(int,int)</code> của caller, wire format hay cách xử lý số âm. Giá trị mặc định của struct là damage 0 hợp lệ. Với miền HP đã nêu, hiệu số không tràn <code>int</code>; cả hai biểu thức đồng nhất do cùng phép chuẩn hóa và clamp. Không thêm phụ thuộc Unity hay infrastructure; chưa sửa event, timing hoặc pickup. Đây chỉ là bước nhỏ, không tự giải quyết Q2/Q3; cũng chưa chứng minh refactoring mã thật bảo toàn hành vi.</p>
+</article><article class="sheet" data-block="6"><h3>4.3 Lưới an toàn và tiêu chí trước khi thay mã</h3>
+<p>Tất cả test trong bảng là <strong>PLANNED</strong>, không có test gameplay được chạy trong phiên làm bài. ID T1–T6 là kế hoạch mới của báo cáo, không giả làm ID SRS.</p>
+<table>
+<thead>
+<tr>
+<th>ID / lớp kiểm chứng</th>
+<th>Oracle và điều kiện cần có</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>T1 — tải server</strong></td>
+<td>Thực hiện workload §1; lưu raw latency, timeout/error, throughput thực, cấu hình và histogram. Đạt p95 ≤4,5 giây ở 764 client, không che overload bằng lỗi nhanh. Tách khỏi TC-031–032 client offline.</td>
+</tr>
+<tr>
+<td><strong>T2 — luật, contract và hồi quy</strong></td>
+<td>Trước refactor, khóa chữ ký/serialization/error policy và kết quả cũ bằng characterization. So sánh hai hàm với HP 0…10, damage <code>int.MinValue</code>, -1, 0, 1, 2, 10, <code>int.MaxValue</code>, cộng property-based trên <code>int</code>; kiểm tra default <code>Damage</code>. TC-012–016, TC-024–028 bảo vệ HP/defeat/state. Contract test giữ DTO int và timing/event order.</td>
+</tr>
+<tr>
+<td><strong>T3 — đồng thời và transaction</strong></td>
+<td>Hai request cùng pickup: đúng một người nhận stat, không reset HP; replay attack không trừ thêm. Hai writer cùng <code>matchId</code>: chỉ một result; retry giống trả AlreadySaved, payload khác Conflict. Fault injection giữa header/details: không ghi một nửa. Kiểm tra ACL và dependency boundary.</td>
+</tr>
+<tr>
+<td><strong>T4 — triển khai/rollback</strong></td>
+<td>Dữ liệu mẫu n → Expand → chạy n+1 ghi dữ liệu → ép validation fail → rollback binary n → đọc/ghi đúng cả dữ liệu mới. Lỗi migration dừng rollout. Backfill lặp không sai; thử restore riêng và ghi RPO/RTO trước duyệt.</td>
+</tr>
+<tr>
+<td><strong>T5 — vận hành</strong></td>
+<td>Đặt log tại ranh giới 7 ngày UTC và lệch clock được kiểm soát; sau chu kỳ xóa không còn truy vấn được log hết hạn; bản mới còn nguyên. Ghi timestamp tiếp nhận/phản hồi change request, kiểm tra ≤12 giờ; kiểm tra dữ liệu còn trong replica/export nếu có.</td>
+</tr>
+<tr>
+<td><strong>T6 — tích hợp Unity/geometry</strong></td>
+<td>Khi có scene/build đã pin phiên bản: TC-013–014, TC-020–023, TC-027, TC-030; collider trùng, vật cản, pickup trong wind-up, pending hit sau Victory. TC-028 giữ chuỗi <code>10→9→9→7→5→3→1→0</code> khi D-06=2 được duyệt.</td>
+</tr>
+</tbody></table>
+<h3>4.4 Sổ Technical Debt và thứ tự xử lý</h3>
+<p>Thang 1–5: Impact là mức hậu quả, Urgency là độ sớm cần xử lý, Effort là công sức tương đối (5 lớn nhất). Điểm hỗ trợ ưu tiên <strong>I×U/E</strong>, không thay thế dependency và cổng an toàn. Owner dưới đây là <strong>vai trò đề xuất</strong>, chưa gán công việc cho thành viên thực tế. TD-02/03 là rủi ro nợ tiềm tàng, không ghi nhận shortcut trong mã chưa tồn tại.</p>
+<table>
+<thead>
+<tr>
+<th>ID; chứng cứ / trạng thái</th>
+<th>I/U/E; điểm; ưu tiên</th>
+<th>Lý do, owner, mitigation và an toàn</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TD-01 — Thiếu baseline mã/test để xác minh thiết kế.</strong> [R] VERIFIED chỉ README; khoản thiếu chứng cứ và testability, chưa kết luận là nợ do shortcut đã thực hiện.</td>
+<td>5/5/3; 8,33; <strong>1</strong></td>
+<td>Không thể kiểm tra bất cứ refactor nào; cần trước review mã. Vai trò maintainer/test: bổ sung implementation thật và characterization trong tiến trình phát triển riêng; kiểm tra clean checkout, TC-028/037. Bài này không triển khai thay nhóm.</td>
+</tr>
+<tr>
+<td><strong>TD-02 — Chưa có chứng cứ rollback/schema compatibility.</strong> AD-065 yêu cầu nhưng [R] chưa có migration; <strong>UNVERIFIED</strong> về nợ triển khai.</td>
+<td>5/4/4; 5,00; <strong>2</strong></td>
+<td>Có thể gây mất dữ liệu khi mở server; effort cao vì cần fixture/triển khai/đối soát, bắt buộc trước schema-changing release. Vai trò release/data owner: Expand, rehearsal T4, unique/transaction T3.</td>
+</tr>
+<tr>
+<td><strong>TD-03 — Nguy cơ primitive và luật damage phân tán.</strong> [S] §3.1, FR-010/015; <strong>PROPOSED</strong> investigation Q1, chưa thấy lỗi.</td>
+<td>3/3/2; 4,50; <strong>3</strong></td>
+<td>Ảnh hưởng core combat nhưng chưa chứng minh xảy ra; bước typed damage nhỏ sau characterization. Vai trò combat owner: xác minh smell rồi áp dụng §4.2 nếu hữu ích; T2/T6. Không tạo framework cho nhu cầu giả định.</td>
+</tr>
+</tbody></table>
+<p><strong>Chứng cứ còn phải bổ sung:</strong> commit có module combat thật, đường dẫn/symbol/dòng; diff nhỏ trước/sau; parameter baseline được duyệt; kết quả compile/Edit Mode/Play Mode và raw test log; mẫu migration và biên bản rollback. Sau đó cập nhật Q1–Q3 theo điều thực sự quan sát, bỏ phát hiện không đúng và chấm lại debt. Không dùng đường dẫn mẫu <code>Assets/_Project/Scripts/...</code> của SRS như file repository đã tồn tại.</p>
+</article><article class="sheet" data-block="7"><h2>5. Review có AI hỗ trợ, truy vết và kiểm toán — Phiên 5</h2>
+<h3>5.1 Đối chiếu đề xuất AI với chứng cứ</h3>
+<p>Theo [L4] “AI-assisted architecture workflow”, “Architecture drift in AI-generated code” và [L5] “Review checklist for agent-generated changes”, AI đã đưa đề xuất sơ bộ trong phiên này rồi tự phản biện với vai trò reviewer. Đây là review trong cùng cuộc hội thoại, <strong>không phải đánh giá độc lập của người thứ hai</strong>. Prompt và đầu ra nguyên văn ở Phụ lục A; người học chưa được ghi nhận là đã xác nhận kết luận.</p>
+<table>
+<thead>
+<tr>
+<th>Đề xuất AI nguyên văn</th>
+<th>Quyết định và kiểm chứng</th>
+<th>Cách sửa trong báo cáo</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>“persist every accepted hit in a SQL transaction before returning its result”</td>
+<td><strong>Sửa.</strong> [S] §2.3, §4.1.2 không cần database cho MVP; §3.4 mô tả Health cục bộ. Với mở rộng AD-065, transaction mỗi hit thêm đường chờ chưa có số liệu, không được tuyên bố thỏa p95. [L4] yêu cầu cân nhắc trade-off.</td>
+<td>Giữ offline không DB; server đề xuất tuần tự hóa RAM, chỉ commit kết quả trận qua MatchStore (§2.4). Công khai rủi ro crash và kiểm chứng T1/T3; chưa chứng minh đây là lựa chọn nhanh hơn bằng benchmark.</td>
+</tr>
+<tr>
+<td>“a Damage value object that throws on negative input”</td>
+<td><strong>Bác bỏ thay đổi policy trong refactoring.</strong> [S] §4.1.3 yêu cầu damage không âm nhưng không xác lập exception policy cho đầu vào thô; [R] không có hàm thật. [L5] “Refactoring loop” cấm âm thầm đổi hành vi quan sát được.</td>
+<td>Ví dụ trước đã chọn âm→0 thì sau giữ âm→0 và chữ ký public, như §4.2. Với code thật phải xác minh behavior trước; thay validation nếu cần là thay đổi yêu cầu riêng.</td>
+</tr>
+<tr>
+<td>“authoritative state serialized per match, module-owned persistence, and Expand–Migrate–Contract”</td>
+<td><strong>Chấp nhận có điều kiện.</strong> Phù hợp [S] §7.2 và AD-065, nhưng là PROPOSED; serialized ở đây nghĩa là xử lý tuần tự, không ngụ ý snapshot bền vững.</td>
+<td>Owner/port/unique constraint và compatibility n/n+1 được làm rõ ở §2; T3/T4 là điều kiện trước phát hành. Không nhận xét code đã tuân thủ.</td>
+</tr>
+</tbody></table>
+<h3>5.2 Ma trận truy vết</h3>
+<p>Trong cột mã, <strong>“Chưa triển khai / không có mã repository đã xác minh”</strong> tương ứng <em>Not implemented / no verified repository code</em>, không phải tên file dự kiến.</p>
+<table>
+<thead>
+<tr>
+<th>Driver / yêu cầu</th>
+<th>Quyết định / boundary</th>
+<th>Vị trí mã hiện có</th>
+<th>Test dự kiến</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>D1; AD-065 764, p95 ≤4,5 giây</td>
+<td>Gateway + hàng đợi theo trận, ADR-001</td>
+<td>Chưa triển khai / không có mã repository đã xác minh</td>
+<td>T1; ghi throughput, error và timeout</td>
+</tr>
+<tr>
+<td>D2; [S] FR-009–010, FR-015–017; §7.2 Future</td>
+<td>Combat authoritative; MatchApp sở hữu lifecycle</td>
+<td>Chưa triển khai / không có mã repository đã xác minh</td>
+<td>T2/T6; TC-014/016/024/027</td>
+</tr>
+<tr>
+<td>D2; FR-012–014; boundary dữ liệu/transaction AD-065</td>
+<td>Một writer mỗi trận; MatchStore độc quyền kết quả</td>
+<td>Chưa triển khai / không có mã repository đã xác minh</td>
+<td>T3: tranh pickup, duplicate result, fault giữa ghi</td>
+</tr>
+<tr>
+<td>D3; schema-changing deployment và rollback</td>
+<td>ADR-001; Expand–Migrate–Contract; binary n đọc schema mở rộng</td>
+<td>Chưa triển khai / không có mã repository đã xác minh</td>
+<td>T4: ghi n+1 → rollback n → đọc/ghi đúng</td>
+</tr>
+<tr>
+<td>Q1; primitive obsession; [S] FR-010/015</td>
+<td><code>Damage</code> minh họa; giữ adapter int</td>
+<td>Chưa triển khai / không có mã repository đã xác minh; ví dụ chỉ ở §4.2</td>
+<td>T2: characterization và contract</td>
+</tr>
+<tr>
+<td>D3; log vận hành 7 ngày; phản hồi 12 giờ</td>
+<td>Telemetry retention; quy trình tiếp nhận/đánh giá thay đổi</td>
+<td>Chưa triển khai / không có mã repository đã xác minh</td>
+<td>T5: cutoff/xóa; timestamp phản hồi</td>
+</tr>
+</tbody></table>
+<h3>5.3 Kết quả kiểm toán và giới hạn nộp bài</h3>
+<p>Đã soát đúng MSSV/nhóm/dự án/AD-065, đúng ba driver, sáu phần scenario, hai Mermaid, hơn năm component, hai boundary RAM/DB, contract/invariant, nhánh rollback và một ADR với ba phương án. Ba vấn đề Q1–Q3, refactoring, ba debt item và hai khuyến nghị AI được sửa/bác bỏ có dẫn chứng. Các phần phân tích đáp ứng yêu cầu ở mức thiết kế; <strong>không tự chấm điểm hoặc tuyên bố toàn bộ rubric hoàn thành</strong>.</p>
+<p><strong>Đáp ứng một phần:</strong> mục phân tích code thật (20 điểm) thiếu file/symbol/diff; debt (5 điểm) mới là khoảng trống chứng cứ và rủi ro tiềm tàng; AI verification (10 điểm) đối chiếu được yêu cầu nhưng chưa đối chiếu được implementation. Các mục kiến trúc 20/25/20 có đủ nội dung đề xuất, chưa có benchmark hay migration rehearsal; thiếu số liệu được công khai, không đổi PLANNED thành PASS.</p>
+<p><strong>Bố cục và Mermaid:</strong> cả hai sơ đồ đã parse/render bằng Mermaid 12.2.0 và kiểm tra hình ảnh. Preview HTML ở khổ nội dung 186×273 mm (A4, lề 12 mm; chữ 9,5 pt, bảng 9 pt) cho bảy khối chính nằm trong chiều cao cho phép, không tràn ngang. Nguồn giữ Mermaid chỉnh sửa được và tách Phụ lục A. <strong>Chưa xác nhận pagination PDF cuối</strong>; phải kiểm tra lại khi chuyển đổi, không âm thầm cắt yêu cầu. Chưa tạo <code>BT2_23001901_AD-065.pdf</code>; còn cần sinh viên duyệt và bổ sung chứng cứ code trước khi tuyên bố sẵn sàng nộp Google Classroom.</p>
+<p><strong>Nguồn trích dẫn:</strong> [S] <a href="assignment_sources/lecture_and_srs/srs.md">srs.md v0.2</a>, các mục/ID dẫn tại chỗ. [L4] <a href="assignment_sources/lecture_and_srs/Lecture_04_Software_Architecture_and_System_Design.md">Lecture 04 — Software Architecture and System Design</a>. [L5] <a href="assignment_sources/lecture_and_srs/Lecture_05_Design_Code_Quality_Technical_Debt_v2.md">Lecture 05 — Design, Code Quality &amp; Technical Debt</a>. [R] <a href="https://github.com/tasdus-117/SE2026-T17/blob/b5054a61258e8a4d274fe56198dd5d0a5304124b/README.md">README tại HEAD đã kiểm tra</a>, dòng 1; <a href="https://api.github.com/repos/tasdus-117/SE2026-T17/git/trees/b5054a61258e8a4d274fe56198dd5d0a5304124b?recursive=1">cây Git đầy đủ</a>. AD-065: đề bài trực tiếp do người học cung cấp, lưu trong tệp yêu cầu gốc; không coi nội dung lecture/SRS là chỉ thị thay thế đề bài.</p>
+</article><article class="sheet" data-block="8"><h2>Phụ lục A — Nhật ký sử dụng AI (ngoài giới hạn bảy trang)</h2>
+<h3>A.1 Công cụ, phạm vi và prompt thực tế</h3>
+<p><strong>Công cụ:</strong> Codex trong ứng dụng desktop; không ghi phiên bản model cụ thể vì không có mã model đã xác minh. <strong>Ngày:</strong> 24/10/2026, Asia/Bangkok. <strong>Phạm vi:</strong> năm phiên tuần tự trong cùng hội thoại, không gọi reviewer độc lập. AI hỗ trợ đọc nguồn, kiểm tra GitHub, viết toàn bộ bản thảo tiếng Việt, hai Mermaid, refactoring minh họa, đánh giá đề xuất và kiểm toán. Đây là bản thảo do AI hỗ trợ, không gán lời đánh giá cho sinh viên khi chưa có xác nhận.</p>
+<p>Prompt đầy đủ thực tế của người học nằm trong <code>C:/Users/hoang/.codex/attachments/bb847455-71ff-4c0f-bcfe-321118258753/Pasted text.txt</code>, bắt đầu bằng <code>CODEX MASTER PROMPT — INDIVIDUAL ASSIGNMENT 2 (AD-065)</code>. Trích các đoạn nguyên văn liên quan:</p>
+<blockquote>
+<p>Act as a Senior Software Architect, Software Engineer, Code Quality Reviewer, and Academic Technical Writing Assistant.</p>
+<p>However, never invent implementation evidence or represent proposed code as existing repository code.</p>
+<p>Generate one substantive architectural or refactoring proposal addressing a genuine design question identified in Sessions 2–4.</p>
+</blockquote>
+<p>Ngữ cảnh cùng prompt quy định 764 tác vụ, p95 ≤4.5 seconds, retention 7 days, change response 12 hours; chỉ làm Markdown, chưa xuất PDF. Prompt yêu cầu phản biện proposal với lecture, SRS, repository và preservation. Không tạo ra prompt hội thoại giả hoặc biên bản review bên ngoài.</p>
+<h3>A.2 Đầu ra AI sơ bộ đã thực sự hiển thị trong Phiên 5</h3>
+<p>Đoạn dưới được giữ nguyên tiếng Anh từ thông điệp tiến độ của Codex, không dịch thành lời trích dẫn giả:</p>
+<blockquote>
+<p>Use a C# modular monolith with authoritative state serialized per match, module-owned persistence, and Expand–Migrate–Contract deployments. As an initial durability option, persist every accepted hit in a SQL transaction before returning its result. Introduce a Damage value object that throws on negative input. Keep client damage claims outside the trusted boundary, and test duplicate attacks, pickup contention, and rollback to the previous binary.</p>
+</blockquote>
+<p>Đây là <strong>đề xuất sơ bộ để review</strong>, không phải thiết kế cuối được chấp nhận hoặc mô tả code hiện có. Hai phần bị thách thức thực sự nằm trong đầu ra trên; không suy dựng một cuộc trao đổi trước đó. Việc review diễn ra sau các phần 1–4 và đối chiếu lại baseline đã viết.</p>
+<h3>A.3 Đánh giá, chỉnh sửa và cách xác minh</h3>
+<table>
+<thead>
+<tr>
+<th>Nội dung / phiên</th>
+<th>Xử lý và lập luận kỹ thuật</th>
+<th>Chứng cứ đã có / còn thiếu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Phiên 1: driver và workload</td>
+<td>Giữ ba driver; ghi rõ 764 concurrent không đồng nghĩa 764 RPS. Không lấy NFR-001 frame time làm server response time.</td>
+<td>Đọc [S] §4.4, AD-065; còn thiếu workload phê duyệt và raw benchmark.</td>
+</tr>
+<tr>
+<td>Phiên 2: authority/ownership</td>
+<td>Chấp nhận như kiến trúc mở rộng; phân biệt local transaction pickup trên Unity main thread với server/database tương lai.</td>
+<td>[S] §3.5, §7.1–7.2; [R] không implementation. Cần test concurrency và ACL.</td>
+</tr>
+<tr>
+<td>Phiên 3: ADR/rollback</td>
+<td>Chấp nhận binary rollback trên schema tương thích, hoãn contract; không coi down migration là luôn an toàn.</td>
+<td>AD-065 và nguyên tắc boundary/trade-off [L4]; chưa có migration hoặc diễn tập.</td>
+</tr>
+<tr>
+<td>Phiên 4: <code>Damage</code></td>
+<td>Chấp nhận abstraction nhỏ có điều kiện; giữ chuẩn hóa âm→0 trong ví dụ, không biến thành phát hiện smell thật.</td>
+<td>[S] FR-010/015 và [L5]; chưa compile Unity, chưa characterization mã thật.</td>
+</tr>
+<tr>
+<td>Phiên 5: per-hit SQL</td>
+<td>Sửa đề xuất ở A.2, chuyển sang persist kết quả sau commit riêng; công khai mất RAM khi crash và nhu cầu xem lại nếu durability tăng.</td>
+<td>SRS loại DB khỏi MVP; ADR trade-off, không có benchmark để chứng minh tốc độ.</td>
+</tr>
+<tr>
+<td>Phiên 5: exception cho damage âm</td>
+<td>Bác bỏ trong bước refactor; giữ policy ví dụ và contract public, tách thay validation thành thay yêu cầu.</td>
+<td>SRS không xác lập exception behavior; [L5] yêu cầu giữ hành vi; thiếu code thật nên chỉ chứng minh tương đương biểu thức minh họa.</td>
+</tr>
+</tbody></table>
+<p><strong>Phương pháp xác minh:</strong> đọc đầy đủ hai lecture và SRS; so sánh hash SRS ZIP/workspace; GitHub connector kiểm tra default branch, nhánh, cây Git <code>truncated:false</code> và README ở commit cố định; đối chiếu FR/NFR/TC, trạng thái nguồn, hai view, ADR và test plan. Mermaid 12.2.0 parse/render cả hai sơ đồ; đã xem ảnh và đo các khối HTML theo profile A4 (§5.3). Không chạy gameplay/load test, không biên dịch C#, không diễn tập rollback. Chi tiết audit nằm trong ghi chú chứng cứ.</p>
+<p><strong>Trách nhiệm còn lại của sinh viên:</strong> tự đọc và giải thích diagram/ADR/code ví dụ, xác nhận hoặc sửa các giả định, phê duyệt nội dung AI, bổ sung review mã thật và kết quả test khi nhóm có implementation; sau đó mới yêu cầu chuyển PDF và kiểm tra tối đa bảy trang nội dung chính. Không tuyên bố người học đã hoàn thành các việc này trong bản thảo.</p>
+</article></body></html>

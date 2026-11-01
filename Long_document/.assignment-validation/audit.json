@@ -1,0 +1,63 @@
+{
+  "mermaidVersion": "12.2.0",
+  "diagrams": [
+    "flowchart-v2",
+    "flowchart-v2"
+  ],
+  "a4ContentHeightMm": 273,
+  "css": {
+    "bodyPt": 9.5,
+    "tablePt": 9,
+    "contentWidthMm": 186
+  },
+  "blocks": [
+    {
+      "block": 1,
+      "heightMm": 261.7,
+      "widthMm": 186,
+      "textOverflow": false
+    },
+    {
+      "block": 2,
+      "heightMm": 242.9,
+      "widthMm": 186,
+      "textOverflow": false
+    },
+    {
+      "block": 3,
+      "heightMm": 271.4,
+      "widthMm": 186,
+      "textOverflow": false
+    },
+    {
+      "block": 4,
+      "heightMm": 229.4,
+      "widthMm": 186,
+      "textOverflow": false
+    },
+    {
+      "block": 5,
+      "heightMm": 242.7,
+      "widthMm": 186,
+      "textOverflow": false
+    },
+    {
+      "block": 6,
+      "heightMm": 244.7,
+      "widthMm": 186,
+      "textOverflow": false
+    },
+    {
+      "block": 7,
+      "heightMm": 251.3,
+      "widthMm": 186,
+      "textOverflow": false
+    },
+    {
+      "block": 8,
+      "heightMm": 246.1,
+      "widthMm": 186,
+      "textOverflow": false
+    }
+  ]
+}
