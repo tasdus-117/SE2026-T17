@@ -1,0 +1,42 @@
+# Requirements-to-test traceability
+
+Source: `srs.md` v0.2, sections 4.3, 4.4 and Part 5. All SRS cases remain
+**Planned**. Task 1.1 provides project/assembly infrastructure only; it does not
+satisfy gameplay or quantitative quality acceptance. Proposed D-values and NFRs
+retain their SRS approval status. TC-028 is an integrated subset, not a substitute
+for each requirement's focused cases.
+
+| Requirement | Acceptance criterion | Planned test IDs |
+| --- | --- | --- |
+| FR-001 Start Match | AC-001 | TC-001, TC-029, TC-028 |
+| FR-002 Load 3D Arena | AC-002 | TC-001, TC-004, TC-028 |
+| FR-003 Initialize Player | AC-003 | TC-001, TC-002, TC-012, TC-028 |
+| FR-004 Stationary Bot / 10 HP | AC-004 | TC-001, TC-009, TC-028 |
+| FR-005 Third-Person Camera | AC-005 | TC-007, TC-008, TC-028 |
+| FR-006 Keyboard Movement | AC-006 | TC-002, TC-003, TC-004, TC-028 |
+| FR-007 Jump | AC-007 | TC-005, TC-006, TC-008, TC-028 |
+| FR-008 Basic Punch | AC-008 | TC-010, TC-011, TC-022, TC-028 |
+| FR-009 Valid Punch Hit | AC-009 | TC-013, TC-014, TC-022, TC-030, TC-028 |
+| FR-010 Base Damage | AC-010 | TC-012, TC-015, TC-028 |
+| FR-011 Bot HP Display | AC-011 | TC-001, TC-012, TC-025, TC-028 |
+| FR-012 Collect Weapon | AC-012 | TC-017, TC-018, TC-020, TC-023, TC-028 |
+| FR-013 Modified Damage | AC-013 | TC-019, TC-021, TC-023, TC-028 |
+| FR-014 Collect Once | AC-014 | TC-020, TC-028 |
+| FR-015 Defeat Once / HP Clamp | AC-015 | TC-015, TC-016, TC-024, TC-028 |
+| FR-016 Victory Display | AC-016 | TC-025, TC-028 |
+| FR-017 Terminal Match / Action Gating | AC-017 | TC-026, TC-027, TC-028 |
+| NFR-001 Performance | AC-N01 | TC-031 |
+| NFR-002 Input Responsiveness | AC-N02 | TC-032 |
+| NFR-003 Stability | AC-N03 | TC-033 |
+| NFR-004 Maintainability | AC-N04 | TC-034 |
+| NFR-005 Usability | AC-N05 | TC-035 |
+| NFR-006 Windows / Offline Compatibility | AC-N06 | TC-036 |
+| NFR-007 Testability | AC-N07 | TC-037 |
+
+EditMode will cover isolated arithmetic, cooldown and match invariants. PlayMode
+will cover initialization, physics, transactions and event integration. Manual,
+standalone performance and usability cases retain the methods in the SRS.
+
+For executed cases, append commit/build ID, Editor/package versions, approved
+parameters, tester/date, machine, actual outcome, log/result path and defect link.
+Do not mark a whole TC Passed from a partial scaffold check.
