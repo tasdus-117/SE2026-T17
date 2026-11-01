@@ -1,0 +1,82 @@
+[
+    {
+        "Assembly":  "SmallArena.Domain",
+        "SourceCount":  4,
+        "Sources":  [
+                        "Assets/_Project/Scripts/Core/Domain/AssemblyInfo.cs",
+                        "Assets/_Project/Scripts/Core/Domain/MatchReadinessResult.cs",
+                        "Assets/_Project/Scripts/Core/Domain/MatchState.cs",
+                        "Assets/_Project/Scripts/Core/Domain/MatchStateMachine.cs"
+                    ],
+        "ExplicitReferences":  [
+
+                               ],
+        "NoEngineReferences":  true,
+        "LanguageVersion":  "9.0",
+        "WarningsAsErrors":  true,
+        "Outcome":  "Compiled; not Unity-imported or executed",
+        "Diagnostics":  "Compilation succeeded with no diagnostics."
+    },
+    {
+        "Assembly":  "SmallArena.Runtime",
+        "SourceCount":  4,
+        "Sources":  [
+                        "Assets/_Project/Scripts/AssemblyInfo.cs",
+                        "Assets/_Project/Scripts/Core/GameManager.cs",
+                        "Assets/_Project/Scripts/Core/IMatchReadinessProbe.cs",
+                        "Assets/_Project/Scripts/Input/PlayerInputHandler.cs"
+                    ],
+        "ExplicitReferences":  [
+                                   "SmallArena.Domain",
+                                   "Unity.InputSystem"
+                               ],
+        "NoEngineReferences":  false,
+        "LanguageVersion":  "9.0",
+        "WarningsAsErrors":  true,
+        "Outcome":  "Compiled; not Unity-imported or executed",
+        "Diagnostics":  "Compilation succeeded with no diagnostics."
+    },
+    {
+        "Assembly":  "SmallArena.EditMode.Tests",
+        "SourceCount":  2,
+        "Sources":  [
+                        "Assets/_Project/Tests/EditMode/AssemblyInfo.cs",
+                        "Assets/_Project/Tests/EditMode/MatchStateTests.cs"
+                    ],
+        "ExplicitReferences":  [
+                                   "SmallArena.Domain",
+                                   "SmallArena.Runtime",
+                                   "UnityEngine.TestRunner",
+                                   "UnityEditor.TestRunner"
+                               ],
+        "NoEngineReferences":  false,
+        "LanguageVersion":  "9.0",
+        "WarningsAsErrors":  true,
+        "Outcome":  "Compiled; not Unity-imported or executed",
+        "Diagnostics":  "Compilation succeeded with no diagnostics."
+    },
+    {
+        "Assembly":  "SmallArena.PlayMode.Tests",
+        "SourceCount":  5,
+        "Sources":  [
+                        "Assets/_Project/Tests/PlayMode/ArenaConfigurationTests.cs",
+                        "Assets/_Project/Tests/PlayMode/ArenaLayoutTests.cs",
+                        "Assets/_Project/Tests/PlayMode/AssemblyInfo.cs",
+                        "Assets/_Project/Tests/PlayMode/MatchInitializationTests.cs",
+                        "Assets/_Project/Tests/PlayMode/PlayerInputHandlerTests.cs"
+                    ],
+        "ExplicitReferences":  [
+                                   "SmallArena.Domain",
+                                   "SmallArena.Runtime",
+                                   "UnityEngine.TestRunner",
+                                   "UnityEditor.TestRunner",
+                                   "Unity.InputSystem",
+                                   "Unity.InputSystem.TestFramework"
+                               ],
+        "NoEngineReferences":  false,
+        "LanguageVersion":  "9.0",
+        "WarningsAsErrors":  true,
+        "Outcome":  "Compiled; not Unity-imported or executed",
+        "Diagnostics":  "Compilation succeeded with no diagnostics."
+    }
+]

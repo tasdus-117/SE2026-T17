@@ -1,0 +1,7 @@
+Source: TestResults/MatchInitialization/Unity-playmode.log
+Observed UTC: 2026-11-01T19:52:22.2883530Z
+Source SHA256 (raw bytes): 1d085600513a7726da6b86fff877120b838560ec0cb731861e6efd4c0e0750b2
+Observation: Task 1.6 native attempt; no additional Unity run in Task 1.7.
+
+No valid Unity Editor license found. Please activate your license.
+[ExitDontLaunchBugReporter] Exiting without the bug reporter. Application will exit with return code 198

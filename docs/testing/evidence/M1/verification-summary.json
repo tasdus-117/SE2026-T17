@@ -1,0 +1,323 @@
+{
+    "Milestone":  "M1 Structural Baseline",
+    "Tag":  "m1-structural-baseline",
+    "Acceptance":  "Structural checkpoint only; original Editor/import/build and full gameplay gates remain open",
+    "CapturedUtc":  "2026-11-01T20:12:02.8078089Z",
+    "AuditStartCommit":  "bed9a8f032371fff5b3ad2d35e6b6be855ee129c",
+    "AuditedTree":  "Working tree including four previously pending M1 corrections; final tree identified by the annotated milestone tag",
+    "PreviouslyPendingPaths":  [
+                                   "Assets/_Project/Tests/EditMode/MatchStateTests.cs",
+                                   "Assets/_Project/Tests/PlayMode/ArenaLayoutTests.cs",
+                                   "Packages/manifest.json",
+                                   "ProjectSettings/ProjectSettings.asset"
+                               ],
+    "Versions":  {
+                     "UnityEditor":  "6000.6.7f1",
+                     "EditorRevision":  "b22767f04f04",
+                     "Urp":  "17.6.0",
+                     "InputSystem":  "1.20.0",
+                     "TestFramework":  "1.8.0",
+                     "UGui":  "2.6.0",
+                     "Sdk":  "8.0.318",
+                     "DotnetRuntime":  "8.0.21",
+                     "Language":  "C# 9.0",
+                     "NUnitPackage":  "com.unity.ext.nunit 2.1.0",
+                     "PowerShell":  "5.1.26100.9818"
+                 },
+    "Domain":  {
+                   "Cases":  34,
+                   "Passed":  34,
+                   "Failed":  0,
+                   "Skipped":  0,
+                   "Inconclusive":  0,
+                   "TargetedMutationsDetected":  13,
+                   "TargetedMutationsTotal":  13,
+                   "Xml":  "domain-results.xml",
+                   "Mutations":  "mutation-results.json",
+                   "NUnitAssertions":  168
+               },
+    "CurrentChecks":  {
+                          "ConfigurationAssertions":  2333,
+                          "MatrixEntries":  1024,
+                          "SymmetryEntries":  1024,
+                          "ConfigurationYamlFiles":  32,
+                          "ConfigurationJsonFiles":  1,
+                          "LayoutAndWiringAssertions":  631,
+                          "LayoutYamlFiles":  11,
+                          "InputAssertions":  39,
+                          "AssetMetadataPairs":  72,
+                          "ProjectAsmdefs":  4,
+                          "RequirementsMapped":  24
+                      },
+    "HistoricalReproductions":  [
+                                    {
+                                        "Task":  "1.3",
+                                        "Commit":  "7b205c68e814ce43d91b435cb1207c12bd3e703c",
+                                        "Assertions":  2301,
+                                        "Artifact":  "configuration-task1.3.json",
+                                        "Command":  "tools/Verify-ArenaConfiguration.ps1 from isolated git archive"
+                                    },
+                                    {
+                                        "Task":  "1.4",
+                                        "Commit":  "1d39a7b5249f6e6366b59150a3143d7d1beb780f",
+                                        "Assertions":  584,
+                                        "Artifact":  "layout-task1.4.json",
+                                        "Command":  "tools/Verify-ArenaLayout.ps1 from isolated git archive"
+                                    }
+                                ],
+    "Compilation":  "compilation-current.json",
+    "NativeFixtures":  [
+                           {
+                               "Fixture":  "ArenaConfigurationTests",
+                               "DeclaredCases":  25,
+                               "Outcome":  "Compiled; native execution blocked, no passing cases claimed"
+                           },
+                           {
+                               "Fixture":  "ArenaLayoutTests",
+                               "DeclaredCases":  23,
+                               "Outcome":  "Compiled; native execution blocked, no passing cases claimed"
+                           },
+                           {
+                               "Fixture":  "MatchInitializationTests",
+                               "DeclaredCases":  34,
+                               "Outcome":  "Compiled; native execution blocked, no passing cases claimed"
+                           },
+                           {
+                               "Fixture":  "PlayerInputHandlerTests",
+                               "DeclaredCases":  34,
+                               "Outcome":  "Compiled; native execution blocked, no passing cases claimed"
+                           }
+                       ],
+    "NativeCaseTotal":  116,
+    "NativeExecution":  {
+                            "Status":  "Blocked",
+                            "ExitCode":  198,
+                            "Passed":  0,
+                            "LatestAttemptTask":  "1.6",
+                            "ObservedUtc":  "2026-11-01T19:52:22.2883530Z",
+                            "Excerpt":  "native-license-excerpt.txt",
+                            "NewNativeRunInTask1_7":  false,
+                            "UnityImportVerified":  false,
+                            "WindowsBuildVerified":  false
+                        },
+    "FingerprintAlgorithm":  "SHA256 over text decoded with BOM detection, CRLF normalized to LF, encoded UTF-8 without BOM; avoids Git checkout EOL differences",
+    "SourceFingerprints":  [
+                               {
+                                   "Path":  "Assets/_Project/Art/Materials/BotRed.mat",
+                                   "Sha256Utf8Lf":  "340a595812dfda4b3b50c7f2f7d60f662df2377f98bdeaf85b1dac6933b2e0fc"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Art/Materials/FloorSlate.mat",
+                                   "Sha256Utf8Lf":  "fd5b2cf55a6b9e6f4f2d924b16132a6dd50cb1c480a9e000316f891f9a664b2d"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Art/Materials/PickupGold.mat",
+                                   "Sha256Utf8Lf":  "3551406292ec4eadffd7c395ea115a1e4307086385b332fdc4d38369b7c8f36d"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Art/Materials/PlayerBlue.mat",
+                                   "Sha256Utf8Lf":  "c41dbf08124c2e0bb5efc30cef5d23778c0e03f7c3419f6634348d536938eaa9"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Art/Materials/WallGray.mat",
+                                   "Sha256Utf8Lf":  "d51a5d8909eea6d9b1691ec3987c0decb9ca52391b1cad45519b1b438f9fcb73"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Input/SmallArena.inputactions",
+                                   "Sha256Utf8Lf":  "47015c44153d4a3d5db2de92a45792ff4ec2e1ffdae3a0c6d843646e2166a09b"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Prefabs/Bot.prefab",
+                                   "Sha256Utf8Lf":  "177401fed4d45f342c96457414c93bbef17d3c05e7a49af35d40e4cdc089bb05"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Prefabs/Player.prefab",
+                                   "Sha256Utf8Lf":  "cee07d67d8a39c81e74d771525dc80fb48aaf3b10d7001531e5b7a6f97fe7362"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Prefabs/WeaponPickup.prefab",
+                                   "Sha256Utf8Lf":  "2d0fb014ff00534e4c510badcecece6c5b405c0a317254ecf623bd602ee13a40"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scenes/Arena_MVP.unity",
+                                   "Sha256Utf8Lf":  "a2195eea75396c3b950f229f1d7ff67e2b4d9102ffdd0c462b45579d6df6ea8d"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scenes/Bootstrap.unity",
+                                   "Sha256Utf8Lf":  "07fce8b04804ddccb3026db5b43d8dc41ba138e49d50d36a5c24877081eacdca"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/AssemblyInfo.cs",
+                                   "Sha256Utf8Lf":  "37f2552b371f0793a723bff2e30fa9b2a227912ce948a87ebf7c3023f8fb8f2b"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/Core/Domain/AssemblyInfo.cs",
+                                   "Sha256Utf8Lf":  "a09b691f6740ada698da4b4a199fa4206e00fffd90b2693d05dc4f5fdbf4a2f7"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/Core/Domain/MatchReadinessResult.cs",
+                                   "Sha256Utf8Lf":  "dd6e2220ca0590c8a96017d6ad0c89f40b8476f129527b0bb8b2f8e4319ac4f2"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/Core/Domain/MatchState.cs",
+                                   "Sha256Utf8Lf":  "270ffc7313ebf3b8525d9bee922da464625a78c3660aa77fdabfcd456f2a3861"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/Core/Domain/MatchStateMachine.cs",
+                                   "Sha256Utf8Lf":  "476c510982213d777f551e99bd7b239d503921c17cc4f253eee0890765108fce"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/Core/Domain/SmallArena.Domain.asmdef",
+                                   "Sha256Utf8Lf":  "b83c03737caac154a3a582c91cc349b5b90985e981d90d5908c0e9fee1da7450"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/Core/GameManager.cs",
+                                   "Sha256Utf8Lf":  "d31e95f08ce696fbc22b8d3d6e3b78d1f6e1e73fedb66f9b913b60925ad84674"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/Core/IMatchReadinessProbe.cs",
+                                   "Sha256Utf8Lf":  "3311734307667a9b697deb1471cb64fdfa7c99d674393bc981b900ef852929f0"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/Input/PlayerInputHandler.cs",
+                                   "Sha256Utf8Lf":  "3fafada57592072a087917d3e932cdefd94af0c9908d370dad2e61f272b072d0"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Scripts/SmallArena.Runtime.asmdef",
+                                   "Sha256Utf8Lf":  "69763134ef1fa4874854e58c1bf26ec97571fbc7458801db1d18043bc72b76b0"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Tests/EditMode/AssemblyInfo.cs",
+                                   "Sha256Utf8Lf":  "9f2a74d9b76e6f4cea6df5320964743cd95a69c02a4f59bba6008056326cb144"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Tests/EditMode/MatchStateTests.cs",
+                                   "Sha256Utf8Lf":  "7b21e652d6638b1848fc114df6071e290b17197fb3436b6404dee663c0ec3b3a"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Tests/EditMode/SmallArena.EditMode.Tests.asmdef",
+                                   "Sha256Utf8Lf":  "0dbc3a276f818a82b6faed9b740a9844624438f5a7c02a21c17658177db7a73d"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Tests/PlayMode/ArenaConfigurationTests.cs",
+                                   "Sha256Utf8Lf":  "b7235ec439a7d442941fd54333841583d122ddf0baaacdd57ec1ecf5a950596c"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Tests/PlayMode/ArenaLayoutTests.cs",
+                                   "Sha256Utf8Lf":  "0cb5ba573dd578424f4b1512f7f5986346b94ff5cac3f1fc3f6427e0d9e74e61"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Tests/PlayMode/AssemblyInfo.cs",
+                                   "Sha256Utf8Lf":  "1a40c37057ed6b2e0fc65d02923466e0eb404680f6cf4f59c5f61aec14d31108"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Tests/PlayMode/MatchInitializationTests.cs",
+                                   "Sha256Utf8Lf":  "14ae218d925ccf03e3e4d5c9a24b85a7b1fec4ac5512fb689fb25da74c110ecc"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Tests/PlayMode/PlayerInputHandlerTests.cs",
+                                   "Sha256Utf8Lf":  "7b0420309092f68194660416b079de07865ea2ec8c9e6988e1ed2420390929cf"
+                               },
+                               {
+                                   "Path":  "Assets/_Project/Tests/PlayMode/SmallArena.PlayMode.Tests.asmdef",
+                                   "Sha256Utf8Lf":  "8cf3017c00616339b0f2d6bc6bdc59125038c3c93c4d69c10ae2ae2479460663"
+                               },
+                               {
+                                   "Path":  "Packages/manifest.json",
+                                   "Sha256Utf8Lf":  "310aab90ae77133e60aef7f0af6800ce13efe420022fd96d0f32b754d5b612f8"
+                               },
+                               {
+                                   "Path":  "Packages/packages-lock.json",
+                                   "Sha256Utf8Lf":  "232bda4542a5697a7332bde66bc54a58257e328e2f6077c204487579d2177501"
+                               },
+                               {
+                                   "Path":  "ProjectSettings/DynamicsManager.asset",
+                                   "Sha256Utf8Lf":  "0a2cd81cca42d654c6bc9630eb3098f53a636839439d40ab076fd1992e5982a2"
+                               },
+                               {
+                                   "Path":  "ProjectSettings/EditorBuildSettings.asset",
+                                   "Sha256Utf8Lf":  "456d551945256ac0c71559e722960fb69558578f5b9d42640d13077658f9efec"
+                               },
+                               {
+                                   "Path":  "ProjectSettings/GraphicsSettings.asset",
+                                   "Sha256Utf8Lf":  "56c816bd980ca4b9c5a33f5ef233bcaea6c08505a1af65ac5e5e633ce8bad6fe"
+                               },
+                               {
+                                   "Path":  "ProjectSettings/ProjectSettings.asset",
+                                   "Sha256Utf8Lf":  "e557730a4775211c696019ddd625133972d56c4221f6f04c126a68ff723b487f"
+                               },
+                               {
+                                   "Path":  "ProjectSettings/ProjectVersion.txt",
+                                   "Sha256Utf8Lf":  "2a88e6864b6f54588287bed3bc6e9260e65bd49498910cca4478770ca8a5d674"
+                               },
+                               {
+                                   "Path":  "ProjectSettings/QualitySettings.asset",
+                                   "Sha256Utf8Lf":  "7fa3e21095b718cecea9e9befeb6d56aced5eca369a1c5844214fc3e1ed7f415"
+                               },
+                               {
+                                   "Path":  "ProjectSettings/TagManager.asset",
+                                   "Sha256Utf8Lf":  "f7596ebfb0f6f2bd003211654b5535d8b9d08a97d5d1ff11095ab9bbd80fd79f"
+                               },
+                               {
+                                   "Path":  "srs.md",
+                                   "Sha256Utf8Lf":  "05215b0b835ef5f20738826b3ded409d383e502eafb2b1b66c9ad66f3f0729bc"
+                               },
+                               {
+                                   "Path":  "system_engineering.md",
+                                   "Sha256Utf8Lf":  "93d58d573e4e7f9d0f059af85dd82b1dca7fcdaf3cc4ac1da99ad33d52833bcb"
+                               },
+                               {
+                                   "Path":  "tools/ArenaConfigurationVerifier.cs",
+                                   "Sha256Utf8Lf":  "dbf8369267040a98d1ba9a06b04dc6bd96a85a50211c0f42b3dc57eb6aaff0cd"
+                               },
+                               {
+                                   "Path":  "tools/ArenaLayoutVerifier.cs",
+                                   "Sha256Utf8Lf":  "cb25e218f157c6b866cb62a28ef1aa1f1998d8802a1cb96ddbb8d6aeadaad077"
+                               },
+                               {
+                                   "Path":  "tools/Compile-UnityAssemblies.ps1",
+                                   "Sha256Utf8Lf":  "db3495171a5ebcad4a90b2271b47998e8d7009435ee3667b87bf61a1fb2131c8"
+                               },
+                               {
+                                   "Path":  "tools/NUnitDomainRunner.cs",
+                                   "Sha256Utf8Lf":  "1b2bc36e5544dbe1bf1f44ec5c060a08389ba9a6d208e64b574d3a793a29f2b4"
+                               },
+                               {
+                                   "Path":  "tools/Run-DomainTests.ps1",
+                                   "Sha256Utf8Lf":  "34af2726662fc06e4fbd58a315551c2297f84675661de2a72dad2118e3a3d031"
+                               },
+                               {
+                                   "Path":  "tools/Verify-ArenaConfiguration.ps1",
+                                   "Sha256Utf8Lf":  "1f217a48b9c7af5091d193c5119767750fd861ce5e4b2a4e45ef9f295bdf139e"
+                               },
+                               {
+                                   "Path":  "tools/Verify-ArenaLayout.ps1",
+                                   "Sha256Utf8Lf":  "ddc653ba6c88452ccea9df8266c438f521fbe9e8f2f4c4598dc1bcf9ad030a50"
+                               },
+                               {
+                                   "Path":  "tools/Verify-Input.ps1",
+                                   "Sha256Utf8Lf":  "1cff35b793047d3b160d66d524e8c9ad4b06ac7b5952961e06546d07ad659d8f"
+                               },
+                               {
+                                   "Path":  "tools/Verify-Scaffold.ps1",
+                                   "Sha256Utf8Lf":  "acf07ca7716833bce96a5338fa0d4637fabe649aac4b9b62e5bbd085a985bab0"
+                               }
+                           ],
+    "ScaffoldAndBoundary":  "boundary-and-scaffold.json",
+    "DocumentationAudit":  {
+                               "RequirementRows":  24,
+                               "CatalogueRows":  37,
+                               "RequiredPartialGates":  [
+                                                            "TC-001",
+                                                            "TC-004",
+                                                            "TC-028",
+                                                            "TC-029"
+                                                        ],
+                               "DebtRowsWithAllFields":  3,
+                               "ValidatedLocalLinks":  19,
+                               "ValidatedSourceFingerprints":  50,
+                               "ParsedEvidenceJsonFiles":  9,
+                               "ParsedDomainXml":  true
+                           },
+    "FinalizedUtc":  "2026-11-01T20:17:36.7848049Z"
+}

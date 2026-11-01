@@ -1,0 +1,17 @@
+{
+    "Command":  "powershell -NoProfile -ExecutionPolicy Bypass -File tools/Verify-Scaffold.ps1 -CompileProbes",
+    "ExitCode":  0,
+    "ProjectAssemblies":  4,
+    "MetadataPairs":  72,
+    "RequirementMappings":  24,
+    "DomainEngineAccessRejected":  {
+                                       "ExpectedDiagnostic":  "CS0246",
+                                       "Outcome":  "Expected compilation failure observed",
+                                       "ObservedDiagnostic":  "Logs\\ScaffoldVerification\\EngineBoundaryProbe.cs(1,50): error CS0246: The type or namespace name \u0027UnityEngine\u0027 could not be found (are you missing a using directive or an assembly reference?)"
+                                   },
+    "EngineAccessPositiveControl":  {
+                                        "ExitCode":  0,
+                                        "Outcome":  "Compiled with explicit UnityEngine reference"
+                                    },
+    "UnityImportVerified":  false
+}

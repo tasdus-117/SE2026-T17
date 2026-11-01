@@ -1,0 +1,54 @@
+{
+  "LayerMapping": {
+    "Default": 0,
+    "Environment": 6,
+    "Player": 7,
+    "Bot": 8,
+    "Pickup": 9
+  },
+  "CollisionMatrix": {
+    "Default": {
+      "Default": true,
+      "Environment": true,
+      "Player": true,
+      "Bot": true,
+      "Pickup": false
+    },
+    "Environment": {
+      "Default": true,
+      "Environment": true,
+      "Player": true,
+      "Bot": true,
+      "Pickup": false
+    },
+    "Player": {
+      "Default": true,
+      "Environment": true,
+      "Player": false,
+      "Bot": true,
+      "Pickup": true
+    },
+    "Bot": {
+      "Default": true,
+      "Environment": true,
+      "Player": true,
+      "Bot": false,
+      "Pickup": false
+    },
+    "Pickup": {
+      "Default": false,
+      "Environment": false,
+      "Player": true,
+      "Bot": false,
+      "Pickup": false
+    }
+  },
+  "MatrixEntriesChecked": 1024,
+  "SymmetryEntriesChecked": 1024,
+  "YamlFilesParsed": 32,
+  "JsonFilesParsed": 1,
+  "AssertionsPassed": 2301,
+  "ConfiguredActivePipeline": "Assets\\_Project\\Settings\\PC_RPAsset.asset",
+  "ColorSpace": "Linear",
+  "VerificationMode": "Saved YAML only; Unity runtime checks require PlayMode execution."
+}

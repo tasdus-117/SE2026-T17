@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
+using SmallArena.Core;
+using SmallArena.Domain;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -43,6 +45,17 @@ namespace SmallArena.Tests.PlayMode
             {
                 Assert.That(item.GetComponents<Component>().All(component => component != null), Is.True, item.name);
             }
+        }
+
+        [Test]
+        public void SceneCoordinator_IsWired_AndHoldsM1Initializing()
+        {
+            var manager = Entity("_GameManager").GetComponent<GameManager>();
+            Assert.That(manager, Is.Not.Null);
+            Assert.That(manager.ValidateSceneReadiness().IsReady, Is.True);
+            Assert.That(manager.ValidateMatchReadiness().IsReady, Is.False);
+            Assert.That(manager.CurrentState, Is.EqualTo(MatchState.Initializing));
+            Assert.That(manager.IsPlaying, Is.False);
         }
 
         [TestCase("Player", "Player")]

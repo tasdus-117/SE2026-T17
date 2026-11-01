@@ -1,0 +1,29 @@
+{
+  "AssertionsPassed": 631,
+  "UnityYamlFilesParsed": 11,
+  "Scene": "Assets/_Project/Scenes/Arena_MVP.unity",
+  "LinkedEntityInstances": 3,
+  "FloorMetres": "16 x 16",
+  "WallHeightMetres": 3,
+  "GameManagerWiredToPrefabRootsAndCamera": true,
+  "M1AutoStart": false,
+  "M1FullReadinessProviderAssigned": false,
+  "Spawns": {
+    "Player": [
+      0,
+      1,
+      -4
+    ],
+    "Bot": [
+      0,
+      1,
+      4
+    ],
+    "WeaponPickup": [
+      -3,
+      0.3,
+      0
+    ]
+  },
+  "VerificationMode": "Saved-file references and geometry only; Unity import and native physics require licensed PlayMode execution."
+}

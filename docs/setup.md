@@ -145,7 +145,17 @@ readiness diagnostic. See `testing/task_1_6_verification.md`.
   manifests or ProjectSettings files. Metadata checks apply to Assets.
 - Library, Temp, Obj, Build, Builds, Logs, UserSettings and IDE output are ignored.
 - Give scene/pipeline edits one owner at a time. Review scaffold changes before
-  integration; no additional implementation commit was created by this task.
+  integration.
+
+## M1 structural checkpoint
+
+Local annotated tag `m1-structural-baseline` records the Task 1.7 verification
+audit, retained evidence and reviewed pending M1 corrections. See
+[M1-verification.md](testing/M1-verification.md) for exact versions, historical
+versus current assertion counts, source fingerprints and deferred gates.
+TC-001, TC-004, TC-028 and TC-029 remain Planned / Partially Verified
+(M1 Structural Baseline). Full M1 Editor/import/build acceptance is still open
+because native verification is blocked by local license error 198.
 
 See `architecture/assembly_boundaries.md`, `testing/traceability_matrix.md`,
 `testing/task_1_1_verification.md`, and `debt/technical_debt_register.md`.

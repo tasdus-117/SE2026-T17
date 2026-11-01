@@ -13,6 +13,24 @@ namespace SmallArena.Tests.EditMode
         private static MatchReadinessResult Ready => new MatchReadinessResult(true);
 
         [Test]
+        public void ReadinessSuccessFactory_IsReady_WithEmptyDiagnostic()
+        {
+            var result = MatchReadinessResult.Success();
+            Assert.That(result.IsReady, Is.True);
+            Assert.That(result.DiagnosticMessage, Is.Empty);
+        }
+
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("Missing HUD")]
+        public void ReadinessFailFactory_IsNotReady_AndPreservesDiagnostic(string diagnostic)
+        {
+            var result = MatchReadinessResult.Fail(diagnostic);
+            Assert.That(result.IsReady, Is.False);
+            Assert.That(result.DiagnosticMessage, Is.EqualTo(diagnostic ?? string.Empty));
+        }
+
+        [Test]
         public void NewMachine_IsInitializing_AndNotPlaying()
         {
             var machine = new MatchStateMachine();

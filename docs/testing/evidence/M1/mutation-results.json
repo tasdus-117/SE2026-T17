@@ -1,0 +1,218 @@
+[
+    {
+        "Id":  "M01",
+        "Description":  "Invert readiness guard",
+        "FailedTests":  21,
+        "DetectedBy":  [
+                           "DefaultReadiness_IsNotReady_AndCannotStart",
+                           "FullLifecycle_EmitsOnlyPlayingThenVictory",
+                           "FullLifecycle_WithoutListeners_CompletesNormally",
+                           "PlayingNotification_RejectsReentrantTransitions_AndKeepsListenersConsistent",
+                           "SeparateMachines_DoNotShareStateOrEvents",
+                           "StartMatch_AfterFailedReadiness_CanRetrySuccessfully",
+                           "StartMatch_FailedReadiness_RejectsWithoutNotification(null)",
+                           "StartMatch_FailedReadiness_RejectsWithoutNotification(\"\")",
+                           "StartMatch_FailedReadiness_RejectsWithoutNotification(\"Missing bot reference\")",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Playing,False)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Playing,True)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,False)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,True)",
+                           "StartMatch_Ready_CommitsPlayingBeforeExactlyOneNotification",
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard",
+                           "ThrowingVictoryListener_PropagatesWithoutRollback_AndVictoryRemainsTerminal",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(1)",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(10)",
+                           "TriggerVictory_WhilePlaying_CommitsVictoryBeforeExactlyOneNotification",
+                           "UnsubscribedListener_ReceivesNoFurtherNotifications",
+                           "VictoryNotification_RejectsReentrantVictoryAndRestart"
+                       ]
+    },
+    {
+        "Id":  "M02",
+        "Description":  "Invert start-state guard",
+        "FailedTests":  17,
+        "DetectedBy":  [
+                           "FullLifecycle_EmitsOnlyPlayingThenVictory",
+                           "FullLifecycle_WithoutListeners_CompletesNormally",
+                           "PlayingNotification_RejectsReentrantTransitions_AndKeepsListenersConsistent",
+                           "SeparateMachines_DoNotShareStateOrEvents",
+                           "StartMatch_AfterFailedReadiness_CanRetrySuccessfully",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Playing,False)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Playing,True)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,False)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,True)",
+                           "StartMatch_Ready_CommitsPlayingBeforeExactlyOneNotification",
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard",
+                           "ThrowingVictoryListener_PropagatesWithoutRollback_AndVictoryRemainsTerminal",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(1)",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(10)",
+                           "TriggerVictory_WhilePlaying_CommitsVictoryBeforeExactlyOneNotification",
+                           "UnsubscribedListener_ReceivesNoFurtherNotifications",
+                           "VictoryNotification_RejectsReentrantVictoryAndRestart"
+                       ]
+    },
+    {
+        "Id":  "M03",
+        "Description":  "Invert victory-state guard",
+        "FailedTests":  14,
+        "DetectedBy":  [
+                           "FullLifecycle_EmitsOnlyPlayingThenVictory",
+                           "FullLifecycle_WithoutListeners_CompletesNormally",
+                           "PlayingNotification_RejectsReentrantTransitions_AndKeepsListenersConsistent",
+                           "SeparateMachines_DoNotShareStateOrEvents",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,False)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,True)",
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard",
+                           "ThrowingVictoryListener_PropagatesWithoutRollback_AndVictoryRemainsTerminal",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(1)",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(10)",
+                           "TriggerVictory_WhileInitializing_RejectsWithoutNotification",
+                           "TriggerVictory_WhilePlaying_CommitsVictoryBeforeExactlyOneNotification",
+                           "UnsubscribedListener_ReceivesNoFurtherNotifications",
+                           "VictoryNotification_RejectsReentrantVictoryAndRestart"
+                       ]
+    },
+    {
+        "Id":  "M04",
+        "Description":  "Victory remains Playing",
+        "FailedTests":  11,
+        "DetectedBy":  [
+                           "FullLifecycle_EmitsOnlyPlayingThenVictory",
+                           "FullLifecycle_WithoutListeners_CompletesNormally",
+                           "PlayingNotification_RejectsReentrantTransitions_AndKeepsListenersConsistent",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,False)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,True)",
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard",
+                           "ThrowingVictoryListener_PropagatesWithoutRollback_AndVictoryRemainsTerminal",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(1)",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(10)",
+                           "TriggerVictory_WhilePlaying_CommitsVictoryBeforeExactlyOneNotification",
+                           "VictoryNotification_RejectsReentrantVictoryAndRestart"
+                       ]
+    },
+    {
+        "Id":  "M05",
+        "Description":  "Suppress state-change notification",
+        "FailedTests":  11,
+        "DetectedBy":  [
+                           "FullLifecycle_EmitsOnlyPlayingThenVictory",
+                           "PlayingNotification_RejectsReentrantTransitions_AndKeepsListenersConsistent",
+                           "StartMatch_AfterFailedReadiness_CanRetrySuccessfully",
+                           "StartMatch_Ready_CommitsPlayingBeforeExactlyOneNotification",
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard",
+                           "ThrowingVictoryListener_PropagatesWithoutRollback_AndVictoryRemainsTerminal",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(1)",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(10)",
+                           "TriggerVictory_WhilePlaying_CommitsVictoryBeforeExactlyOneNotification",
+                           "UnsubscribedListener_ReceivesNoFurtherNotifications",
+                           "VictoryNotification_RejectsReentrantVictoryAndRestart"
+                       ]
+    },
+    {
+        "Id":  "M06",
+        "Description":  "Allow victory during Playing notification",
+        "FailedTests":  1,
+        "DetectedBy":  [
+                           "PlayingNotification_RejectsReentrantTransitions_AndKeepsListenersConsistent"
+                       ]
+    },
+    {
+        "Id":  "M07",
+        "Description":  "Notify before committing state",
+        "FailedTests":  6,
+        "DetectedBy":  [
+                           "PlayingNotification_RejectsReentrantTransitions_AndKeepsListenersConsistent",
+                           "StartMatch_Ready_CommitsPlayingBeforeExactlyOneNotification",
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard",
+                           "ThrowingVictoryListener_PropagatesWithoutRollback_AndVictoryRemainsTerminal",
+                           "TriggerVictory_WhilePlaying_CommitsVictoryBeforeExactlyOneNotification",
+                           "VictoryNotification_RejectsReentrantVictoryAndRestart"
+                       ]
+    },
+    {
+        "Id":  "M08",
+        "Description":  "Never release notification guard",
+        "FailedTests":  13,
+        "DetectedBy":  [
+                           "FullLifecycle_EmitsOnlyPlayingThenVictory",
+                           "FullLifecycle_WithoutListeners_CompletesNormally",
+                           "PlayingNotification_RejectsReentrantTransitions_AndKeepsListenersConsistent",
+                           "SeparateMachines_DoNotShareStateOrEvents",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,False)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,True)",
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard",
+                           "ThrowingVictoryListener_PropagatesWithoutRollback_AndVictoryRemainsTerminal",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(1)",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(10)",
+                           "TriggerVictory_WhilePlaying_CommitsVictoryBeforeExactlyOneNotification",
+                           "UnsubscribedListener_ReceivesNoFurtherNotifications",
+                           "VictoryNotification_RejectsReentrantVictoryAndRestart"
+                       ]
+    },
+    {
+        "Id":  "M09",
+        "Description":  "Duplicate transition notification",
+        "FailedTests":  10,
+        "DetectedBy":  [
+                           "FullLifecycle_EmitsOnlyPlayingThenVictory",
+                           "PlayingNotification_RejectsReentrantTransitions_AndKeepsListenersConsistent",
+                           "StartMatch_AfterFailedReadiness_CanRetrySuccessfully",
+                           "StartMatch_Ready_CommitsPlayingBeforeExactlyOneNotification",
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(1)",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(10)",
+                           "TriggerVictory_WhilePlaying_CommitsVictoryBeforeExactlyOneNotification",
+                           "UnsubscribedListener_ReceivesNoFurtherNotifications",
+                           "VictoryNotification_RejectsReentrantVictoryAndRestart"
+                       ]
+    },
+    {
+        "Id":  "M10",
+        "Description":  "Invert IsPlaying query",
+        "FailedTests":  15,
+        "DetectedBy":  [
+                           "NewMachine_IsInitializing_AndNotPlaying",
+                           "StartMatch_AfterFailedReadiness_CanRetrySuccessfully",
+                           "StartMatch_FailedReadiness_RejectsWithoutNotification(null)",
+                           "StartMatch_FailedReadiness_RejectsWithoutNotification(\"\")",
+                           "StartMatch_FailedReadiness_RejectsWithoutNotification(\"Missing bot reference\")",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Playing,False)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Playing,True)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,False)",
+                           "StartMatch_OutsideInitializing_RejectsWithoutNotification(Victory,True)",
+                           "StartMatch_Ready_CommitsPlayingBeforeExactlyOneNotification",
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(1)",
+                           "TriggerVictory_RepeatedAfterWinning_RejectsWithoutDuplicateNotifications(10)",
+                           "TriggerVictory_WhileInitializing_RejectsWithoutNotification",
+                           "TriggerVictory_WhilePlaying_CommitsVictoryBeforeExactlyOneNotification"
+                       ]
+    },
+    {
+        "Id":  "M11",
+        "Description":  "Expose public state setter",
+        "FailedTests":  1,
+        "DetectedBy":  [
+                           "CurrentState_HasNoPublicSetter"
+                       ]
+    },
+    {
+        "Id":  "M12",
+        "Description":  "Remove default/null diagnostic normalization",
+        "FailedTests":  4,
+        "DetectedBy":  [
+                           "DefaultReadiness_IsNotReady_AndCannotStart",
+                           "Readiness_PreservesExplicitFlag_AndNormalizesDiagnostic(False,null)",
+                           "Readiness_PreservesExplicitFlag_AndNormalizesDiagnostic(True,null)",
+                           "ReadinessFailFactory_IsNotReady_AndPreservesDiagnostic(null)"
+                       ]
+    },
+    {
+        "Id":  "M13",
+        "Description":  "Release notification guard only on success",
+        "FailedTests":  1,
+        "DetectedBy":  [
+                           "ThrowingPlayingListener_PropagatesWithoutRollback_AndReleasesNotificationGuard"
+                       ]
+    }
+]
