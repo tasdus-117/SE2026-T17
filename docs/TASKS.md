@@ -45,22 +45,22 @@ Cập nhật 2026-11-01. Status chỉ TODO, IN_PROGRESS, BLOCKED, DONE; quyết 
 ## PLAN-001 — Reconcile product/technical decisions
 
 - Description: Thay interpretation offline cũ bằng online confirmed, giữ unresolved toolchain/tuning approvals minh bạch.
-- Priority: HIGH. Status: IN_PROGRESS.
+- Priority: HIGH. Status: BLOCKED.
 - Acceptance criteria: Preserve requirement IDs/history, map D-01–12 supersession, distinguish approved product/Git vs proposed exact tools, bounded next task; missing approvals explicit, không giả architecture approval.
 - Dependencies: Owner product prompt, BASE-001; DOC-001 verification và TECH-001 cho exact stack review.
 - Relevant files: ../Long_document/srs.md; ../Long_document/learning-roadmap.md; ARCHITECTURE.md; DECISIONS.md; ROADMAP.md.
-- Verification: Product reconciliation được viết ở DOC-001; exact framework/version/service selection chưa duyệt, không gọi PLAN hoàn tất lựa chọn.
-- Commits: Chưa có cho phần online tại thời điểm chuẩn bị commit. PR: NONE created.
+- Verification: Product reconciliation, D-01–12 supersession và unknowns kiểm ở DOC-001; còn BLOCKED trên owner/team exact framework/version/service/license/tuning decision trong TECH-001, không gọi PLAN hoàn tất lựa chọn.
+- Commits: Product documentation `178ee30ecaaecccb44743e18d8189ef08ca8a06f`, đã push. PR: NONE created. Integration: pending.
 
 ## DOC-001 — Online FFA documentation baseline
 
 - Description: Vietnamese current requirements/rules, product roadmap/catalogue, architecture comparison, protocol/testing/evidence, navigation và corrected memory.
-- Priority: HIGH. Status: IN_PROGRESS.
+- Priority: HIGH. Status: DONE.
 - Acceptance criteria: Current FFA/Unity/C#/host+3; mandatory weapon/reconnect/evidence trong first MVP; 2v2 future; stable old IDs/full SRS history; feature/requirement/AC/TC mapping, acyclic dependencies; official dated assessment; Markdown links; docs-only diff; preserve prompt/assignment; verified commit/push trên authorized docs branch, awaiting integration.
 - Dependencies: BASE-001, full task prompt, owner docs branch/commit/push approval đã nhận; consequential implementation choices không chặn độc lập documentation.
 - Relevant files: ../README.md; ../AGENTS.md; ../Long_document/srs.md; ../Long_document/learning-roadmap.md; ROADMAP.md; ARCHITECTURE.md; PROTOCOL.md; TESTING.md; PROJECT_STATE.md; TASKS.md; DECISIONS.md; WORK_LOG.md.
-- Verification: Document checks PASS: 52 local links/11 anchors, 14 FR/6 NFR/5 UC/20 AC/20 TC unique và traceability; 19-feature DAG, historical SRS/prompt preservation, append-only WORK_LOG, UTF-8/fences/common secret patterns, manual mandatory-scope review; git diff --check không whitespace errors. Staged review/commit/push còn pending. Tất cả gameplay TC-101–120 NOT RUN; không CI YAML/code/config/test executable được tạo.
-- Commits/push: PENDING verification/commit/push. PR: NONE created. Integration: AWAITING INTEGRATION into long23001901.
+- Verification: Document checks PASS: 52 local links/11 anchors, 14 FR/6 NFR/5 UC/20 AC/20 TC unique và traceability; 19-feature DAG, historical SRS/prompt preservation, append-only WORK_LOG, UTF-8/fences/common secret patterns, manual mandatory-scope review; working/staged git diff --check và exact 12-path staged-content review PASS. Tất cả gameplay TC-101–120 NOT RUN; không CI YAML/code/config/test executable được tạo. DONE chỉ cho tài liệu đã kiểm/commit/push, không gameplay/integration.
+- Commits/push: `178ee30ecaaecccb44743e18d8189ef08ca8a06f` — `docs(roadmap): DOC-001 define online FFA documentation baseline`; push origin/docs/23001901/online-ffa-roadmap success/upstream tracking. Handoff delivery record ghi sau content push. PR: NONE created. Integration: AWAITING INTEGRATION into long23001901.
 
 ## TECH-001 — Approve bounded technology matrix
 
