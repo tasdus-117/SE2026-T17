@@ -15,7 +15,7 @@ $expected = [ordered]@{
     'SmallArena.Domain' = @()
     'SmallArena.Runtime' = @('SmallArena.Domain', 'Unity.InputSystem')
     'SmallArena.EditMode.Tests' = @('SmallArena.Domain', 'SmallArena.Runtime', 'UnityEngine.TestRunner', 'UnityEditor.TestRunner')
-    'SmallArena.PlayMode.Tests' = @('SmallArena.Domain', 'SmallArena.Runtime', 'UnityEngine.TestRunner', 'UnityEditor.TestRunner')
+    'SmallArena.PlayMode.Tests' = @('SmallArena.Domain', 'SmallArena.Runtime', 'UnityEngine.TestRunner', 'UnityEditor.TestRunner', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework')
 }
 $definitions = @(Get-ChildItem -LiteralPath 'Assets' -Filter '*.asmdef' -Recurse)
 Assert-Scaffold ($definitions.Count -eq 4) 'Expected exactly four project asmdefs.'
@@ -99,9 +99,6 @@ $csc = Join-Path $EditorRoot 'Data/DotNetSdk/sdk/8.0.318/Roslyn/bincore/csc.dll'
 $referencePath = Join-Path $EditorRoot 'Data/DotNetSdk/packs/Microsoft.NETCore.App.Ref/8.0.21/ref/net8.0'
 $framework = @(Get-ChildItem -LiteralPath $referencePath -Filter '*.dll' | ForEach-Object { $_.FullName })
 $engine = Join-Path $EditorRoot 'Data/Managed/UnityEngine/UnityEngine.CoreModule.dll'
-$inputAssembly = Join-Path $taskRoot 'Library/ScriptAssemblies/Unity.InputSystem.dll'
-$testCache = Join-Path $EditorRoot 'Data/Resources/PackageManager/ProjectTemplates/libcache/com.unity.template.urp-blank-17.2.6/ScriptAssemblies'
-$nunit = Join-Path $EditorRoot 'Data/Resources/PackageManager/BuiltInPackages/com.unity.ext.nunit/net472/unity-custom/nunit.framework.dll'
 
 function Invoke-Probe([string]$Name, [string[]]$Sources, [string[]]$References, [bool]$ExpectFailure = $false) {
     $binary = Join-Path $output ($Name + '.dll')
@@ -119,19 +116,7 @@ function Invoke-Probe([string]$Name, [string[]]$Sources, [string[]]$References, 
     Write-Output "PASS: $Name"
 }
 
-foreach ($name in $expected.Keys) {
-    $source = Join-Path $byName[$name].File.DirectoryName 'AssemblyInfo.cs'
-    $references = @($framework)
-    if ($name -ne 'SmallArena.Domain') {
-        $references += @($engine, (Join-Path $output 'SmallArena.Domain.dll'))
-        if ($name -eq 'SmallArena.Runtime') { $references += $inputAssembly }
-        else {
-            $references += @((Join-Path $output 'SmallArena.Runtime.dll'), (Join-Path $testCache 'UnityEngine.TestRunner.dll'), (Join-Path $testCache 'UnityEditor.TestRunner.dll'), $nunit)
-        }
-    }
-    foreach ($reference in $references) { Assert-Scaffold (Test-Path -LiteralPath $reference) "Missing compiler reference: $reference" }
-    Invoke-Probe $name @($source) $references
-}
+& (Join-Path $PSScriptRoot 'Compile-UnityAssemblies.ps1') -EditorRoot $EditorRoot -OutputDirectory $output
 $probeSource = Join-Path $output 'EngineBoundaryProbe.cs'
 Set-Content -LiteralPath $probeSource -Value 'public sealed class EngineBoundaryProbe { public UnityEngine.Vector3 Position; }'
 Invoke-Probe 'DomainEngineAccessRejected' @($probeSource) $framework $true

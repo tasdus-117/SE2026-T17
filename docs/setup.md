@@ -86,6 +86,35 @@ Unity's PlayMode Test Runner. These 22 cases load and unload `Arena_MVP` for
 isolation. They verify the placeholder stage and must be reviewed when later tasks
 intentionally add gameplay components. See `testing/task_1_4_verification.md`.
 
+## Input adapter verification
+
+Task 1.5 input verification:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Verify-Input.ps1
+```
+
+This checks saved action configuration and compiles actual sources in all four
+asmdefs, including Runtime and both test assemblies. It uses the installed
+Editor's framework/modules and template-seeded package DLLs; it does not prove
+Package Manager import. Compilation responses and logs are retained under ignored
+`TestResults/Input/Assemblies`. `Compile-UnityAssemblies.ps1` is also used by the
+scaffold compilation option and layout verifier to keep source/reference coverage
+consistent as scripts are added.
+
+After license activation, run `SmallArena.Tests.PlayMode.PlayerInputHandlerTests`
+in Unity's PlayMode Test Runner. These tests use `InputTestFixture`, the actual
+action JSON under `Assets/_Project/Input`, and simulated keyboard state. The
+existing Input System package is in manifest `testables` as required for its test
+framework. Do not add another input package or change its version for these tests.
+Standalone player-test builds are outside this fixture's current file-loading
+setup. See `testing/task_1_5_verification.md` for execution status and limits.
+
+The adapter remains unattached to the placeholder Player. At later composition,
+assign its InputActionAsset explicitly before enabling; missing/invalid action
+configuration logs a diagnostic and leaves the component disabled. The global
+project-wide action asset is not used.
+
 ## Git and asset ownership
 
 - The baseline commit is `8b47fe0` (`chore: establish clean project baseline and import specs`).

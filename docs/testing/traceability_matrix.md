@@ -69,3 +69,21 @@ and the placeholder positioning/component portions of FR-003/004. Full TC-001
 still requires initialization, Health/stats/pickup/HUD readiness and Playing;
 TC-004 still requires repeated actual movement/jumping against walls and corners.
 No whole gameplay TC is marked Passed. See `task_1_4_verification.md`.
+
+## Task 1.5 input adapter coverage
+
+`PlayerInputHandlerTests.cs` defines 34 simulated-keyboard PlayMode cases using
+the actual input JSON and isolated Input System test framework. They compile;
+native execution is blocked by Unity license error 198. Saved JSON/importer
+configuration is checked separately with `tools/Verify-Input.ps1`.
+
+| SRS mapping | Input assertions | Still requires later integration |
+| --- | --- | --- |
+| AC-006 / TC-002, TC-003 | Cardinal directions, cancellation, diagonal normalization, adapter clamp, release clearing | Actual world movement, speed, camera frame and collision |
+| AC-007 / TC-006 | Jump fresh press, consume-once, held-key and disable/re-enable behavior | Grounding, jump eligibility, gravity and landing |
+| AC-008 / TC-010 | Punch fresh press, consume-once, held-key and release/repress behavior | Combat acceptance, cooldown, hit timing and feedback |
+| AC-012 / TC-017, TC-018 | Interact fresh press and intent isolation | Range, obstruction, match state, one-time collection and feedback |
+| AC-N04, AC-N07 / TC-034, TC-037 | Adapter-only ownership, action-state isolation, lifecycle tests and full actual-source compilation | Native test execution and remaining gameplay modules |
+
+No whole SRS TC changes status. Details and execution evidence are in
+`task_1_5_verification.md`.

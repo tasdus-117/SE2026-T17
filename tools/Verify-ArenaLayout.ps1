@@ -28,16 +28,7 @@ $messages | Set-Content -LiteralPath (Join-Path $output 'results.log')
 $messages | Write-Output
 if ($result -ne 0) { throw 'Saved arena layout verification failed.' }
 
-$engine = Join-Path $EditorRoot 'Data/Managed/UnityEngine'
-$testRunner = Join-Path $EditorRoot 'Data/Resources/PackageManager/ProjectTemplates/libcache/com.unity.template.urp-blank-17.2.6/ScriptAssemblies/UnityEngine.TestRunner.dll'
-$nunit = Join-Path $EditorRoot 'Data/Resources/PackageManager/BuiltInPackages/com.unity.ext.nunit/net472/unity-custom/nunit.framework.dll'
-$probeReferences = @($framework) + @((Join-Path $engine 'UnityEngine.CoreModule.dll'), (Join-Path $engine 'UnityEngine.PhysicsModule.dll'), $testRunner, $nunit)
-$arguments = @($csc, '/nologo', '/noconfig', '/nostdlib+', '/langversion:9.0', '/warnaserror+', '/target:library', ('/out:' + (Join-Path $output 'SmallArena.PlayMode.Tests.dll')))
-$arguments += @($probeReferences | ForEach-Object { '/reference:' + $_ })
-$arguments += @(Get-ChildItem -LiteralPath (Join-Path $taskRoot 'Assets/_Project/Tests/PlayMode') -Filter '*.cs' | ForEach-Object { $_.FullName })
-$diagnostics = @(& $dotnet @arguments 2>&1)
-$probeExit = $LASTEXITCODE
-$diagnostics | Set-Content -LiteralPath (Join-Path $output 'PlayMode.compile.log')
-if ($probeExit -ne 0) { throw ("PlayMode compilation failed.`n" + ($diagnostics -join "`n")) }
+& (Join-Path $PSScriptRoot 'Compile-UnityAssemblies.ps1') -EditorRoot $EditorRoot -OutputDirectory (Join-Path $output 'Assemblies')
+Copy-Item -LiteralPath (Join-Path $output 'Assemblies/SmallArena.PlayMode.Tests.compile.log') -Destination (Join-Path $output 'PlayMode.compile.log') -Force
 Write-Output 'PASS: all PlayMode fixture sources compile against installed Unity/NUnit APIs (compile only).'
 Write-Output "Report: $report"

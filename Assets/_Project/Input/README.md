@@ -1,1 +1,1 @@
-Project Input Actions assets will be added in a later task. Keyboard action implementation is outside Task 1.1.
+SmallArena.inputactions defines one Gameplay map: normalized WASD Move, Space Jump, J Punch and E Interact. Buttons use press-only interactions and no initial held-button replay. The PlayerInputHandler adapter owns a clone of this asset; it is not enabled as a project-wide shared action asset. Wrapper code generation is disabled.

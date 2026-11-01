@@ -1,15 +1,16 @@
 # Assembly boundaries
 
-Task 1.1 created four project assemblies. Task 1.2 adds pure match-state rules in
-Domain and their NUnit fixture in EditMode.Tests. Runtime and PlayMode.Tests
-still contain assembly identity attributes only; no scene components are added.
+Task 1.1 created four project assemblies. Domain contains the Task 1.2 pure match
+rules. Runtime adds the Task 1.5 input adapter; PlayMode.Tests contains the arena
+configuration/layout and simulated-input fixtures. Runtime composition into the
+placeholder Player prefab is deferred to later integration.
 
 | Assembly | Allowed assembly references | Engine access |
 | --- | --- | --- |
 | SmallArena.Domain | None | Disabled (`noEngineReferences: true`) |
 | SmallArena.Runtime | SmallArena.Domain, Unity.InputSystem | Enabled |
 | SmallArena.EditMode.Tests | Domain, Runtime, UnityEngine.TestRunner, UnityEditor.TestRunner | Editor only |
-| SmallArena.PlayMode.Tests | Domain, Runtime, UnityEngine.TestRunner, UnityEditor.TestRunner | Editor PlayMode; test assembly |
+| SmallArena.PlayMode.Tests | Domain, Runtime, UnityEngine.TestRunner, UnityEditor.TestRunner, Unity.InputSystem, Unity.InputSystem.TestFramework | Editor PlayMode; test assembly |
 
 Both test assemblies explicitly reference `nunit.framework.dll`, use
 `overrideReferences: true`, and retain `optionalUnityReferences: ["TestAssemblies"]`.
@@ -20,6 +21,29 @@ Domain also overrides automatic precompiled references with an empty list to
 prevent implicit third-party plugin dependencies. Runtime must never reference
 either test assembly. Use scene/prefab references and local instance events later;
 do not introduce global singleton, service-locator, or event-bus dependencies.
+
+## Input adapter contract (Task 1.5)
+
+`PlayerInputHandler` references the Input System directly and performs no physics,
+damage, pickup or match-state decisions. Its serialized source asset is assigned
+through the Inspector or `Configure` before first enable. Each instance clones
+the source once and owns its action state. Disable unsubscribes callbacks,
+disables the owned Gameplay map and clears movement/all pending press bits;
+destroy releases the owned asset. The shared source stays disabled and reusable.
+
+Move is a normalized WASD 2D composite; the adapter also clamps magnitude to one.
+Space/J/E use press-only Button actions. Held buttons do not auto-repeat, and
+initial-state checks are disabled for buttons so enable/re-enable does not replay
+a held key. Value-action movement can resume from a held direction after the next
+input update. Consume methods return and clear one pending bit, not a press queue.
+Consumers must drain requests each update and reject ineligible actions; cooldown,
+grounding, initialization and terminal-match gating remain outside this adapter.
+
+PlayMode input tests use the real project action JSON and Input System's isolated
+`InputTestFixture`/simulated keyboard. The existing Input System package is listed
+in manifest `testables` so its test framework is available; no package versions
+or dependency declarations were changed. Test-only package references do not flow back
+into Runtime or Domain.
 
 ## Match lifecycle contract (Task 1.2)
 
