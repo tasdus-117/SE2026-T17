@@ -3,9 +3,7 @@
   "rootNamespace": "SmallArena.Tests.EditMode",
   "references": [
     "SmallArena.Domain",
-    "SmallArena.Runtime",
-    "UnityEngine.TestRunner",
-    "UnityEditor.TestRunner"
+    "SmallArena.Runtime"
   ],
   "includePlatforms": ["Editor"],
   "excludePlatforms": [],

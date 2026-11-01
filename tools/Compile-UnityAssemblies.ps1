@@ -52,7 +52,16 @@ foreach ($name in $order) {
     if ($sources.Count -eq 0) { throw "No source files found for $name" }
     $references = @($framework)
     if (-not $definition.noEngineReferences) { $references += $engine }
-    foreach ($reference in $definition.references) {
+    $assemblyReferences = @($definition.references)
+    if ('TestAssemblies' -in $definition.optionalUnityReferences) {
+        # Mirror Unity's implicit test runner references without duplicating them in the asmdef.
+        foreach ($testRunner in @('UnityEngine.TestRunner', 'UnityEditor.TestRunner')) {
+            if ($testRunner -in $assemblyReferences) { throw "Duplicate implicit test runner reference: $name -> $testRunner" }
+            $assemblyReferences += $testRunner
+        }
+    }
+    if (@($assemblyReferences | Select-Object -Unique).Count -ne $assemblyReferences.Count) { throw "Duplicate assembly reference: $name" }
+    foreach ($reference in $assemblyReferences) {
         if ($compiled.ContainsKey($reference)) { $references += $compiled[$reference]; continue }
         if ($definitions.ContainsKey($reference)) { throw "Dependency order violation: $name -> $reference" }
         $candidates = @((Join-Path $taskRoot "Library/ScriptAssemblies/$reference.dll"), (Join-Path $templateCache "$reference.dll"))

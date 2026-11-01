@@ -5,15 +5,19 @@ rules. Runtime contains the input adapter and Task 1.6 scene coordinator/readine
 contract. PlayMode.Tests covers configuration, layout, input and initialization.
 Input/motor/combat composition into the placeholder Player remains deferred.
 
-| Assembly | Allowed assembly references | Engine access |
+| Assembly | Explicit assembly references | Engine access |
 | --- | --- | --- |
 | SmallArena.Domain | None | Disabled (`noEngineReferences: true`) |
 | SmallArena.Runtime | SmallArena.Domain, Unity.InputSystem | Enabled |
-| SmallArena.EditMode.Tests | Domain, Runtime, UnityEngine.TestRunner, UnityEditor.TestRunner | Editor only |
-| SmallArena.PlayMode.Tests | Domain, Runtime, UnityEngine.TestRunner, UnityEditor.TestRunner, Unity.InputSystem, Unity.InputSystem.TestFramework | Editor PlayMode; test assembly |
+| SmallArena.EditMode.Tests | Domain, Runtime | Editor only |
+| SmallArena.PlayMode.Tests | Domain, Runtime, Unity.InputSystem, Unity.InputSystem.TestFramework | Editor PlayMode; test assembly |
 
 Both test assemblies explicitly reference `nunit.framework.dll`, use
 `overrideReferences: true`, and retain `optionalUnityReferences: ["TestAssemblies"]`.
+Unity supplies `UnityEngine.TestRunner` and `UnityEditor.TestRunner` through that
+test flag; do not also list them in `references`, which causes duplicate references.
+The standalone compilation helper mirrors those implicit references and rejects
+duplicates. PlayMode retains `Unity.InputSystem.TestFramework` for InputTestFixture.
 They are test-only assemblies, not shipping gameplay dependencies. Device/player
 test builds are outside this task's verification scope.
 

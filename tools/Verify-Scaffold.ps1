@@ -14,8 +14,8 @@ function Assert-Scaffold([bool]$Condition, [string]$Message) {
 $expected = [ordered]@{
     'SmallArena.Domain' = @()
     'SmallArena.Runtime' = @('SmallArena.Domain', 'Unity.InputSystem')
-    'SmallArena.EditMode.Tests' = @('SmallArena.Domain', 'SmallArena.Runtime', 'UnityEngine.TestRunner', 'UnityEditor.TestRunner')
-    'SmallArena.PlayMode.Tests' = @('SmallArena.Domain', 'SmallArena.Runtime', 'UnityEngine.TestRunner', 'UnityEditor.TestRunner', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework')
+    'SmallArena.EditMode.Tests' = @('SmallArena.Domain', 'SmallArena.Runtime')
+    'SmallArena.PlayMode.Tests' = @('SmallArena.Domain', 'SmallArena.Runtime', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework')
 }
 $definitions = @(Get-ChildItem -LiteralPath 'Assets' -Filter '*.asmdef' -Recurse)
 Assert-Scaffold ($definitions.Count -eq 4) 'Expected exactly four project asmdefs.'
@@ -28,6 +28,7 @@ foreach ($file in $definitions) {
     if ($definition.name -like '*.Tests') {
         Assert-Scaffold ($definition.overrideReferences -eq $true) 'Test overrideReferences must be enabled.'
         Assert-Scaffold ('TestAssemblies' -in $definition.optionalUnityReferences) 'Test assembly flag missing.'
+        Assert-Scaffold (@($definition.references | Where-Object { $_ -in @('UnityEngine.TestRunner', 'UnityEditor.TestRunner') }).Count -eq 0) 'Test runner references must be implicit through TestAssemblies.'
         Assert-Scaffold ('nunit.framework.dll' -in $definition.precompiledReferences) 'NUnit reference missing.'
     }
     $byName[$definition.name] = @{ File = $file; Definition = $definition }

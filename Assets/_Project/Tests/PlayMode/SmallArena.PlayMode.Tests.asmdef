@@ -4,8 +4,6 @@
   "references": [
     "SmallArena.Domain",
     "SmallArena.Runtime",
-    "UnityEngine.TestRunner",
-    "UnityEditor.TestRunner",
     "Unity.InputSystem",
     "Unity.InputSystem.TestFramework"
   ],
