@@ -87,7 +87,7 @@ $buildSettings = [IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/Ed
 Assert-Scaffold ($buildSettings -match 'path: Assets/_Project/Scenes/Arena_MVP.unity') 'Arena scene is not configured.'
 Assert-Scaffold (Test-Path -LiteralPath 'Assets/_Project/Scenes/Arena_MVP.unity') 'Arena scene is missing.'
 $scenes = [regex]::Matches($buildSettings, '(?m)^  - enabled: 1\r?\n    path: (.+)\r?\n    guid: ([0-9a-f]{32})')
-Assert-Scaffold ($scenes.Count -ge 2 -and $scenes[0].Groups[1].Value.Trim() -eq 'Assets/_Project/Scenes/Bootstrap.unity' -and $scenes[1].Groups[1].Value.Trim() -eq 'Assets/_Project/Scenes/Arena_MVP.unity') 'Bootstrap and Arena must be enabled at indices 0 and 1.'
+Assert-Scaffold ($scenes.Count -eq 3 -and $scenes[0].Groups[1].Value.Trim() -eq 'Assets/_Project/Scenes/MainMenu.unity' -and $scenes[1].Groups[1].Value.Trim() -eq 'Assets/_Project/Scenes/Bootstrap.unity' -and $scenes[2].Groups[1].Value.Trim() -eq 'Assets/_Project/Scenes/Arena_MVP.unity') 'MainMenu, Bootstrap and Arena must be enabled at indices 0, 1 and 2.'
 foreach ($scene in $scenes) {
     $scenePath = $scene.Groups[1].Value.Trim()
     Assert-Scaffold ((Get-Content -LiteralPath ($scenePath + '.meta') -Raw) -match ('guid: ' + $scene.Groups[2].Value)) "Build scene GUID mismatch: $scenePath"
@@ -95,7 +95,7 @@ foreach ($scene in $scenes) {
 $bootstrap = Get-Content -LiteralPath 'Assets/_Project/Scenes/Bootstrap.unity' -Raw
 Assert-Scaffold ($bootstrap -match 'm_Name: _NetworkManager' -and $bootstrap -match 'guid: 8aab4c8111b7c411b9b92cf3dbc5bd4e' -and $bootstrap -match 'guid: 6b0fecffa3f624585964b0d0eb21b18e') 'Bootstrap must contain the standard Mirror manager and KCP transport.'
 Assert-Scaffold ($bootstrap -match 'transport: \{fileID: 1003\}' -and $bootstrap -match 'onlineScene: Assets/_Project/Scenes/Arena_MVP.unity' -and $bootstrap -match 'offlineScene: Assets/_Project/Scenes/Bootstrap.unity') 'Bootstrap scene routing or transport reference is invalid.'
-Write-Output 'PASS: Bootstrap (index 0), Arena_MVP (index 1), scene GUIDs, Mirror components and scene routing.'
+Write-Output 'PASS: MainMenu (index 0), Bootstrap (index 1), Arena_MVP (index 2), scene GUIDs, Mirror components and scene routing.'
 
 $manifest = Get-Content -LiteralPath 'Packages/manifest.json' -Raw | ConvertFrom-Json
 $lock = Get-Content -LiteralPath 'Packages/packages-lock.json' -Raw | ConvertFrom-Json

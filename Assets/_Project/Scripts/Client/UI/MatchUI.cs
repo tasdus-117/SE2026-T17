@@ -1,6 +1,7 @@
 using SmallArena.Domain;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SmallArena.Client.UI
 {
@@ -15,6 +16,8 @@ namespace SmallArena.Client.UI
         [SerializeField] private TextMeshProUGUI damageText = null;
         [SerializeField] private GameObject victoryBanner = null;
         [SerializeField] private TextMeshProUGUI victoryText = null;
+        [SerializeField] private Button playAgainButton = null;
+        [SerializeField] private Button exitToMenuButton = null;
 
         private IMatchStateSource matchSource;
         private IHealthSource healthSource;
@@ -23,13 +26,16 @@ namespace SmallArena.Client.UI
         public bool IsReady => isActiveAndEnabled && gameManager != null && botHealth != null && playerCombat != null
             && gameManager is IMatchStateSource
             && botHealth is IHealthSource && playerCombat is IDamageSource
-            && botHpText != null && damageText != null && victoryBanner != null && victoryText != null;
+            && botHpText != null && damageText != null && victoryBanner != null && victoryText != null
+            && playAgainButton != null && exitToMenuButton != null;
 
         public bool IsBoundTo(MonoBehaviour manager, MonoBehaviour health, MonoBehaviour combat) =>
             gameManager == manager && botHealth == health && playerCombat == combat;
 
         private void OnEnable()
         {
+            if (playAgainButton != null) playAgainButton.onClick.AddListener(OnPlayAgainClicked);
+            if (exitToMenuButton != null) exitToMenuButton.onClick.AddListener(OnExitToMenuClicked);
             matchSource = gameManager as IMatchStateSource;
             healthSource = botHealth as IHealthSource;
             damageSource = playerCombat as IDamageSource;
@@ -47,6 +53,8 @@ namespace SmallArena.Client.UI
 
         private void Unsubscribe()
         {
+            if (playAgainButton != null) playAgainButton.onClick.RemoveListener(OnPlayAgainClicked);
+            if (exitToMenuButton != null) exitToMenuButton.onClick.RemoveListener(OnExitToMenuClicked);
             if (matchSource != null) matchSource.OnMatchStateChanged -= HandleStateChanged;
             if (healthSource != null) healthSource.OnHealthChanged -= HandleHealthChanged;
             if (damageSource != null) damageSource.OnDamageChanged -= HandleDamageChanged;
@@ -67,8 +75,13 @@ namespace SmallArena.Client.UI
 
         private void HandleStateChanged(MatchState state)
         {
+            if (state == MatchState.Victory) SceneNavigation.ShowMenuCursor();
             if (victoryText != null) victoryText.text = "VICTORY!";
             if (victoryBanner != null) victoryBanner.SetActive(state == MatchState.Victory);
         }
+
+        public void OnPlayAgainClicked() => SceneNavigation.ReloadActiveScene();
+
+        public void OnExitToMenuClicked() => SceneNavigation.LoadMainMenu();
     }
 }

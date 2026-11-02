@@ -56,6 +56,8 @@ internal static class ArenaLayoutVerifier
         var assetsByGuid = Directory.GetFiles(System.IO.Path.Combine(root, "Assets"), "*.meta", SearchOption.AllDirectories)
             .ToDictionary(ReadGuid, path => path.Substring(0, path.Length - 5));
         var scene = Read(scenePath);
+        var mainMenuPath = System.IO.Path.Combine(prefix, "Scenes/MainMenu.unity");
+        var mainMenu = Read(mainMenuPath);
         var names = new[] { "Player", "Bot", "WeaponPickup" };
         var prefabs = names.ToDictionary(name => name, name => Read(System.IO.Path.Combine(prefix, "Prefabs/" + name + ".prefab")));
         var materialNames = new[] { "PlayerBlue", "BotRed", "PickupGold", "FloorSlate", "WallGray" };
@@ -71,8 +73,16 @@ internal static class ArenaLayoutVerifier
             "com.unity.ugui/Runtime/TMP/TextMeshProUGUI.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Layout/CanvasScaler.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs.meta",
+            "com.unity.ugui/Runtime/UGUI/UI/Core/Button.cs.meta",
+            "com.unity.ugui/Runtime/UGUI/UI/Core/GraphicRaycaster.cs.meta",
+            "com.unity.ugui/Runtime/UGUI/EventSystem/EventSystem.cs.meta",
             "com.unity.render-pipelines.core/Runtime/Volume/Volume.cs.meta"
         }.Select(path => ReadGuid(System.IO.Path.Combine(packageRoot, path))).ToHashSet();
+        var packageCache = System.IO.Path.Combine(root, "Library/PackageCache");
+        var inputModuleGuid = ReadGuid(Directory.GetFiles(packageCache, "InputSystemUIInputModule.cs.meta", SearchOption.AllDirectories).Single());
+        var uiActionsGuid = ReadGuid(Directory.GetFiles(packageCache, "DefaultInputActions.inputactions.meta", SearchOption.AllDirectories).Single());
+        packageReferences.Add(inputModuleGuid);
+        packageReferences.Add(uiActionsGuid);
         var litGuid = ReadGuid(System.IO.Path.Combine(packageRoot, "com.unity.render-pipelines.universal/Shaders/Lit.shader.meta"));
         foreach (var asset in parsed.Values.ToArray()) ValidateReferences(asset, assetsByGuid, packageReferences);
 
@@ -312,13 +322,45 @@ internal static class ArenaLayoutVerifier
         Check(Text(victoryLabel.Data, "m_text") == "VICTORY!", "Victory label is incorrect.");
         Check(Id(Field(ui.Data, "victoryBanner")) == scene.Named("VictoryBanner").Id && Number(scene.Named("VictoryBanner").Data, "m_IsActive") == 0,
             "Victory banner must start hidden.");
+        var buttonGuid = ReadGuid(System.IO.Path.Combine(packageRoot, "com.unity.ugui/Runtime/UGUI/UI/Core/Button.cs.meta"));
+        foreach (var binding in new[] { "playAgainButton", "exitToMenuButton" })
+        {
+            var button = scene.Records[Id(Field(ui.Data, binding))];
+            Check(Text(Map(Field(button.Data, "m_Script")), "guid") == buttonGuid && Number(button.Data, "m_Interactable") == 1,
+                "Victory navigation button is not wired or interactable.");
+            var persistent = Map(Field(Map(Field(button.Data, "m_OnClick")), "m_PersistentCalls"));
+            Check(!Sequence(Field(persistent, "m_Calls")).Any(), "Victory buttons must use only MatchUI lifecycle-managed listeners.");
+        }
+        Check(sceneBehaviours.Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == inputModuleGuid) == 1,
+            "Arena needs one Input System UI module for after-match mouse input.");
         Check(sceneBehaviours.All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))
             || item.Id == manager.Id || item.Id == follow.Id || item.Id == occlusion.Id || item.Id == readiness.Id || item.Id == ui.Id), "Unexpected scene gameplay script.");
         var build = Read(System.IO.Path.Combine(root, "ProjectSettings/EditorBuildSettings.asset")).Only("EditorBuildSettings");
         var buildScenes = Sequence(Field(build.Data, "m_Scenes")).Select(Map).ToArray();
-        Check(buildScenes.Length >= 2 && Text(buildScenes[0], "path") == "Assets/_Project/Scenes/Bootstrap.unity" && Number(buildScenes[0], "enabled") == 1, "Bootstrap must be the enabled startup scene.");
-        Check(Text(buildScenes[1], "path") == "Assets/_Project/Scenes/Arena_MVP.unity" && Number(buildScenes[1], "enabled") == 1, "Arena must be enabled at index 1.");
-        Check(Text(buildScenes[1], "guid") == ReadGuid(scenePath + ".meta"), "Build scene GUID mismatch.");
+        Check(buildScenes.Length == 3 && Text(buildScenes[0], "path") == "Assets/_Project/Scenes/MainMenu.unity" && Number(buildScenes[0], "enabled") == 1, "MainMenu must be the enabled startup scene.");
+        Check(Text(buildScenes[1], "path") == "Assets/_Project/Scenes/Bootstrap.unity" && Number(buildScenes[1], "enabled") == 1, "Bootstrap must be enabled at index 1.");
+        Check(Text(buildScenes[2], "path") == "Assets/_Project/Scenes/Arena_MVP.unity" && Number(buildScenes[2], "enabled") == 1, "Arena must be enabled at index 2.");
+        Check(Text(buildScenes[2], "guid") == ReadGuid(scenePath + ".meta") && Text(buildScenes[0], "guid") == ReadGuid(mainMenuPath + ".meta"), "Build scene GUID mismatch.");
+        var menuControllerGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/UI/MainMenuController.cs.meta"));
+        var menuController = mainMenu.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == menuControllerGuid);
+        var menuCanvasObject = mainMenu.Named("MainMenuCanvas");
+        Check(Id(Field(menuController.Data, "m_GameObject")) == menuCanvasObject.Id && Number(mainMenu.Component(menuCanvasObject, "Canvas").Data, "m_RenderMode") == 0,
+            "Main menu controller and overlay Canvas must be wired.");
+        foreach (var buttonName in new[] { "SinglePlayerButton", "MultiplayerButton", "TutorialButton", "ExitButton" })
+        {
+            var owner = mainMenu.Named(buttonName);
+            var button = mainMenu.OfType("MonoBehaviour").Single(item => Id(Field(item.Data, "m_GameObject")) == owner.Id && Text(Map(Field(item.Data, "m_Script")), "guid") == buttonGuid);
+            var enabled = buttonName == "SinglePlayerButton" || buttonName == "ExitButton";
+            Check(Number(button.Data, "m_Interactable") == (enabled ? 1 : 0), "Menu option interactability mismatch.");
+            if (enabled)
+            {
+                var calls = Sequence(Field(Map(Field(Map(Field(button.Data, "m_OnClick")), "m_PersistentCalls")), "m_Calls")).Select(Map).ToArray();
+                Check(calls.Length == 1 && Id(Field(calls[0], "m_Target")) == menuController.Id, "Menu button callback target is incorrect.");
+                Check(Text(calls[0], "m_MethodName") == (buttonName == "SinglePlayerButton" ? "OnSinglePlayerClicked" : "OnExitClicked"), "Menu button callback method is incorrect.");
+            }
+        }
+        Check(mainMenu.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == inputModuleGuid) == 1,
+            "Main menu needs one Input System UI module.");
         File.WriteAllText(resultPath, JsonSerializer.Serialize(new
         {
             AssertionsPassed = assertions, UnityYamlFilesParsed = parsed.Count,

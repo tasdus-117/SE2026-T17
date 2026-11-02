@@ -15,6 +15,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using Object = UnityEngine.Object;
 
 namespace SmallArena.Tools
@@ -41,6 +43,7 @@ namespace SmallArena.Tools
             canvasObject.layer = LayerMask.NameToLayer("UI");
             var canvas = canvasObject.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvasObject.AddComponent<GraphicRaycaster>();
             canvas.sortingOrder = 10;
             var scaler = canvasObject.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -60,11 +63,15 @@ namespace SmallArena.Tools
                 new Vector2(-32f, -36f), new Vector2(470f, 76f));
             controls.alignment = TextAlignmentOptions.TopRight;
             var banner = Panel("VictoryBanner", canvasObject.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                Vector2.zero, new Vector2(660f, 190f), new Color(0.035f, 0.055f, 0.09f, 0.96f));
+                Vector2.zero, new Vector2(660f, 300f), new Color(0.035f, 0.055f, 0.09f, 0.96f));
             var victory = Text("VictoryText", banner, font, "VICTORY!", 76f, new Color(1f, 0.82f, 0.32f),
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620f, 130f));
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 55f), new Vector2(620f, 130f));
             victory.fontStyle = FontStyles.Bold;
             victory.alignment = TextAlignmentOptions.Center;
+            var replay = CreateButton("PlayAgainButton", banner, font, "Play Again", new Vector2(-146f, -85f),
+                new Vector2(250f, 64f), new Color(0.95f, 0.74f, 0.22f));
+            var toMenu = CreateButton("ExitToMenuButton", banner, font, "Main Menu", new Vector2(146f, -85f),
+                new Vector2(250f, 64f), new Color(0.15f, 0.23f, 0.32f));
             banner.gameObject.SetActive(false);
 
             var ui = canvasObject.AddComponent<MatchUI>();
@@ -76,6 +83,8 @@ namespace SmallArena.Tools
             Bind(serializedUI, "damageText", damage);
             Bind(serializedUI, "victoryBanner", banner.gameObject);
             Bind(serializedUI, "victoryText", victory);
+            Bind(serializedUI, "playAgainButton", replay);
+            Bind(serializedUI, "exitToMenuButton", toMenu);
             serializedUI.ApplyModifiedPropertiesWithoutUndo();
 
             var readiness = manager.GetComponent<OfflineMatchReadinessProbe>();
@@ -91,6 +100,7 @@ namespace SmallArena.Tools
             serializedManager.FindProperty("autoStart").boolValue = true;
             Bind(serializedManager, "readinessProvider", readiness);
             serializedManager.ApplyModifiedPropertiesWithoutUndo();
+            EnsureEventSystem(scene);
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene)) throw new InvalidOperationException("Arena UI scene save failed.");
             AssetDatabase.SaveAssets();
@@ -100,7 +110,7 @@ namespace SmallArena.Tools
         private static void Bind(SerializedObject owner, string property, Object value) =>
             owner.FindProperty(property).objectReferenceValue = value;
 
-        private static RectTransform Rect(string name, Transform parent, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
+        internal static RectTransform Rect(string name, Transform parent, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
         {
             var owner = new GameObject(name, typeof(RectTransform));
             owner.layer = LayerMask.NameToLayer("UI");
@@ -113,7 +123,7 @@ namespace SmallArena.Tools
             return rect;
         }
 
-        private static RectTransform Panel(string name, Transform parent, Vector2 anchor, Vector2 pivot,
+        internal static RectTransform Panel(string name, Transform parent, Vector2 anchor, Vector2 pivot,
             Vector2 position, Vector2 size, Color color)
         {
             var rect = Rect(name, parent, anchor, pivot, position, size);
@@ -123,7 +133,7 @@ namespace SmallArena.Tools
             return rect;
         }
 
-        private static TextMeshProUGUI Text(string name, Transform parent, TMP_FontAsset font, string value,
+        internal static TextMeshProUGUI Text(string name, Transform parent, TMP_FontAsset font, string value,
             float size, Color color, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 dimensions)
         {
             var rect = Rect(name, parent, anchor, pivot, position, dimensions);
@@ -135,6 +145,27 @@ namespace SmallArena.Tools
             text.textWrappingMode = TextWrappingModes.NoWrap;
             text.raycastTarget = false;
             return text;
+        }
+
+        internal static Button CreateButton(string name, Transform parent, TMP_FontAsset font, string label,
+            Vector2 position, Vector2 size, Color color)
+        {
+            var rect = Rect(name, parent, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), position, size);
+            var image = rect.gameObject.AddComponent<Image>();
+            image.color = color;
+            var button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            var text = Text("Label", rect, font, label, 28f, Color.white, new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), Vector2.zero, size - new Vector2(16f, 8f));
+            text.alignment = TextAlignmentOptions.Center;
+            return button;
+        }
+
+        internal static EventSystem EnsureEventSystem(UnityEngine.SceneManagement.Scene scene)
+        {
+            var system = scene.GetRootGameObjects().SelectMany(item => item.GetComponentsInChildren<EventSystem>(true)).FirstOrDefault();
+            if (system == null) system = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule)).GetComponent<EventSystem>();
+            return system;
         }
     }
 }
