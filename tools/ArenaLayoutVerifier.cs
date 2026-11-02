@@ -222,7 +222,24 @@ internal static class ArenaLayoutVerifier
         for (var first = 0; first < names.Length; first++)
             for (var second = first + 1; second < names.Length; second++)
                 Check(!entityBoxes[names[first]].Overlaps(entityBoxes[names[second]]), "Entity spawns overlap.");
-        Check(scene.OfType("Camera").Count() == 1 && scene.OfType("Light").Count(item => Number(item.Data, "m_Type") == 1) == 1, "Missing overview camera/directional light.");
+        Check(scene.OfType("Camera").Count() == 1 && scene.OfType("Light").Count(item => Number(item.Data, "m_Type") == 1) == 1, "Missing follow camera/directional light.");
+        var followGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Presentation/ThirdPersonCameraController.cs.meta"));
+        var occlusionGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Presentation/CameraOcclusionController.cs.meta"));
+        var follow = scene.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == followGuid);
+        var occlusion = scene.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == occlusionGuid);
+        var mainCameraObject = scene.Named("Main Camera");
+        Check(Id(Field(follow.Data, "m_GameObject")) == mainCameraObject.Id && Id(Field(occlusion.Data, "m_GameObject")) == mainCameraObject.Id, "Follow components must belong to Main Camera.");
+        Check(Number(follow.Data, "m_Enabled") == 1 && Number(occlusion.Data, "m_Enabled") == 1, "Follow components must be enabled.");
+        var target = scene.Records[Id(Field(follow.Data, "target"))];
+        Check(target.Type == "Transform" && target.Stripped && Text(Map(Field(target.Data, "m_CorrespondingSourceObject")), "guid") == ReadGuid(prefabs["Player"].Path + ".meta"), "Follow target must be the Player instance transform.");
+        Check(Vector(follow.Data, "followOffset") == new Vector3(0, 4.5f, -6), "Unexpected follow offset.");
+        Near(Number(follow.Data, "smoothTime"), 0.15); Near(Number(follow.Data, "pitchAngle"), 30);
+        Check(Number(Map(Field(occlusion.Data, "occlusionLayers")), "m_Bits") == (1 << expectedLayers["Environment"]), "Occlusion must affect only the Environment layer.");
+        var cameraTransform = scene.Component(mainCameraObject, "Transform");
+        Check(Vector(cameraTransform.Data, "m_LocalPosition") == spawns["Player"] + Vector(follow.Data, "followOffset"), "Camera must start at the Player follow offset.");
+        var cameraRotation = Map(Field(cameraTransform.Data, "m_LocalRotation"));
+        Near(Number(cameraRotation, "x"), Math.Sin(Math.PI / 12)); Near(Number(cameraRotation, "w"), Math.Cos(Math.PI / 12));
+        Near(Number(cameraRotation, "y"), 0); Near(Number(cameraRotation, "z"), 0);
         var managerGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Core/GameManager.cs.meta"));
         var managerObject = scene.Named("_GameManager");
         var manager = scene.Component(managerObject, "MonoBehaviour");
@@ -238,7 +255,7 @@ internal static class ArenaLayoutVerifier
         Check(Number(manager.Data, "autoStart") == 0 && Id(Field(manager.Data, "readinessProvider")) == 0,
             "M1 must not fake full readiness or auto-start an incomplete match.");
         Check(scene.OfType("MonoBehaviour").All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))
-            || item.Id == manager.Id), "Unexpected scene gameplay script.");
+            || item.Id == manager.Id || item.Id == follow.Id || item.Id == occlusion.Id), "Unexpected scene gameplay script.");
         var build = Read(System.IO.Path.Combine(root, "ProjectSettings/EditorBuildSettings.asset")).Only("EditorBuildSettings");
         var buildScenes = Sequence(Field(build.Data, "m_Scenes")).Select(Map).ToArray();
         Check(buildScenes.Length >= 2 && Text(buildScenes[0], "path") == "Assets/_Project/Scenes/Bootstrap.unity" && Number(buildScenes[0], "enabled") == 1, "Bootstrap must be the enabled startup scene.");
