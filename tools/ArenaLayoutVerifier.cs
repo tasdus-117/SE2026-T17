@@ -68,6 +68,9 @@ internal static class ArenaLayoutVerifier
             "com.unity.render-pipelines.universal/Runtime/UniversalAdditionalCameraData.cs.meta",
             "com.unity.render-pipelines.universal/Runtime/UniversalAdditionalLightData.cs.meta",
             "com.unity.render-pipelines.universal/Editor/AssetVersion.cs.meta",
+            "com.unity.ugui/Runtime/TMP/TextMeshProUGUI.cs.meta",
+            "com.unity.ugui/Runtime/UGUI/UI/Core/Layout/CanvasScaler.cs.meta",
+            "com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs.meta",
             "com.unity.render-pipelines.core/Runtime/Volume/Volume.cs.meta"
         }.Select(path => ReadGuid(System.IO.Path.Combine(packageRoot, path))).ToHashSet();
         var litGuid = ReadGuid(System.IO.Path.Combine(packageRoot, "com.unity.render-pipelines.universal/Shaders/Lit.shader.meta"));
@@ -201,8 +204,12 @@ internal static class ArenaLayoutVerifier
         var spawns = new Dictionary<string, Vector3> { { "Player", new Vector3(0, 1, -4) }, { "Bot", new Vector3(0, 1, 4) }, { "WeaponPickup", new Vector3(-3, 0.3f, 0) } };
         var entityBoxes = new Dictionary<string, Box>();
         var entityObjects = new Dictionary<string, long>();
-        var roots = Sequence(Field(scene.Only("SceneRoots").Data, "m_Roots")).Select(Id).ToHashSet();
-        Check(roots.SetEquals(scene.OfType("Transform").Where(item => item.Stripped || Id(Field(item.Data, "m_Father")) == 0).Select(item => item.Id)), "SceneRoots must include every root transform exactly once.");
+        var roots = Sequence(Field(scene.Only("SceneRoots").Data, "m_Roots")).Select(Id)
+            .Select(id => scene.Records[id].Stripped ? Id(Field(scene.Records[id].Data, "m_PrefabInstance")) : id).ToHashSet();
+        var expectedRoots = scene.OfType("Transform").Concat(scene.OfType("RectTransform"))
+            .Where(item => !item.Stripped && Id(Field(item.Data, "m_Father")) == 0).Select(item => item.Id)
+            .Concat(instances.Select(item => item.Id));
+        Check(roots.SetEquals(expectedRoots), "SceneRoots must include every root transform or prefab instance exactly once.");
         foreach (var name in names)
         {
             var prefab = prefabs[name];
@@ -220,9 +227,9 @@ internal static class ArenaLayoutVerifier
             float Coordinate(string axis) => (float)Number(changes.Single(item => Text(item, "propertyPath") == "m_LocalPosition." + axis), "value");
             var position = new Vector3(Coordinate("x"), Coordinate("y"), Coordinate("z"));
             Check(Vector3.Distance(position, spawns[name]) < 0.00001, "Unexpected spawn: " + name);
-            var stripped = scene.OfType("Transform").Single(item => item.Stripped && Id(Field(item.Data, "m_PrefabInstance")) == instance.Id);
-            Check(roots.Contains(stripped.Id), "Prefab instance is missing from SceneRoots.");
-            Check(Id(Field(stripped.Data, "m_CorrespondingSourceObject")) == transform.Id, "Stripped transform source mismatch.");
+            Check(roots.Contains(instance.Id), "Prefab instance is missing from SceneRoots.");
+            foreach (var strippedTransform in scene.OfType("Transform").Where(item => item.Stripped && Id(Field(item.Data, "m_PrefabInstance")) == instance.Id))
+                Check(Id(Field(strippedTransform.Data, "m_CorrespondingSourceObject")) == transform.Id, "Stripped transform source mismatch.");
             var strippedObject = scene.OfType("GameObject").Single(item => item.Stripped && Id(Field(item.Data, "m_PrefabInstance")) == instance.Id);
             Check(Id(Field(strippedObject.Data, "m_CorrespondingSourceObject")) == prefab.Only("GameObject").Id,
                 "Stripped GameObject source mismatch.");
@@ -241,9 +248,10 @@ internal static class ArenaLayoutVerifier
                 Check(!entityBoxes[names[first]].Overlaps(entityBoxes[names[second]]), "Entity spawns overlap.");
         Check(scene.OfType("Camera").Count() == 1 && scene.OfType("Light").Count(item => Number(item.Data, "m_Type") == 1) == 1, "Missing follow camera/directional light.");
         var followGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Presentation/ThirdPersonCameraController.cs.meta"));
+        var sceneBehaviours = scene.OfType("MonoBehaviour").Where(item => !item.Stripped).ToArray();
         var occlusionGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Presentation/CameraOcclusionController.cs.meta"));
-        var follow = scene.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == followGuid);
-        var occlusion = scene.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == occlusionGuid);
+        var follow = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == followGuid);
+        var occlusion = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == occlusionGuid);
         var mainCameraObject = scene.Named("Main Camera");
         Check(Id(Field(follow.Data, "m_GameObject")) == mainCameraObject.Id && Id(Field(occlusion.Data, "m_GameObject")) == mainCameraObject.Id, "Follow components must belong to Main Camera.");
         Check(Number(follow.Data, "m_Enabled") == 1 && Number(occlusion.Data, "m_Enabled") == 1, "Follow components must be enabled.");
@@ -259,20 +267,53 @@ internal static class ArenaLayoutVerifier
         Near(Number(cameraRotation, "y"), 0); Near(Number(cameraRotation, "z"), 0);
         var managerGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Core/GameManager.cs.meta"));
         var managerObject = scene.Named("_GameManager");
-        var manager = scene.Component(managerObject, "MonoBehaviour");
+        var manager = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == managerGuid);
         Check(Text(Map(Field(manager.Data, "m_Script")), "guid") == managerGuid, "Coordinator script GUID mismatch.");
         Check(Id(Field(manager.Data, "m_GameObject")) == managerObject.Id && Number(manager.Data, "m_Enabled") == 1,
             "Coordinator ownership/enabled state mismatch.");
-        Check(scene.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == managerGuid) == 1,
+        Check(sceneBehaviours.Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == managerGuid) == 1,
             "Expected exactly one GameManager component.");
         Check(Id(Field(manager.Data, "playerInstance")) == entityObjects["Player"], "GameManager Player binding mismatch.");
         Check(Id(Field(manager.Data, "botInstance")) == entityObjects["Bot"], "GameManager Bot binding mismatch.");
         Check(Id(Field(manager.Data, "pickupInstance")) == entityObjects["WeaponPickup"], "GameManager Pickup binding mismatch.");
         Check(Id(Field(manager.Data, "sceneCamera")) == scene.Only("Camera").Id, "GameManager Camera binding mismatch.");
-        Check(Number(manager.Data, "autoStart") == 0 && Id(Field(manager.Data, "readinessProvider")) == 0,
-            "M1 must not fake full readiness or auto-start an incomplete match.");
-        Check(scene.OfType("MonoBehaviour").All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))
-            || item.Id == manager.Id || item.Id == follow.Id || item.Id == occlusion.Id), "Unexpected scene gameplay script.");
+        var readinessGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Core/OfflineMatchReadinessProbe.cs.meta"));
+        var uiGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/UI/MatchUI.cs.meta"));
+        var readiness = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == readinessGuid);
+        var ui = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == uiGuid);
+        Check(Number(manager.Data, "autoStart") == 1 && Id(Field(manager.Data, "readinessProvider")) == readiness.Id,
+            "Offline arena must auto-start through the real readiness provider.");
+        Check(Id(Field(ui.Data, "gameManager")) == manager.Id && Id(Field(readiness.Data, "gameManager")) == manager.Id,
+            "HUD and readiness manager references must match.");
+        Check(Id(Field(readiness.Data, "matchUI")) == ui.Id, "Readiness HUD reference is not wired.");
+        foreach (var property in new[] { "botHealth", "playerCombat" })
+        {
+            var source = scene.Records[Id(Field(ui.Data, property))];
+            Check(source.Stripped && source.Type == "MonoBehaviour", "HUD source must reference an inherited prefab component.");
+            var reference = Map(Field(source.Data, "m_CorrespondingSourceObject"));
+            var expectedPrefab = property == "botHealth" ? bot : player;
+            Check(Text(reference, "guid") == ReadGuid(expectedPrefab.Path + ".meta"), "HUD source prefab mismatch.");
+            Check(Id(reference) == (property == "botHealth" ? health.Id : combat.Id), "HUD source component mismatch.");
+            Check(Id(Field(readiness.Data, property)) == source.Id, "Readiness source binding differs from HUD.");
+        }
+        var canvasObject = scene.Named("MatchCanvas");
+        var canvas = scene.Component(canvasObject, "Canvas");
+        Check(Number(canvas.Data, "m_RenderMode") == 0 && Number(canvas.Data, "m_Enabled") == 1, "HUD Canvas must use Screen Space Overlay.");
+        Check(Id(Field(ui.Data, "m_GameObject")) == canvasObject.Id, "MatchUI must belong to the Canvas.");
+        var scalerGuid = ReadGuid(System.IO.Path.Combine(packageRoot, "com.unity.ugui/Runtime/UGUI/UI/Core/Layout/CanvasScaler.cs.meta"));
+        var scaler = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == scalerGuid);
+        var resolution = Map(Field(scaler.Data, "m_ReferenceResolution"));
+        Near(Number(scaler.Data, "m_UiScaleMode"), 1); Near(Number(resolution, "x"), 1920); Near(Number(resolution, "y"), 1080);
+        var hpLabel = scene.Records[Id(Field(ui.Data, "botHpText"))];
+        var damageLabel = scene.Records[Id(Field(ui.Data, "damageText"))];
+        var victoryLabel = scene.Records[Id(Field(ui.Data, "victoryText"))];
+        Check(Text(hpLabel.Data, "m_text") == "Bot HP: 10 / 10", "Initial HP label is incorrect.");
+        Check(Text(damageLabel.Data, "m_text") == "Damage: 1 HP (Unarmed)", "Initial damage label is incorrect.");
+        Check(Text(victoryLabel.Data, "m_text") == "VICTORY!", "Victory label is incorrect.");
+        Check(Id(Field(ui.Data, "victoryBanner")) == scene.Named("VictoryBanner").Id && Number(scene.Named("VictoryBanner").Data, "m_IsActive") == 0,
+            "Victory banner must start hidden.");
+        Check(sceneBehaviours.All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))
+            || item.Id == manager.Id || item.Id == follow.Id || item.Id == occlusion.Id || item.Id == readiness.Id || item.Id == ui.Id), "Unexpected scene gameplay script.");
         var build = Read(System.IO.Path.Combine(root, "ProjectSettings/EditorBuildSettings.asset")).Only("EditorBuildSettings");
         var buildScenes = Sequence(Field(build.Data, "m_Scenes")).Select(Map).ToArray();
         Check(buildScenes.Length >= 2 && Text(buildScenes[0], "path") == "Assets/_Project/Scenes/Bootstrap.unity" && Number(buildScenes[0], "enabled") == 1, "Bootstrap must be the enabled startup scene.");
@@ -283,7 +324,7 @@ internal static class ArenaLayoutVerifier
             AssertionsPassed = assertions, UnityYamlFilesParsed = parsed.Count,
             Scene = "Assets/_Project/Scenes/Arena_MVP.unity", LinkedEntityInstances = instances.Length,
             FloorMetres = "16 x 16", WallHeightMetres = 3,
-            GameManagerWiredToPrefabRootsAndCamera = true, M1AutoStart = false, M1FullReadinessProviderAssigned = false,
+            GameManagerWiredToPrefabRootsAndCamera = true, OfflineAutoStart = true, FullReadinessProviderAssigned = true, HudWired = true,
             Spawns = spawns.ToDictionary(pair => pair.Key, pair => new[] { pair.Value.X, pair.Value.Y, pair.Value.Z }),
             VerificationMode = "Saved-file references and geometry only; Unity import and native physics require licensed PlayMode execution."
         }, new JsonSerializerOptions { WriteIndented = true }));

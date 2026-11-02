@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
 using SmallArena.Domain;
+using SmallArena.Client;
+using SmallArena.Input;
+using SmallArena.Player;
+using SmallArena.Server.Combat;
 using UnityEngine;
 
 namespace SmallArena.Core
 {
     /// <summary>Scene readiness and lifecycle coordination; no gameplay simulation.</summary>
     [DisallowMultipleComponent]
-    public sealed class GameManager : MonoBehaviour
+    public sealed class GameManager : MonoBehaviour, IMatchStateSource
     {
         [SerializeField] private GameObject playerInstance;
         [SerializeField] private GameObject botInstance;
@@ -21,6 +25,7 @@ namespace SmallArena.Core
         private bool forwardingState;
         private bool starting;
         private bool validating;
+        private Health observedBotHealth;
 
         public MatchState CurrentState => stateMachine.CurrentState;
         public bool IsPlaying => stateMachine.IsPlaying;
@@ -37,9 +42,36 @@ namespace SmallArena.Core
             sceneCamera = camera;
             injectedProbe = fullReadinessProbe;
             autoStart = startAutomatically;
+            if (isActiveAndEnabled) BindBotDeath();
         }
 
         private void Awake() => EnsureEventForwarding();
+
+        private void OnEnable()
+        {
+            BindBotDeath();
+            if (observedBotHealth != null && observedBotHealth.IsDead) ReportBotDefeated();
+        }
+
+        private void OnDisable() => UnbindBotDeath();
+
+        private void BindBotDeath()
+        {
+            UnbindBotDeath();
+            observedBotHealth = botInstance != null ? botInstance.GetComponent<Health>() : null;
+            if (observedBotHealth != null) observedBotHealth.OnDeath += ReportBotDefeated;
+        }
+
+        private void UnbindBotDeath()
+        {
+            if (observedBotHealth != null) observedBotHealth.OnDeath -= ReportBotDefeated;
+            observedBotHealth = null;
+        }
+
+        public void ReportBotDefeated()
+        {
+            if (CurrentState == MatchState.Playing) stateMachine.TriggerVictory();
+        }
 
         private void Start()
         {
@@ -108,11 +140,18 @@ namespace SmallArena.Core
             try
             {
                 EnsureEventForwarding();
+                if (isActiveAndEnabled) BindBotDeath();
                 var readiness = ValidateMatchReadiness();
                 if (!readiness.IsReady) Debug.LogError("Match startup blocked: " + readiness.DiagnosticMessage, this);
                 return stateMachine.StartMatch(readiness);
             }
-            finally { starting = false; }
+            finally
+            {
+                starting = false;
+                // Death during a Playing notification is deferred until Domain releases its notification guard.
+                if (CurrentState == MatchState.Playing && observedBotHealth != null && observedBotHealth.IsDead)
+                    ReportBotDefeated();
+            }
         }
 
         private MatchReadinessResult ValidateEntity(GameObject entity, string role)
@@ -145,10 +184,23 @@ namespace SmallArena.Core
             forwardingState = true;
         }
 
-        private void ForwardState(MatchState state) => OnMatchStateChanged?.Invoke(state);
+        private void ForwardState(MatchState state)
+        {
+            // Stop local actions before publishing terminal state to any observers.
+            if (state == MatchState.Victory && playerInstance != null)
+            {
+                playerInstance.GetComponent<CombatController>()?.EndMatch();
+                var movement = playerInstance.GetComponent<PlayerController>();
+                var input = playerInstance.GetComponent<PlayerInputHandler>();
+                if (movement != null) movement.enabled = false;
+                if (input != null) input.enabled = false;
+            }
+            OnMatchStateChanged?.Invoke(state);
+        }
 
         private void OnDestroy()
         {
+            UnbindBotDeath();
             if (forwardingState) stateMachine.OnStateChanged -= ForwardState;
         }
     }
