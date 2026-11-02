@@ -87,7 +87,7 @@ internal static class ArenaLayoutVerifier
             var expectedTypes = new HashSet<string> { "GameObject", "Transform", "MeshFilter", "MeshRenderer" };
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
-            if (name == "Player" || name == "Bot") expectedTypes.Add("MonoBehaviour");
+            expectedTypes.Add("MonoBehaviour");
             var expectedCount = expectedTypes.Count + (name == "Player" ? 2 : 0);
             Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
@@ -142,6 +142,12 @@ internal static class ArenaLayoutVerifier
         Check(Number(botCollider.Data, "m_IsTrigger") == 0 && Number(botCollider.Data, "m_Enabled") == 1, "Bot collider must be solid.");
         Near(Number(botCollider.Data, "m_Height"), 2); Near(Number(botCollider.Data, "m_Radius"), 0.5);
         var pickup = prefabs["WeaponPickup"];
+        var pickupGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Pickups/WeaponPickup.cs.meta"));
+        var pickupComponent = pickup.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == pickupGuid);
+        Check(Number(pickupComponent.Data, "m_Enabled") == 1, "WeaponPickup must be enabled.");
+        Near(Number(pickupComponent.Data, "interactionRadius"), 1.5); Near(Number(pickupComponent.Data, "buffedDamage"), 2);
+        Check(Id(Field(pickupComponent.Data, "pickupCollider")) == pickup.Only("BoxCollider").Id, "Pickup collider reference is not wired.");
+        Check(Id(Field(pickupComponent.Data, "pickupRenderer")) == pickup.Only("MeshRenderer").Id, "Pickup renderer reference is not wired.");
         Check(Number(pickup.Only("BoxCollider").Data, "m_IsTrigger") == 1, "Pickup collider must be a trigger.");
         Check(Number(pickup.Only("BoxCollider").Data, "m_Enabled") == 1, "Pickup trigger must be enabled.");
         Check(Number(pickup.Only("Rigidbody").Data, "m_IsKinematic") == 1, "Pickup body must be kinematic.");

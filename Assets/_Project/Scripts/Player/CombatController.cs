@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using SmallArena.Input;
+using SmallArena.Pickups;
 using SmallArena.Server.Combat;
 using UnityEngine;
 
 namespace SmallArena.Player
 {
-    /// <summary>Local melee composition: fresh input, cooldown and one hit per target per punch.</summary>
+    /// <summary>Local intent composition for melee and weapon interaction.</summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(PlayerInputHandler))]
     public sealed class CombatController : MonoBehaviour
@@ -36,6 +37,9 @@ namespace SmallArena.Player
 
         private void Update()
         {
+            // Collection is independent of punch cooldown. A same-frame E + J uses the buff.
+            if (inputHandler.ConsumeInteractPressed()) TryCollectNearbyPickup();
+
             // Always consume: cooldown presses are dropped rather than queued.
             if (!inputHandler.ConsumePunchPressed() || !CanPunch) return;
 
@@ -48,6 +52,17 @@ namespace SmallArena.Player
                 if (hit.transform.IsChildOf(transform)) continue;
                 var health = hit.GetComponentInParent<Health>();
                 if (health != null && damagedTargets.Add(health)) health.TakeDamage(punchDamage);
+            }
+        }
+
+        private void TryCollectNearbyPickup()
+        {
+            var nearby = Physics.OverlapSphere(transform.position, 1.5f, LayerMask.GetMask("Pickup"),
+                QueryTriggerInteraction.Collide);
+            foreach (var collider in nearby)
+            {
+                var pickup = collider.GetComponentInParent<WeaponPickup>();
+                if (pickup != null && pickup.TryCollect(this, transform.position)) break;
             }
         }
     }
