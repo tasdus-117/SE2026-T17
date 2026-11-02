@@ -165,9 +165,14 @@ namespace SmallArena.Tests.PlayMode
         [TestCase("Player")]
         [TestCase("Bot")]
         [TestCase("WeaponPickup")]
-        public void PlaceholderEntity_ContainsOnlyStructuralComponents(string name)
+        public void Entity_ContainsOnlyExpectedComponents(string name)
         {
-            var allowed = new[] { typeof(Transform), typeof(MeshFilter), typeof(MeshRenderer), typeof(CharacterController), typeof(CapsuleCollider), typeof(BoxCollider), typeof(Rigidbody) };
+            var allowed = new[] { typeof(Transform), typeof(MeshFilter), typeof(MeshRenderer), typeof(CharacterController), typeof(CapsuleCollider), typeof(BoxCollider), typeof(Rigidbody) }.ToList();
+            if (name == "Player")
+            {
+                allowed.Add(typeof(SmallArena.Input.PlayerInputHandler));
+                allowed.Add(typeof(SmallArena.Client.PlayerController));
+            }
             foreach (var component in Entity(name).GetComponentsInChildren<Component>(true))
             {
                 Assert.That(component, Is.Not.Null);

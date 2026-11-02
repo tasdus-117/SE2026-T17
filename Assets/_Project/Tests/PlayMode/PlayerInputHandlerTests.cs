@@ -70,7 +70,8 @@ namespace SmallArena.Tests.PlayMode
         {
             SetKeys(first, second);
             AssertMove(x / Mathf.Sqrt(2), y / Mathf.Sqrt(2));
-            Assert.That(handler.MoveInput.magnitude, Is.LessThanOrEqualTo(1f));
+            // Normalized float vectors can round one ULP above unit length.
+            Assert.That(handler.MoveInput.magnitude, Is.LessThanOrEqualTo(1f + 0.000001f));
         }
 
         [Test]
