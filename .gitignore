@@ -1,0 +1,31 @@
+# Unity generated/cache directories
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Bb]uild/
+/[Bb]uilds/
+/[Tt]est[Rr]esults/
+/[Aa]rtifacts/
+/[Rr]eports/
+/[Aa]ssets/AssetStoreTools*
+
+# IDE and local files
+.vs/
+.idea/
+*.csproj
+*.sln
+*.user
+*.pidb
+*.suo
+*.tmp
+.DS_Store
+
+# Secrets; commit templates only
+.env
+.env.*
+!.env.example
+config/**/*.local.json
+
+# Keep Unity .meta, Packages and ProjectSettings in Git.
