@@ -22,6 +22,7 @@ namespace SmallArena.Tests.PlayMode
         {
             yield return SceneManager.LoadSceneAsync(ScenePath, LoadSceneMode.Single);
             arena = SceneManager.GetSceneByPath(ScenePath);
+            yield return null; // Start() commits the real offline lifecycle after scene activation.
             Assert.That(arena.IsValid() && arena.isLoaded, Is.True);
             Physics.SyncTransforms();
         }
@@ -48,14 +49,14 @@ namespace SmallArena.Tests.PlayMode
         }
 
         [Test]
-        public void SceneCoordinator_IsWired_AndHoldsM1Initializing()
+        public void SceneCoordinator_IsWired_AndStartsReadyOfflineMatch()
         {
             var manager = Entity("_GameManager").GetComponent<GameManager>();
             Assert.That(manager, Is.Not.Null);
             Assert.That(manager.ValidateSceneReadiness().IsReady, Is.True);
-            Assert.That(manager.ValidateMatchReadiness().IsReady, Is.False);
-            Assert.That(manager.CurrentState, Is.EqualTo(MatchState.Initializing));
-            Assert.That(manager.IsPlaying, Is.False);
+            Assert.That(manager.ValidateMatchReadiness().IsReady, Is.True);
+            Assert.That(manager.CurrentState, Is.EqualTo(MatchState.Playing));
+            Assert.That(manager.IsPlaying, Is.True);
         }
 
         [TestCase("Player", "Player")]
@@ -172,7 +173,10 @@ namespace SmallArena.Tests.PlayMode
             {
                 allowed.Add(typeof(SmallArena.Input.PlayerInputHandler));
                 allowed.Add(typeof(SmallArena.Client.PlayerController));
+                allowed.Add(typeof(SmallArena.Player.CombatController));
             }
+            if (name == "Bot") allowed.Add(typeof(SmallArena.Server.Combat.Health));
+            if (name == "WeaponPickup") allowed.Add(typeof(SmallArena.Pickups.WeaponPickup));
             foreach (var component in Entity(name).GetComponentsInChildren<Component>(true))
             {
                 Assert.That(component, Is.Not.Null);

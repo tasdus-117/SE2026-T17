@@ -1,7 +1,7 @@
 {
   "name": "SmallArena.Client",
   "rootNamespace": "SmallArena.Client",
-  "references": ["Mirror","SmallArena.Shared.Domain","SmallArena.Networking","Unity.InputSystem"],
+  "references": ["Mirror","SmallArena.Shared.Domain","SmallArena.Networking","Unity.InputSystem","Unity.TextMeshPro","UnityEngine.UI"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

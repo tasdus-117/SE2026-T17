@@ -297,6 +297,23 @@ namespace SmallArena.Tests.PlayMode
             Assert.Throws<InvalidOperationException>(() => manager.Configure(player, bot, pickup, camera));
         }
 
+        [Test]
+        public void DeathDuringPlayingNotification_ReachesVictoryAfterDomainReleasesNotificationGuard()
+        {
+            var health = bot.AddComponent<SmallArena.Server.Combat.Health>();
+            manager.Configure(player, bot, pickup, camera, probe);
+            owner.SetActive(true);
+            var notifications = new List<MatchState>();
+            manager.OnMatchStateChanged += state =>
+            {
+                notifications.Add(state);
+                if (state == MatchState.Playing) health.TakeDamage(10);
+            };
+            Assert.That(manager.TryStartMatch(), Is.True);
+            Assert.That(manager.CurrentState, Is.EqualTo(MatchState.Victory));
+            Assert.That(notifications, Is.EqualTo(new[] { MatchState.Playing, MatchState.Victory }));
+        }
+
         [UnityTest]
         public IEnumerator AutoStart_ValidDependencies_StartsOnceAfterAwake()
         {

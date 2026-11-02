@@ -1,11 +1,12 @@
 using System;
+using SmallArena.Domain;
 using UnityEngine;
 
 namespace SmallArena.Server.Combat
 {
     /// <summary>Entity hit points and terminal death notification; independent of input and combat detection.</summary>
     [DisallowMultipleComponent]
-    public sealed class Health : MonoBehaviour
+    public sealed class Health : MonoBehaviour, IHealthSource
     {
         [SerializeField] private int maxHealth = 10;
         [SerializeField] private int currentHealth = 10;

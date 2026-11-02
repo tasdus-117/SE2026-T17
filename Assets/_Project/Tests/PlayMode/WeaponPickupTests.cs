@@ -246,6 +246,7 @@ namespace SmallArena.Tests.PlayMode
         {
             yield return SceneManager.LoadSceneAsync("Arena_MVP", LoadSceneMode.Additive);
             var arena = SceneManager.GetSceneByName("Arena_MVP");
+            yield return null; // Let offline startup complete before teleporting the integration-test player.
             try
             {
                 var roots = arena.GetRootGameObjects();

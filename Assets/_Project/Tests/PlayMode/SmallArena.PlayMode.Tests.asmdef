@@ -1,7 +1,7 @@
 {
   "name": "SmallArena.PlayMode.Tests",
   "rootNamespace": "SmallArena.Tests.PlayMode",
-  "references": ["SmallArena.Shared.Domain","SmallArena.Runtime","Unity.InputSystem","Unity.InputSystem.TestFramework","SmallArena.Networking","SmallArena.Client"],
+  "references": ["SmallArena.Shared.Domain","SmallArena.Runtime","Unity.InputSystem","Unity.InputSystem.TestFramework","SmallArena.Networking","SmallArena.Client","SmallArena.Server","Unity.TextMeshPro","UnityEngine.UI"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

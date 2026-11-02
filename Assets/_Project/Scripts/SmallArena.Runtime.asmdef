@@ -1,7 +1,7 @@
 {
   "name": "SmallArena.Runtime",
   "rootNamespace": "SmallArena",
-  "references": ["SmallArena.Shared.Domain","SmallArena.Networking"],
+  "references": ["SmallArena.Shared.Domain","SmallArena.Networking","SmallArena.Server","SmallArena.Client"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

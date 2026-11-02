@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System;
+using SmallArena.Domain;
 using SmallArena.Input;
 using SmallArena.Pickups;
 using SmallArena.Server.Combat;
@@ -9,7 +11,7 @@ namespace SmallArena.Player
     /// <summary>Local intent composition for melee and weapon interaction.</summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(PlayerInputHandler))]
-    public sealed class CombatController : MonoBehaviour
+    public sealed class CombatController : MonoBehaviour, IDamageSource
     {
         [SerializeField] private PlayerInputHandler inputHandler;
         [SerializeField] private float punchCooldown = 0.5f;
@@ -19,12 +21,22 @@ namespace SmallArena.Player
         [SerializeField] private LayerMask targetLayerMask = 1 << 8;
 
         private float lastPunchTime = -999f;
+        private bool matchEnded;
         private readonly HashSet<Health> damagedTargets = new HashSet<Health>();
 
         public int CurrentDamage => punchDamage;
-        public bool CanPunch => Time.time >= lastPunchTime + punchCooldown;
+        public bool CanInteract => !matchEnded;
+        public bool CanPunch => !matchEnded && Time.time >= lastPunchTime + punchCooldown;
+        public event Action<int> OnDamageChanged;
 
-        public void SetDamage(int newDamage) => punchDamage = newDamage;
+        public void SetDamage(int newDamage)
+        {
+            if (matchEnded || punchDamage == newDamage) return;
+            punchDamage = newDamage;
+            OnDamageChanged?.Invoke(punchDamage);
+        }
+
+        public void EndMatch() => matchEnded = true;
 
         private void Reset() => BindInput();
 
@@ -38,7 +50,8 @@ namespace SmallArena.Player
         private void Update()
         {
             // Collection is independent of punch cooldown. A same-frame E + J uses the buff.
-            if (inputHandler.ConsumeInteractPressed()) TryCollectNearbyPickup();
+            var interactPressed = inputHandler.ConsumeInteractPressed();
+            if (interactPressed && CanInteract) TryCollectNearbyPickup();
 
             // Always consume: cooldown presses are dropped rather than queued.
             if (!inputHandler.ConsumePunchPressed() || !CanPunch) return;
@@ -49,6 +62,7 @@ namespace SmallArena.Player
             damagedTargets.Clear();
             foreach (var hit in hits)
             {
+                if (matchEnded) break;
                 if (hit.transform.IsChildOf(transform)) continue;
                 var health = hit.GetComponentInParent<Health>();
                 if (health != null && damagedTargets.Add(health)) health.TakeDamage(punchDamage);

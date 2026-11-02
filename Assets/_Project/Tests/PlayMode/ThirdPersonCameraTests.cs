@@ -103,6 +103,7 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(sceneFollow.Target, Is.SameAs(player.transform));
             Assert.That(sceneFollow.enabled && occlusion.enabled, Is.True);
             Assert.That(Vector3.Distance(sceneCamera.transform.position, player.transform.position + Offset), Is.LessThan(0.01f));
+            yield return null; // Let offline readiness run after checking the saved initial pose.
             player.GetComponent<PlayerController>().enabled = false;
             var character = player.GetComponent<CharacterController>();
 

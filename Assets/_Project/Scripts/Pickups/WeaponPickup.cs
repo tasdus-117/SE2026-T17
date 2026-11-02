@@ -34,7 +34,7 @@ namespace SmallArena.Pickups
 
         public bool TryCollect(CombatController combatController, Vector3 playerPosition)
         {
-            if (!CanCollect(playerPosition) || combatController == null) return false;
+            if (!CanCollect(playerPosition) || combatController == null || !combatController.CanInteract) return false;
 
             // Commit before publishing so observers cannot collect the same pickup twice.
             isCollected = true;
