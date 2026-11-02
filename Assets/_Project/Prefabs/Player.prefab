@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1005}
   - component: {fileID: 1006}
   - component: {fileID: 1007}
+  - component: {fileID: 1008}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -143,3 +144,23 @@ MonoBehaviour:
   jumpHeight: 1.2
   gravity: -20
   groundedGravity: -2
+--- !u!114 &1008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 134ae3b8e71447cab797d8af92edbd46, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  inputHandler: {fileID: 1006}
+  punchCooldown: 0.5
+  punchDamage: 1
+  hitSphereRadius: 0.6
+  hitSphereOffset: {x: 0, y: 1, z: 0.8}
+  targetLayerMask:
+    serializedVersion: 2
+    m_Bits: 256

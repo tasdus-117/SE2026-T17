@@ -16,9 +16,9 @@ $expected = [ordered]@{
     'SmallArena.Networking' = @('Mirror', 'SmallArena.Shared.Domain')
     'SmallArena.Server' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Networking')
     'SmallArena.Client' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Networking', 'Unity.InputSystem')
-    'SmallArena.Runtime' = @('SmallArena.Shared.Domain', 'SmallArena.Networking')
+    'SmallArena.Runtime' = @('SmallArena.Shared.Domain', 'SmallArena.Networking', 'SmallArena.Server', 'SmallArena.Client')
     'SmallArena.EditMode.Tests' = @('SmallArena.Shared.Domain', 'SmallArena.Runtime', 'SmallArena.Networking')
-    'SmallArena.PlayMode.Tests' = @('SmallArena.Shared.Domain', 'SmallArena.Runtime', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework', 'SmallArena.Networking', 'SmallArena.Client')
+    'SmallArena.PlayMode.Tests' = @('SmallArena.Shared.Domain', 'SmallArena.Runtime', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework', 'SmallArena.Networking', 'SmallArena.Client', 'SmallArena.Server')
 }
 $definitions = @(Get-ChildItem -LiteralPath 'Assets/_Project' -Filter '*.asmdef' -Recurse)
 Assert-Scaffold ($definitions.Count -eq $expected.Count) 'Expected exactly seven project asmdefs.'

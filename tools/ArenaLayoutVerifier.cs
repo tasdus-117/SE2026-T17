@@ -87,8 +87,8 @@ internal static class ArenaLayoutVerifier
             var expectedTypes = new HashSet<string> { "GameObject", "Transform", "MeshFilter", "MeshRenderer" };
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
-            if (name == "Player") expectedTypes.Add("MonoBehaviour");
-            var expectedCount = expectedTypes.Count + (name == "Player" ? 1 : 0);
+            if (name == "Player" || name == "Bot") expectedTypes.Add("MonoBehaviour");
+            var expectedCount = expectedTypes.Count + (name == "Player" ? 2 : 0);
             Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
             var layerName = name == "WeaponPickup" ? "Pickup" : name;
@@ -126,6 +126,17 @@ internal static class ArenaLayoutVerifier
         Near(Number(controller.Data, "m_SkinWidth"), 0.08); Near(Number(controller.Data, "m_MinMoveDistance"), 0.001);
         Check(Number(controller.Data, "m_IsTrigger") == 0 && Number(controller.Data, "m_Enabled") == 1, "Player collision must be solid and enabled.");
         var bot = prefabs["Bot"];
+        var healthGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Combat/Health.cs.meta"));
+        var combatGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Player/CombatController.cs.meta"));
+        var health = bot.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == healthGuid);
+        var combat = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == combatGuid);
+        Check(Number(health.Data, "m_Enabled") == 1 && Number(combat.Data, "m_Enabled") == 1, "Combat and Health must be enabled.");
+        Near(Number(health.Data, "maxHealth"), 10); Near(Number(health.Data, "currentHealth"), 10);
+        Check(Id(Field(combat.Data, "inputHandler")) == inputAdapter.Id, "Combat input reference is not wired.");
+        Check(Number(Map(Field(combat.Data, "targetLayerMask")), "m_Bits") == (1 << expectedLayers["Bot"]), "Punches must target only the Bot layer.");
+        Near(Number(combat.Data, "punchCooldown"), 0.5); Near(Number(combat.Data, "punchDamage"), 1);
+        Near(Number(combat.Data, "hitSphereRadius"), 0.6);
+        Check(Vector(combat.Data, "hitSphereOffset") == new Vector3(0, 1, 0.8f), "Unexpected punch sphere offset.");
         Check(!bot.OfType("Rigidbody").Any(), "Bot collider must be static.");
         var botCollider = bot.Only("CapsuleCollider");
         Check(Number(botCollider.Data, "m_IsTrigger") == 0 && Number(botCollider.Data, "m_Enabled") == 1, "Bot collider must be solid.");

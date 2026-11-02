@@ -7,6 +7,8 @@ flowchart TD
     Server[SmallArena.Server] --> Networking[SmallArena.Networking]
     Client[SmallArena.Client] --> Networking
     Runtime[SmallArena.Runtime: M1 adapters] --> Networking
+    Runtime --> Server
+    Runtime --> Client
     Server --> Domain[SmallArena.Shared.Domain]
     Client --> Domain
     Runtime --> Domain
@@ -21,7 +23,7 @@ flowchart TD
 - **Networking** owns future Mirror bridges, protocol adapters and connection contracts. It must not reference Server, Client or Runtime. Future NetworkPlayer components only forward intents and replicated state; validation, simulation and combat belong to Server services.
 - **Server** has separate Simulation, Sessions, Validation and Combat directories. They are placeholders for authoritative systems, not implemented gameplay.
 - **Client** owns the existing PlayerInputHandler, plus Networking, Presentation and UI directories. The input script retains its GUID and namespace so M1 scene references survive the move.
-- **Runtime** retains the M1 GameManager and readiness interface. Neither Server nor Client references it. It remains a compatibility module for the preserved arena, not the new authoritative simulation.
+- **Runtime** retains the M1 GameManager and readiness interface. Task 2.3 adds the local CombatController here as a composition adapter referencing Client input and Server Health. Neither Server nor Client references Runtime or each other, so the dependency graph remains acyclic. Local direct damage is an offline prototype; network command validation and authoritative combat resolution remain Server responsibilities.
 - **Tests** remain separate, with NUnit restricted to test assemblies. PlayMode tests explicitly reference Client for the moved input adapter. Domain tests target the renamed pure assembly.
 
 All moved assets retain their metadata GUIDs. Bootstrap's existing GUID is also retained. README assets retain otherwise empty directory leaves in Git.
