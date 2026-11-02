@@ -67,6 +67,7 @@ internal static class ArenaLayoutVerifier
             "com.unity.render-pipelines.universal/Shaders/Lit.shader.meta",
             "com.unity.render-pipelines.universal/Runtime/UniversalAdditionalCameraData.cs.meta",
             "com.unity.render-pipelines.universal/Runtime/UniversalAdditionalLightData.cs.meta",
+            "com.unity.render-pipelines.universal/Editor/AssetVersion.cs.meta",
             "com.unity.render-pipelines.core/Runtime/Volume/Volume.cs.meta"
         }.Select(path => ReadGuid(System.IO.Path.Combine(packageRoot, path))).ToHashSet();
         var litGuid = ReadGuid(System.IO.Path.Combine(packageRoot, "com.unity.render-pipelines.universal/Shaders/Lit.shader.meta"));
@@ -77,7 +78,7 @@ internal static class ArenaLayoutVerifier
         var expectedLayers = new Dictionary<string, int> { { "Environment", 6 }, { "Player", 7 }, { "Bot", 8 }, { "Pickup", 9 } };
         foreach (var pair in expectedLayers) Check(layers[pair.Value] == pair.Key, "Named layer slot mismatch: " + pair.Key);
 
-        var allowedTypes = new HashSet<string> { "GameObject", "Transform", "MeshFilter", "MeshRenderer", "CharacterController", "CapsuleCollider", "BoxCollider", "Rigidbody" };
+        var allowedTypes = new HashSet<string> { "GameObject", "Transform", "MeshFilter", "MeshRenderer", "CharacterController", "CapsuleCollider", "BoxCollider", "Rigidbody", "MonoBehaviour" };
         foreach (var name in names)
         {
             var prefab = prefabs[name];
@@ -86,7 +87,9 @@ internal static class ArenaLayoutVerifier
             var expectedTypes = new HashSet<string> { "GameObject", "Transform", "MeshFilter", "MeshRenderer" };
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
-            Check(prefab.Records.Count == expectedTypes.Count && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
+            if (name == "Player") expectedTypes.Add("MonoBehaviour");
+            var expectedCount = expectedTypes.Count + (name == "Player" ? 1 : 0);
+            Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
             var layerName = name == "WeaponPickup" ? "Pickup" : name;
             Check(Number(owner.Data, "m_Layer") == expectedLayers[layerName], "Wrong entity layer: " + name);
@@ -108,6 +111,15 @@ internal static class ArenaLayoutVerifier
         }
         var player = prefabs["Player"];
         var controller = player.Only("CharacterController");
+        var inputGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Input/PlayerInputHandler.cs.meta"));
+        var movementGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Input/PlayerController.cs.meta"));
+        var inputAdapter = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == inputGuid);
+        var movement = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == movementGuid);
+        Check(Number(inputAdapter.Data, "m_Enabled") == 1 && Number(movement.Data, "m_Enabled") == 1, "Player adapters must be enabled.");
+        Check(Id(Field(movement.Data, "characterController")) == controller.Id && Id(Field(movement.Data, "inputHandler")) == inputAdapter.Id, "Player locomotion references are not wired.");
+        Check(Text(Map(Field(inputAdapter.Data, "inputActions")), "guid") == ReadGuid(System.IO.Path.Combine(prefix, "Input/SmallArena.inputactions.meta")), "Input action asset is not wired.");
+        Near(Number(movement.Data, "moveSpeed"), 5); Near(Number(movement.Data, "jumpHeight"), 1.2);
+        Near(Number(movement.Data, "gravity"), -20); Near(Number(movement.Data, "groundedGravity"), -2);
         Check(!player.OfType("Rigidbody").Any() && !player.OfType("CapsuleCollider").Any(), "Player must have no Rigidbody or duplicate collider.");
         Near(Number(controller.Data, "m_Height"), 2); Near(Number(controller.Data, "m_Radius"), 0.5);
         Near(Number(controller.Data, "m_SlopeLimit"), 45); Near(Number(controller.Data, "m_StepOffset"), 0.3);
@@ -228,9 +240,10 @@ internal static class ArenaLayoutVerifier
         Check(scene.OfType("MonoBehaviour").All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))
             || item.Id == manager.Id), "Unexpected scene gameplay script.");
         var build = Read(System.IO.Path.Combine(root, "ProjectSettings/EditorBuildSettings.asset")).Only("EditorBuildSettings");
-        var startScene = Map(Sequence(Field(build.Data, "m_Scenes")).First());
-        Check(Text(startScene, "path") == "Assets/_Project/Scenes/Arena_MVP.unity" && Number(startScene, "enabled") == 1, "Arena must be the enabled startup scene.");
-        Check(Text(startScene, "guid") == ReadGuid(scenePath + ".meta"), "Build scene GUID mismatch.");
+        var buildScenes = Sequence(Field(build.Data, "m_Scenes")).Select(Map).ToArray();
+        Check(buildScenes.Length >= 2 && Text(buildScenes[0], "path") == "Assets/_Project/Scenes/Bootstrap.unity" && Number(buildScenes[0], "enabled") == 1, "Bootstrap must be the enabled startup scene.");
+        Check(Text(buildScenes[1], "path") == "Assets/_Project/Scenes/Arena_MVP.unity" && Number(buildScenes[1], "enabled") == 1, "Arena must be enabled at index 1.");
+        Check(Text(buildScenes[1], "guid") == ReadGuid(scenePath + ".meta"), "Build scene GUID mismatch.");
         File.WriteAllText(resultPath, JsonSerializer.Serialize(new
         {
             AssertionsPassed = assertions, UnityYamlFilesParsed = parsed.Count,
@@ -314,7 +327,7 @@ internal static class ArenaLayoutVerifier
     }
     private static string ReadGuid(string path)
     {
-        var match = Regex.Match(File.ReadAllText(path), @"(?m)^guid: ([0-9a-f]{32})\s*$");
+        var match = Regex.Match(File.ReadAllText(path), @"(?mi)^guid: ([0-9a-f]{32})\s*$");
         Check(match.Success, "Invalid GUID metadata: " + path); return match.Groups[1].Value;
     }
     private static void Near(double actual, double expected) => Check(Math.Abs(actual - expected) < 0.00001, $"Expected {expected}, found {actual}.");
