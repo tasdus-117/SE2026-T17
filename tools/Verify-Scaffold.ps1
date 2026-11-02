@@ -12,13 +12,16 @@ function Assert-Scaffold([bool]$Condition, [string]$Message) {
 }
 
 $expected = [ordered]@{
-    'SmallArena.Domain' = @()
-    'SmallArena.Runtime' = @('SmallArena.Domain', 'Unity.InputSystem')
-    'SmallArena.EditMode.Tests' = @('SmallArena.Domain', 'SmallArena.Runtime')
-    'SmallArena.PlayMode.Tests' = @('SmallArena.Domain', 'SmallArena.Runtime', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework')
+    'SmallArena.Shared.Domain' = @()
+    'SmallArena.Networking' = @('Mirror', 'SmallArena.Shared.Domain')
+    'SmallArena.Server' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Networking')
+    'SmallArena.Client' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Networking', 'Unity.InputSystem')
+    'SmallArena.Runtime' = @('SmallArena.Shared.Domain', 'SmallArena.Networking')
+    'SmallArena.EditMode.Tests' = @('SmallArena.Shared.Domain', 'SmallArena.Runtime', 'SmallArena.Networking')
+    'SmallArena.PlayMode.Tests' = @('SmallArena.Shared.Domain', 'SmallArena.Runtime', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework', 'SmallArena.Networking', 'SmallArena.Client')
 }
-$definitions = @(Get-ChildItem -LiteralPath 'Assets' -Filter '*.asmdef' -Recurse)
-Assert-Scaffold ($definitions.Count -eq 4) 'Expected exactly four project asmdefs.'
+$definitions = @(Get-ChildItem -LiteralPath 'Assets/_Project' -Filter '*.asmdef' -Recurse)
+Assert-Scaffold ($definitions.Count -eq $expected.Count) 'Expected exactly seven project asmdefs.'
 $byName = @{}
 foreach ($file in $definitions) {
     $definition = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json
@@ -33,13 +36,28 @@ foreach ($file in $definitions) {
     }
     $byName[$definition.name] = @{ File = $file; Definition = $definition }
 }
-$domain = $byName['SmallArena.Domain'].Definition
+$domain = $byName['SmallArena.Shared.Domain'].Definition
+function Visit-Assembly([string]$Name) {
+    if ($visiting.ContainsKey($Name)) { throw "Circular assembly dependency at $Name" }
+    if ($visited.ContainsKey($Name)) { return }
+    $visiting[$Name] = $true
+    foreach ($reference in $byName[$Name].Definition.references) {
+        if ($byName.ContainsKey($reference)) { Visit-Assembly $reference }
+    }
+    $visiting.Remove($Name)
+    $visited[$Name] = $true
+}
+$visiting = @{}
+$visited = @{}
+foreach ($name in $byName.Keys) { Visit-Assembly $name }
+Write-Output 'PASS: Project assembly graph is acyclic; dependency directions match the architecture.'
 Assert-Scaffold ($domain.noEngineReferences -eq $true) 'Domain must exclude Unity engine references.'
 Assert-Scaffold ($domain.overrideReferences -eq $true -and @($domain.precompiledReferences).Count -eq 0) 'Domain must exclude automatic plugin references.'
 Assert-Scaffold ((@($byName['SmallArena.EditMode.Tests'].Definition.includePlatforms) -join '|') -eq 'Editor') 'EditMode must be Editor only.'
 Assert-Scaffold (@($byName['SmallArena.PlayMode.Tests'].Definition.includePlatforms).Count -eq 0) 'PlayMode must not be Editor-only.'
 
-$requiredFolders = @('Art/Materials', 'Core/Domain', 'Input', 'Prefabs', 'Scenes', 'Scripts/Camera', 'Scripts/Combat', 'Scripts/Core/Domain', 'Scripts/Health', 'Scripts/Input', 'Scripts/Pickups', 'Scripts/Player', 'Scripts/UI', 'Settings', 'Tests/EditMode', 'Tests/PlayMode')
+$requiredFolders = @('Art/Materials', 'Core/Domain', 'Input', 'Prefabs', 'Scenes', 'Scripts/Camera', 'Scripts/Combat', 'Scripts/Shared/Domain', 'Scripts/Health', 'Scripts/Input', 'Scripts/Pickups', 'Scripts/Player', 'Scripts/UI', 'Settings', 'Tests/EditMode', 'Tests/PlayMode')
+$requiredFolders += @('Scripts/Networking', 'Scripts/Server/Simulation', 'Scripts/Server/Sessions', 'Scripts/Server/Validation', 'Scripts/Server/Combat', 'Scripts/Client/Networking', 'Scripts/Client/Input', 'Scripts/Client/Presentation', 'Scripts/Client/UI', 'Prefabs/Network', 'Prefabs/UI')
 foreach ($folder in $requiredFolders) {
     Assert-Scaffold (Test-Path -LiteralPath (Join-Path 'Assets/_Project' $folder) -PathType Container) "Missing folder: $folder"
 }
@@ -49,7 +67,7 @@ foreach ($asset in $assets) {
 }
 $guids = @{}
 foreach ($meta in @(Get-Item -LiteralPath 'Assets.meta') + @(Get-ChildItem -LiteralPath 'Assets' -Recurse -Filter '*.meta')) {
-    $match = [regex]::Match([IO.File]::ReadAllText($meta.FullName), '(?m)^guid: ([0-9a-f]{32})\s*$')
+    $match = [regex]::Match([IO.File]::ReadAllText($meta.FullName), '(?mi)^guid: ([0-9a-f]{32})\s*$')
     Assert-Scaffold $match.Success "Invalid GUID: $($meta.FullName)"
     Assert-Scaffold (-not $guids.ContainsKey($match.Groups[1].Value)) "Duplicate GUID: $($meta.FullName)"
     $guids[$match.Groups[1].Value] = $meta.FullName
@@ -68,6 +86,16 @@ foreach ($pipeline in [regex]::Matches($quality, 'customRenderPipeline: .*guid: 
 $buildSettings = [IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/EditorBuildSettings.asset'))
 Assert-Scaffold ($buildSettings -match 'path: Assets/_Project/Scenes/Arena_MVP.unity') 'Arena scene is not configured.'
 Assert-Scaffold (Test-Path -LiteralPath 'Assets/_Project/Scenes/Arena_MVP.unity') 'Arena scene is missing.'
+$scenes = [regex]::Matches($buildSettings, '(?m)^  - enabled: 1\r?\n    path: (.+)\r?\n    guid: ([0-9a-f]{32})')
+Assert-Scaffold ($scenes.Count -ge 2 -and $scenes[0].Groups[1].Value.Trim() -eq 'Assets/_Project/Scenes/Bootstrap.unity' -and $scenes[1].Groups[1].Value.Trim() -eq 'Assets/_Project/Scenes/Arena_MVP.unity') 'Bootstrap and Arena must be enabled at indices 0 and 1.'
+foreach ($scene in $scenes) {
+    $scenePath = $scene.Groups[1].Value.Trim()
+    Assert-Scaffold ((Get-Content -LiteralPath ($scenePath + '.meta') -Raw) -match ('guid: ' + $scene.Groups[2].Value)) "Build scene GUID mismatch: $scenePath"
+}
+$bootstrap = Get-Content -LiteralPath 'Assets/_Project/Scenes/Bootstrap.unity' -Raw
+Assert-Scaffold ($bootstrap -match 'm_Name: _NetworkManager' -and $bootstrap -match 'guid: 8aab4c8111b7c411b9b92cf3dbc5bd4e' -and $bootstrap -match 'guid: 6b0fecffa3f624585964b0d0eb21b18e') 'Bootstrap must contain the standard Mirror manager and KCP transport.'
+Assert-Scaffold ($bootstrap -match 'transport: \{fileID: 1003\}' -and $bootstrap -match 'onlineScene: Assets/_Project/Scenes/Arena_MVP.unity' -and $bootstrap -match 'offlineScene: Assets/_Project/Scenes/Bootstrap.unity') 'Bootstrap scene routing or transport reference is invalid.'
+Write-Output 'PASS: Bootstrap (index 0), Arena_MVP (index 1), scene GUIDs, Mirror components and scene routing.'
 
 $manifest = Get-Content -LiteralPath 'Packages/manifest.json' -Raw | ConvertFrom-Json
 $lock = Get-Content -LiteralPath 'Packages/packages-lock.json' -Raw | ConvertFrom-Json
@@ -87,7 +115,7 @@ foreach ($number in 1..7) { Assert-Scaffold ($traceability -match ('(?m)^\| NFR-
 $tracked = @(git ls-files)
 Assert-Scaffold ($LASTEXITCODE -eq 0) 'Cannot inspect Git index.'
 Assert-Scaffold (@($tracked | Where-Object { $_ -match '^(Library|Temp|Obj|Build|Builds|Logs|UserSettings)/|\.(csproj|sln)$' }).Count -eq 0) 'Generated data is tracked.'
-Write-Output "PASS: 4 asmdefs, $($assets.Count) asset/folder metadata pairs, unique GUIDs, settings/URP/scene, package closure, 24 requirement mappings, Git hygiene."
+Write-Output "PASS: 7 project asmdefs, $($assets.Count) asset/folder metadata pairs, unique GUIDs, settings/URP/scene, package closure, 24 requirement mappings, Git hygiene."
 
 if (-not $CompileProbes) { exit 0 }
 

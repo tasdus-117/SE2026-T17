@@ -19,16 +19,21 @@ $engine = @(Get-ChildItem -LiteralPath (Join-Path $EditorRoot 'Data/Managed/Unit
 $editorModules = Join-Path $EditorRoot 'Data/Managed/UnityEditor'
 if (Test-Path -LiteralPath $editorModules) { $engine += @(Get-ChildItem -LiteralPath $editorModules -Filter '*.dll' | ForEach-Object { $_.FullName }) }
 $editorFacade = Join-Path $EditorRoot 'Data/Managed/UnityEditor.dll'
-if (Test-Path -LiteralPath $editorFacade) { $engine += $editorFacade }
+if (-not ($engine | Where-Object { [IO.Path]::GetFileName($_) -eq 'UnityEditor.CoreModule.dll' }) -and (Test-Path -LiteralPath $editorFacade)) { $engine += $editorFacade }
 $nunit = Join-Path $EditorRoot 'Data/Resources/PackageManager/BuiltInPackages/com.unity.ext.nunit/net472/unity-custom/nunit.framework.dll'
 $templateCache = Join-Path $EditorRoot 'Data/Resources/PackageManager/ProjectTemplates/libcache/com.unity.template.urp-blank-17.2.6/ScriptAssemblies'
 $definitions = @{}
+$guidNames = @{}
 foreach ($file in Get-ChildItem -LiteralPath (Join-Path $taskRoot 'Assets') -Filter '*.asmdef' -Recurse) {
     $definition = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json
     $definitions[$definition.name] = @{ File = $file; Definition = $definition }
+    $guid = [regex]::Match((Get-Content -LiteralPath ($file.FullName + '.meta') -Raw), '(?mi)^guid: ([0-9a-f]{32})').Groups[1].Value
+    $guidNames[$guid] = $definition.name
 }
-$order = @('SmallArena.Domain', 'SmallArena.Runtime', 'SmallArena.EditMode.Tests', 'SmallArena.PlayMode.Tests')
-if ($definitions.Count -ne $order.Count) { throw 'Review compilation order after changing the four-assembly boundary.' }
+$order = @('SmallArena.Shared.Domain', 'SmallArena.Networking', 'SmallArena.Server', 'SmallArena.Client', 'SmallArena.Runtime', 'SmallArena.EditMode.Tests', 'SmallArena.PlayMode.Tests')
+if (@($definitions.Keys | Where-Object { $_ -like 'SmallArena.*' }).Count -ne $order.Count) { throw 'Review compilation order after changing the project assembly boundary.' }
+# Compile the installed Mirror sources as well, rather than requiring a prior licensed import.
+$order = @('Mirror.CompilerSymbols', 'Mirror') + $order
 $compiled = @{}
 $report = @()
 foreach ($name in $order) {
@@ -62,8 +67,12 @@ foreach ($name in $order) {
     }
     if (@($assemblyReferences | Select-Object -Unique).Count -ne $assemblyReferences.Count) { throw "Duplicate assembly reference: $name" }
     foreach ($reference in $assemblyReferences) {
+        if ($reference.StartsWith('GUID:')) {
+            $reference = $guidNames[$reference.Substring(5)]
+            if (-not $reference) { throw "Unresolved assembly GUID in $name" }
+        }
         if ($compiled.ContainsKey($reference)) { $references += $compiled[$reference]; continue }
-        if ($definitions.ContainsKey($reference)) { throw "Dependency order violation: $name -> $reference" }
+        if ($reference -in $order) { throw "Dependency order violation: $name -> $reference" }
         $candidates = @((Join-Path $taskRoot "Library/ScriptAssemblies/$reference.dll"), (Join-Path $templateCache "$reference.dll"))
         $resolved = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
         if (-not $resolved) { throw "Missing installed package assembly: $reference" }
@@ -77,6 +86,12 @@ foreach ($name in $order) {
     $binary = Join-Path $output ($name + '.dll')
     $response = Join-Path $output ($name + '.rsp')
     $arguments = @('/nologo', '/nostdlib+', '/langversion:9.0', '/warnaserror+', '/target:library', '/define:UNITY_EDITOR;UNITY_INCLUDE_TESTS', ('/out:"' + $binary + '"'))
+    if ($definition.allowUnsafeCode) { $arguments += '/unsafe+' }
+    if ($name -like 'Mirror*') {
+        # Vendor warnings are retained in the log; only project warnings are errors.
+        $arguments += '/warnaserror-'
+        $arguments += '/define:UNITY_EDITOR;UNITY_INCLUDE_TESTS;UNITY_2020_1_OR_NEWER;UNITY_2020_3_OR_NEWER;UNITY_2021_2_OR_NEWER;UNITY_2021_3_OR_NEWER;UNITY_2022_2_OR_NEWER;UNITY_6000_0_OR_NEWER'
+    }
     $arguments += @($references | ForEach-Object { '/reference:"' + $_ + '"' })
     $arguments += @($sources | ForEach-Object { '"' + $_ + '"' })
     [IO.File]::WriteAllLines($response, $arguments, $utf8)
@@ -87,7 +102,7 @@ foreach ($name in $order) {
     if ($compileExit -ne 0) { throw ("Compilation failed: $name`n" + ($diagnostics -join "`n")) }
     $compiled[$name] = $binary
     $report += [pscustomobject]@{ Assembly = $name; Sources = $sources; References = $references; NoEngineReferences = $definition.noEngineReferences; Outcome = 'Compiled; not Unity-imported or executed' }
-    Write-Output "PASS: $name ($($sources.Count) source files, C# 9, warnings as errors)."
+    Write-Output "PASS: $name ($($sources.Count) source files, C# 9; project warnings are errors)."
 }
 $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $resultPath
-Write-Output 'Compiled actual sources from all four asmdefs. This is independent Roslyn compilation, not a Unity import/test execution.'
+Write-Output 'Compiled actual sources from all seven project asmdefs. This is independent Roslyn compilation, not a Unity import/test execution.'

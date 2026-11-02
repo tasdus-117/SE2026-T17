@@ -18,7 +18,7 @@ internal static class NUnitDomainRunner
         }
 
         var testAssembly = Path.GetFullPath(args[0]);
-        var domainPath = Path.Combine(Path.GetDirectoryName(testAssembly), "SmallArena.Domain.dll");
+        var domainPath = Path.Combine(Path.GetDirectoryName(testAssembly), "SmallArena.Shared.Domain.dll");
         var domain = Assembly.LoadFrom(domainPath);
         if (!string.Equals(domain.Location, domainPath, StringComparison.OrdinalIgnoreCase))
         {

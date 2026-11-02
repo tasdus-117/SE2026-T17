@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $taskRoot
-$domainFolder = Join-Path $taskRoot 'Assets/_Project/Scripts/Core/Domain'
+$domainFolder = Join-Path $taskRoot 'Assets/_Project/Scripts/Shared/Domain'
 $testFolder = Join-Path $taskRoot 'Assets/_Project/Tests/EditMode'
 $output = Join-Path $taskRoot 'TestResults/Domain'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
@@ -27,7 +27,7 @@ function Compile-Source([string]$Binary, [string[]]$Sources, [string[]]$Referenc
 
 function Compile-Suite([string]$SourceFolder, [string]$Destination) {
     New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-    $domainBinary = Join-Path $Destination 'SmallArena.Domain.dll'
+    $domainBinary = Join-Path $Destination 'SmallArena.Shared.Domain.dll'
     # No engine, plugin or NUnit reference is passed to the domain compiler.
     $domainSources = @(Get-ChildItem -LiteralPath $SourceFolder -Filter '*.cs' -Recurse | ForEach-Object { $_.FullName })
     Compile-Source $domainBinary $domainSources $framework
@@ -54,7 +54,7 @@ $caseCount = @($baselineResult.SelectNodes('//test-case')).Count
 if ($caseCount -eq 0) { throw 'NUnit discovered no cases.' }
 
 # Verify the real compiled domain has no forbidden assembly references.
-$domainAssembly = [Reflection.Assembly]::ReflectionOnlyLoadFrom((Join-Path $output 'SmallArena.Domain.dll'))
+$domainAssembly = [Reflection.Assembly]::ReflectionOnlyLoadFrom((Join-Path $output 'SmallArena.Shared.Domain.dll'))
 $domainReferences = @($domainAssembly.GetReferencedAssemblies() | ForEach-Object { $_.Name })
 if (@($domainReferences | Where-Object { $_ -match 'Unity|NUnit|SmallArena.Runtime' }).Count -ne 0) { throw 'Compiled domain has a forbidden reference.' }
 Write-Output ('Domain references: ' + ($domainReferences -join ', '))

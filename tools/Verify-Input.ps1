@@ -46,7 +46,7 @@ $project = [IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/ProjectS
 Assert-Input ($project -match '(?m)^  activeInputHandler: 1\s*$') 'New Input System handling must remain active.'
 $manifest = Get-Content -LiteralPath (Join-Path $taskRoot 'Packages/manifest.json') -Raw | ConvertFrom-Json
 Assert-Input (@($manifest.testables).Count -eq 1 -and $manifest.testables[0] -eq 'com.unity.inputsystem') 'InputTestFixture requires the existing Input System package in testables.'
-$runtimeSource = [IO.File]::ReadAllText((Join-Path $taskRoot 'Assets/_Project/Scripts/Input/PlayerInputHandler.cs'))
+$runtimeSource = [IO.File]::ReadAllText((Join-Path $taskRoot 'Assets/_Project/Scripts/Client/Input/PlayerInputHandler.cs'))
 Assert-Input ($runtimeSource -notmatch 'CharacterController|Rigidbody|Physics\.|ApplyDamage|Health|FindObject|FindAnyObject|FindFirstObject') 'Adapter must not implement physics/gameplay/lookups.'
 $testSource = [IO.File]::ReadAllText((Join-Path $taskRoot 'Assets/_Project/Tests/PlayMode/PlayerInputHandlerTests.cs'))
 $caseCount = [regex]::Matches($testSource, '(?m)^\s*\[(?:Test|TestCase)\b').Count

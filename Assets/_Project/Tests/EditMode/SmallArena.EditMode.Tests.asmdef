@@ -1,10 +1,7 @@
 {
   "name": "SmallArena.EditMode.Tests",
   "rootNamespace": "SmallArena.Tests.EditMode",
-  "references": [
-    "SmallArena.Domain",
-    "SmallArena.Runtime"
-  ],
+  "references": ["SmallArena.Shared.Domain","SmallArena.Runtime","SmallArena.Networking"],
   "includePlatforms": ["Editor"],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
