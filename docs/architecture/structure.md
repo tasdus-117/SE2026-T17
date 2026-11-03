@@ -1,5 +1,11 @@
 # Cấu trúc và trách nhiệm
 
+## Trạng thái sau di trú
+
+Project Unity thật và mẫu offline đã được đưa vào cấu trúc này. Nguồn phục hồi, GUID, namespace tương thích và bảy assembly nằm trong [báo cáo di trú](main-migration-audit.md); ngữ cảnh hiện hành ở [PROJECT_CONTEXT.md](../../PROJECT_CONTEXT.md). Ví dụ networking/lobby bên dưới vẫn là hướng triển khai, không phải tính năng đã hoàn thành.
+
+Scene hiện có: MainMenu (index 0), Bootstrap (index 1), Arena_MVP (index 2). GameManager/readiness ở Server/Simulation; Health/combat/pickup ở Server/Combat; local PlayerController/camera ở Client/Presentation; input ở Client/Input; HUD/menu ở Client/UI. Player/Bot prefab ở Characters, pickup ở Combat. Runtime tổng hợp cũ được thay bằng Shared.Protocol và hợp đồng Shared; không có tham chiếu Client↔Server.
+
 ## Gốc repository
 
 - `Assets/`: mã và tài nguyên Unity nhập vào project.
@@ -85,4 +91,4 @@ Tránh dùng `Resources/` như kho chứa toàn bộ project. Chỉ thêm cơ ch
 
 Một repository, một Unity project, hai mục tiêu build client/server. Chưa cần microservices, database, tài khoản, Redis hoặc Kubernetes khi yêu cầu chưa có. Reconnect trong bản đầu có thể dùng phiên lưu trong RAM; server khởi động lại thì các phiên đó mất. Muốn khôi phục sau khi server chết là yêu cầu khác.
 
-Các tên file trong tài liệu là gợi ý cho bước triển khai; không phải file đã được tạo.
+Các tên file ví dụ trong phần định hướng là gợi ý triển khai; không phải tính năng đã hoàn thành. Danh mục thực tế đã có nằm ở mục “Trạng thái sau di trú” đầu tài liệu và PROJECT_CONTEXT.md.

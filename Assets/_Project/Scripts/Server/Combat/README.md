@@ -1,0 +1,1 @@
+TV2 sở hữu quy tắc combat, Health, sát thương/cooldown và xác thực. Health, CombatController và WeaponPickup đã được di trú vào assembly Server; CombatController đọc hợp đồng input Shared.Protocol thay vì kiểu Client cụ thể. Đây vẫn là mẫu xử lý offline; đường nhận/xác thực lệnh mạng cần tích hợp với TV1, không dùng callback local làm bằng chứng chống gian lận.

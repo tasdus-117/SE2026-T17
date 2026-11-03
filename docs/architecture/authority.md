@@ -1,5 +1,11 @@
 # Quyền quyết định và hướng phụ thuộc
 
+## Baseline đang áp dụng
+
+Bảy asmdef hiện tại: Shared.Domain, Shared.Protocol, Networking, Server, Client, EditMode.Tests và PlayMode.Tests (tiền tố SmallArena.). Domain/Protocol độc lập engine; Protocol dùng Domain; Networking dùng Shared/Mirror; Server và Client dùng Shared/Networking, không tham chiếu nhau. Trạng thái offline do MatchStateMachine trong Domain quản lý; adapter Server nhận input/readiness/lệnh kết thúc qua interface Shared.
+
+Mẫu offline không chứng minh authority trên mạng. PlayerController cục bộ dùng để kiểm chứng hành vi; TV1.1 cần tích hợp ownership, spawn và đường gửi/xác thực input, không tin giá trị client tự khai báo. Xem [báo cáo di trú](main-migration-audit.md) và [ngữ cảnh hiện hành](../../PROJECT_CONTEXT.md).
+
 ## Luồng xử lý
 
 Input client → hợp đồng Protocol → adapter Mirror → kiểm tra server → mô phỏng/combat → trạng thái server → replication → client hiển thị.

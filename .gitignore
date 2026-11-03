@@ -16,11 +16,26 @@
 .idea/
 *.csproj
 *.sln
+*.slnx
+*.csproj.user
+*.pdb
+*.mdb
 *.user
 *.pidb
 *.suo
 *.tmp
 .DS_Store
+
+# Local agent context and machine-specific configuration
+/AGENT.md
+/AGENTS.md
+/PROJECT_CONTEXT.md
+/.agents/
+/.codex/
+/.aws/
+
+# Unity imports metadata inside Assets, not for the project root folder itself.
+/Assets.meta
 
 # Secrets; commit templates only
 .env

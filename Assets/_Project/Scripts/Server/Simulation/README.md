@@ -1,0 +1,1 @@
+TV1 sở hữu module mô phỏng và lifecycle server. Hiện có GameManager/OfflineMatchReadinessProbe cho mẫu offline, dùng hợp đồng Shared để tránh tham chiếu Client. Tick mạng, spawn/ownership, lobby và reconnect chưa được triển khai tại đây.
