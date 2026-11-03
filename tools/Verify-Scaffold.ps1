@@ -110,7 +110,8 @@ foreach ($entry in $lock.dependencies.PSObject.Properties) {
         Assert-Scaffold ($null -ne $lock.dependencies.PSObject.Properties[$dependency.Name]) "Missing transitive dependency: $($dependency.Name)"
     }
 }
-foreach ($guide in @('PROJECT_CONTEXT.md', 'AGENTS.md', 'README.md', 'docs/architecture/structure.md', 'docs/architecture/authority.md', 'docs/protocol/protocol.md', 'docs/testing/test-plan.md', 'docs/operations/runbook.md')) {
+# Agent context is local-only and must not be required in a fresh clone.
+foreach ($guide in @('README.md', 'docs/architecture/structure.md', 'docs/architecture/authority.md', 'docs/protocol/protocol.md', 'docs/testing/test-plan.md', 'docs/operations/runbook.md')) {
     Assert-Scaffold (Test-Path -LiteralPath (Join-Path $taskRoot $guide)) "Missing team/context guide: $guide"
 }
 $tracked = @(git ls-files)

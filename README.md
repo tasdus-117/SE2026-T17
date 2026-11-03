@@ -1,20 +1,22 @@
-# SE2026-T17 — bộ khung dự án
+# Small Arena (GAME-3D-03) — SE2026-T17
 
 Arena 3D tối đa 4 người, định hướng Unity + Mirror, server quyết định trạng thái quan trọng.
 
 ## Trạng thái bàn giao
 
-Đây là cấu trúc thư mục và tài liệu kiến trúc, chưa phải game chạy được. Chưa có mã gameplay, scene, prefab, thư viện Mirror, file assembly definition hay workflow CI thực thi. Các file `.gitkeep` chỉ giữ thư mục rỗng trong Git.
+Project Unity thật và mẫu hành vi offline đã được phục hồi từ `9eed902` và di trú vào cấu trúc mới của main `adedfa1`. Có bảy asmdef, scene/prefab và bộ test; chưa có NetworkPlayer/spawn/lobby/reconnect được kiểm chứng hay workflow CI. Các file `.gitkeep` tiếp tục giữ chỗ cho phần nhóm chưa triển khai.
+
+Xem [báo cáo kiểm toán/di trú](docs/architecture/main-migration-audit.md) và [kết quả kiểm chứng](docs/testing/migration-results.md). Các tệp ngữ cảnh tác nhân và cấu hình máy cá nhân được giữ cục bộ, không đưa vào Git.
 
 ## Bắt đầu triển khai
 
-1. Nhóm thống nhất phiên bản Unity, Mirror và nền tảng đích rồi ghi lại trong tài liệu dự án.
-2. Tạo một Unity 3D project bằng Unity Hub ở thư mục làm việc riêng. Sao chép nội dung bộ khung này vào thư mục gốc của project đó, giữ nguyên các file Unity sinh ra.
-3. Cài Mirror theo tài liệu chính thức của phiên bản đã chọn. Không tự tạo manifest giả hoặc chép mã Mirror vào Scripts của nhóm.
-4. Unity sẽ tạo hoặc cập nhật file `.meta`; commit chúng cùng tài nguyên tương ứng. Commit `Packages/` và `ProjectSettings/` do Unity sinh ra. Các thư mục này cố ý chưa được tạo trong bộ khung.
-5. Tạo scene và prefab bằng Unity Editor theo `docs/architecture/structure.md`.
-6. Khi bắt đầu viết code, tạo asmdef và cấu hình tham chiếu theo assembly thực tế của Mirror và Unity Test Framework. Phân tách thư mục chưa đủ để bảo đảm cách ly build.
-7. Triển khai lát cắt nhỏ: kết nối → spawn → di chuyển do server quyết định → hai client nhìn thấy nhau. Sau đó thêm lobby, combat, reconnect và kiểm thử.
+1. Dùng Unity Hub mở gốc repository bằng Unity `6000.6.7f1`; giữ `Packages/` và `ProjectSettings/` đã phục hồi từ project thật.
+2. Mirror `96.0.1` giữ nguyên ở `Assets/Mirror`; URP, New Input System và TMP/uGUI có trong cấu hình package. Không tạo manifest giả hoặc chép Mirror vào Scripts của nhóm.
+3. Mở `Assets/_Project/Scenes/MainMenu.unity`, vào Play và chọn Single Player. Build order: MainMenu 0, Bootstrap 1, Arena_MVP 2.
+4. WASD di chuyển, Space nhảy, J đấm, E nhặt hộp vàng. Bot hết 10 HP sẽ hiện Victory; Play Again tạo trận mới. Multiplayer/Tutorial còn Coming Soon.
+5. Player/Bot prefab ở `Prefabs/Characters`, pickup ở `Prefabs/Combat`. Di chuyển asset cùng `.meta`; không đổi GUID để sửa đường dẫn.
+6. Domain/Protocol độc lập engine; Server và Client chỉ dùng Shared/Networking, không tham chiếu nhau. Runtime tổng hợp cũ đã loại bỏ. Chạy các lệnh kiểm tra trong runbook trước khi tích hợp.
+7. Trọng tâm TV1 tiếp theo: kết nối → NetworkPlayer mỏng/NetworkStartPosition → spawn/ownership → ý định và xác thực server → hai client nhìn thấy nhau; sau đó lobby/reconnect. Mẫu offline không phải bằng chứng multiplayer đã xong.
 
 ## Tài liệu
 
