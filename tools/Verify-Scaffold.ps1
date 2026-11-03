@@ -18,7 +18,7 @@ $expected = [ordered]@{
     'SmallArena.Server' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol', 'SmallArena.Networking')
     'SmallArena.Client' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol', 'SmallArena.Networking', 'Unity.InputSystem', 'Unity.TextMeshPro', 'UnityEngine.UI')
     'SmallArena.EditMode.Tests' = @('SmallArena.Shared.Domain')
-    'SmallArena.PlayMode.Tests' = @('SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol', 'SmallArena.Networking', 'SmallArena.Server', 'SmallArena.Client', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework', 'Unity.TextMeshPro', 'UnityEngine.UI')
+    'SmallArena.PlayMode.Tests' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol', 'SmallArena.Networking', 'SmallArena.Server', 'SmallArena.Client', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework', 'Unity.TextMeshPro', 'UnityEngine.UI')
 }
 $definitions = @(Get-ChildItem -LiteralPath 'Assets/_Project' -Filter '*.asmdef' -Recurse)
 Assert-Scaffold ($definitions.Count -eq $expected.Count) 'Expected exactly seven project asmdefs.'
@@ -94,7 +94,10 @@ foreach ($scene in $scenes) {
     Assert-Scaffold ((Get-Content -LiteralPath ($scenePath + '.meta') -Raw) -match ('guid: ' + $scene.Groups[2].Value)) "Build scene GUID mismatch: $scenePath"
 }
 $bootstrap = Get-Content -LiteralPath 'Assets/_Project/Scenes/Bootstrap.unity' -Raw
-Assert-Scaffold ($bootstrap -match 'm_Name: _NetworkManager' -and $bootstrap -match 'guid: 8aab4c8111b7c411b9b92cf3dbc5bd4e' -and $bootstrap -match 'guid: 6b0fecffa3f624585964b0d0eb21b18e') 'Bootstrap must contain the standard Mirror manager and KCP transport.'
+$managerMeta = Get-Content -LiteralPath 'Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs.meta' -Raw
+$managerGuid = [regex]::Match($managerMeta, 'guid: ([a-f0-9]{32})').Groups[1].Value
+Assert-Scaffold ($bootstrap -match 'm_Name: _NetworkManager' -and $bootstrap.Contains("guid: $managerGuid") -and $bootstrap -match 'guid: 6b0fecffa3f624585964b0d0eb21b18e') 'Bootstrap must contain ArenaNetworkManager and KCP transport.'
+Assert-Scaffold ($bootstrap -match 'autoCreatePlayer: 1' -and $bootstrap -match 'playerSpawnMethod: 1' -and $bootstrap -match 'maxConnections: 4' -and $bootstrap -match 'playerPrefab: \{fileID: 1001, guid: cf2ac3b249e940d4af247e7ec57e65f7, type: 3\}') 'Network prefab, four-player limit or round-robin spawn configuration is invalid.'
 Assert-Scaffold ($bootstrap -match 'transport: \{fileID: 1003\}' -and $bootstrap -match 'onlineScene: Assets/_Project/Scenes/Arena_MVP.unity' -and $bootstrap -match 'offlineScene: Assets/_Project/Scenes/Bootstrap.unity') 'Bootstrap scene routing or transport reference is invalid.'
 Write-Output 'PASS: MainMenu (index 0), Bootstrap (index 1), Arena_MVP (index 2), scene GUIDs, Mirror components and scene routing.'
 

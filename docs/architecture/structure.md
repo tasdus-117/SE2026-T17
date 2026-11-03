@@ -6,6 +6,8 @@ Project Unity thật và mẫu offline đã được đưa vào cấu trúc này
 
 Scene hiện có: MainMenu (index 0), Bootstrap (index 1), Arena_MVP (index 2). GameManager/readiness ở Server/Simulation; Health/combat/pickup ở Server/Combat; local PlayerController/camera ở Client/Presentation; input ở Client/Input; HUD/menu ở Client/UI. Player/Bot prefab ở Characters, pickup ở Combat. Runtime tổng hợp cũ được thay bằng Shared.Protocol và hợp đồng Shared; không có tham chiếu Client↔Server.
 
+[TV1.1](tv1.1-network-lifecycle.md) thêm ArenaNetworkManager/NetworkPlayer trong Networking và bốn NetworkStartPosition trong Arena_MVP. Bootstrap dùng prefab Player có identity; scene offline gỡ hai component mạng bằng override. OfflineMatchScope tách các actor/HUD mẫu khi tải arena trong phiên mạng. Chưa có movement replication hoặc combat mạng; bước tiếp theo TV1.2.
+
 ## Gốc repository
 
 - `Assets/`: mã và tài nguyên Unity nhập vào project.

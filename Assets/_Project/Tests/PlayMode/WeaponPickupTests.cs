@@ -284,8 +284,12 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(pickupObject.GetComponent<Renderer>().enabled, Is.False);
         }
 
-        private static GameObject Spawn(string name, Vector3 position) => Object.Instantiate(
-            AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/_Project/Prefabs/{(name == "WeaponPickup" ? "Combat" : "Characters")}/{name}.prefab"), position, Quaternion.identity);
+        private static GameObject Spawn(string name, Vector3 position)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/_Project/Prefabs/{(name == "WeaponPickup" ? "Combat" : "Characters")}/{name}.prefab");
+            return name == "Player" ? OfflinePlayerFixture.Instantiate(prefab, position, Quaternion.identity)
+                : Object.Instantiate(prefab, position, Quaternion.identity);
+        }
 
         private void SetKeys(params Key[] keys)
         {

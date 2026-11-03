@@ -35,7 +35,7 @@ namespace SmallArena.Tests.PlayMode
             Time.captureDeltaTime = 1f / 60f;
             InputSystem.settings.updateMode = InputSettings.UpdateMode.ProcessEventsInDynamicUpdate;
             keyboard = InputSystem.AddDevice<Keyboard>();
-            player = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Characters/Player.prefab"),
+            player = OfflinePlayerFixture.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Characters/Player.prefab"),
                 new Vector3(1000f, 1f, 1000f), Quaternion.identity);
             player.GetComponent<PlayerController>().enabled = false;
             combat = player.GetComponent<CombatController>();

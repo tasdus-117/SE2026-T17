@@ -1,4 +1,6 @@
 using System;
+using Mirror;
+using SmallArena.Networking;
 using SmallArena.Domain;
 using SmallArena.Protocol;
 using UnityEngine;
@@ -21,9 +23,11 @@ namespace SmallArena.Input
         private bool jumpPressed;
         private bool punchPressed;
         private bool interactPressed;
+        private NetworkIdentity netIdentity;
 
         public Vector2 MoveInput { get; private set; }
-        public bool IsInputReady => isActiveAndEnabled && ownedActions != null;
+        public bool IsInputReady => isActiveAndEnabled && CanReadInput && ownedActions != null;
+        private bool CanReadInput => netIdentity == null || netIdentity.isLocalPlayer;
 
         public void EndMatch() => enabled = false;
 
@@ -40,9 +44,29 @@ namespace SmallArena.Input
             inputActions = actions;
         }
 
+        private void Awake() => netIdentity = GetComponent<NetworkIdentity>();
+
         private void OnEnable()
         {
             ClearInput();
+            NetworkPlayer.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
+            NetworkPlayer.OnLocalPlayerDespawned += HandleLocalPlayerDespawned;
+            if (CanReadInput) EnableGameplay();
+        }
+
+        private void HandleLocalPlayerSpawned(NetworkPlayer player)
+        {
+            if (player.gameObject == gameObject && CanReadInput) EnableGameplay();
+        }
+
+        private void HandleLocalPlayerDespawned(NetworkPlayer player)
+        {
+            if (player.gameObject == gameObject) DisableGameplay();
+        }
+
+        private void EnableGameplay()
+        {
+            if (gameplay != null && gameplay.enabled) return;
             if (!EnsureActions())
             {
                 enabled = false;
@@ -58,6 +82,13 @@ namespace SmallArena.Input
         }
 
         private void OnDisable()
+        {
+            NetworkPlayer.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
+            NetworkPlayer.OnLocalPlayerDespawned -= HandleLocalPlayerDespawned;
+            DisableGameplay();
+        }
+
+        private void DisableGameplay()
         {
             if (move != null) { move.performed -= OnMove; move.canceled -= OnMove; }
             if (jump != null) jump.performed -= OnJump;

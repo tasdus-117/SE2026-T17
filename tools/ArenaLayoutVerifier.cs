@@ -102,7 +102,7 @@ internal static class ArenaLayoutVerifier
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
             expectedTypes.Add("MonoBehaviour");
-            var expectedCount = expectedTypes.Count + (name == "Player" ? 2 : 0);
+            var expectedCount = expectedTypes.Count + (name == "Player" ? 4 : 0);
             Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
             var layerName = name == "WeaponPickup" ? "Pickup" : name;
@@ -124,6 +124,11 @@ internal static class ArenaLayoutVerifier
             Check(prefab.OfType("MeshRenderer").Count() == 1 && prefab.OfType("MeshFilter").Count() == 1, "Primitive render components missing.");
         }
         var player = prefabs["Player"];
+        var identityGuid = ReadGuid(System.IO.Path.Combine(root, "Assets/Mirror/Core/NetworkIdentity.cs.meta"));
+        var networkPlayerGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/NetworkPlayer.cs.meta"));
+        var networkIdentity = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == identityGuid);
+        Check(Number(networkIdentity.Data, "sceneId") == 0 && Number(networkIdentity.Data, "_assetId") != 0, "Network player prefab must have an asset ID and no scene ID.");
+        Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == networkPlayerGuid) == 1, "NetworkPlayer bridge missing.");
         var controller = player.Only("CharacterController");
         var inputGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Input/PlayerInputHandler.cs.meta"));
         var movementGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Presentation/PlayerController.cs.meta"));
@@ -229,7 +234,11 @@ internal static class ArenaLayoutVerifier
             Check(Id(Field(instance.Data, "m_SourcePrefab")) == 100100000, "Invalid source prefab asset reference.");
             var modification = Map(Field(instance.Data, "m_Modification"));
             Check(Id(Field(modification, "m_TransformParent")) == 0, "Entity must be a scene root.");
-            foreach (var key in new[] { "m_RemovedComponents", "m_RemovedGameObjects", "m_AddedGameObjects", "m_AddedComponents" })
+            var removed = Sequence(Field(modification, "m_RemovedComponents")).ToArray();
+            if (name == "Player")
+                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010 }), "Offline player must remove only NetworkIdentity/NetworkPlayer.");
+            else Check(removed.Length == 0, "Unexpected removed prefab component.");
+            foreach (var key in new[] { "m_RemovedGameObjects", "m_AddedGameObjects", "m_AddedComponents" })
                 Check(!Sequence(Field(modification, key)).Any(), "Unexpected structural prefab override.");
             var changes = Sequence(Field(modification, "m_Modifications")).Select(Map).ToArray();
             Check(changes.Length == 3, "Only XYZ spawn overrides are allowed.");
@@ -334,7 +343,16 @@ internal static class ArenaLayoutVerifier
         }
         Check(sceneBehaviours.Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == inputModuleGuid) == 1,
             "Arena needs one Input System UI module for after-match mouse input.");
+        var startGuid = ReadGuid(System.IO.Path.Combine(root, "Assets/Mirror/Core/NetworkStartPosition.cs.meta"));
+        var scopeGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Simulation/OfflineMatchScope.cs.meta"));
+        var markers = sceneBehaviours.Where(item => Text(Map(Field(item.Data, "m_Script")), "guid") == startGuid).ToArray();
+        Check(markers.Length == 4, "Expected four network spawn markers.");
+        var markerPositions = markers.Select(item => Vector(scene.Component(scene.Records[Id(Field(item.Data, "m_GameObject"))], "Transform").Data, "m_LocalPosition")).ToArray();
+        Check(markerPositions.Distinct().Count() == 4 && markerPositions.All(position => Math.Abs(position.X) == 6 && position.Y == 1 && Math.Abs(position.Z) == 6), "Network spawns must be distinct, supported and clear of arena walls.");
+        var scope = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == scopeGuid);
+        Check(Sequence(Field(scope.Data, "offlineRoots")).Select(Id).ToHashSet().SetEquals(new[] { entityObjects["Player"], entityObjects["Bot"], entityObjects["WeaponPickup"], managerObject.Id, Id(Field(ui.Data, "m_GameObject")) }), "Offline scope must disable only offline actors, coordinator and HUD.");
         Check(sceneBehaviours.All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))
+            || Text(Map(Field(item.Data, "m_Script")), "guid") == startGuid || item.Id == scope.Id
             || item.Id == manager.Id || item.Id == follow.Id || item.Id == occlusion.Id || item.Id == readiness.Id || item.Id == ui.Id), "Unexpected scene gameplay script.");
         var build = Read(System.IO.Path.Combine(root, "ProjectSettings/EditorBuildSettings.asset")).Only("EditorBuildSettings");
         var buildScenes = Sequence(Field(build.Data, "m_Scenes")).Select(Map).ToArray();

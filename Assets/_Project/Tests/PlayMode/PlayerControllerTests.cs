@@ -35,7 +35,7 @@ namespace SmallArena.Tests.PlayMode
             floor.transform.localScale = new Vector3(100f, 1f, 100f);
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Characters/Player.prefab");
             Assert.That(prefab, Is.Not.Null);
-            player = Object.Instantiate(prefab, new Vector3(1000f, 1f, 1000f), Quaternion.identity);
+            player = OfflinePlayerFixture.Instantiate(prefab, new Vector3(1000f, 1f, 1000f), Quaternion.identity);
             character = player.GetComponent<CharacterController>();
             Assert.That(player.GetComponent<PlayerController>(), Is.Not.Null);
             Assert.That(player.GetComponent<PlayerInputHandler>().enabled, Is.True);

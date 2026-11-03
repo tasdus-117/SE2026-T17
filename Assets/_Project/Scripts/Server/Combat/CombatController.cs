@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using Mirror;
 using SmallArena.Domain;
 using SmallArena.Protocol;
 using SmallArena.Pickups;
@@ -22,6 +23,7 @@ namespace SmallArena.Player
         private float lastPunchTime = -999f;
         private bool matchEnded;
         private ICombatInputSource inputSource;
+        private NetworkIdentity netIdentity;
         private readonly HashSet<Health> damagedTargets = new HashSet<Health>();
 
         public int CurrentDamage => punchDamage;
@@ -44,6 +46,7 @@ namespace SmallArena.Player
 
         private void BindInput()
         {
+            netIdentity = GetComponent<NetworkIdentity>();
             if (inputHandler == null)
                 foreach (var component in GetComponents<MonoBehaviour>())
                     if (component is ICombatInputSource) { inputHandler = component; break; }
@@ -52,6 +55,7 @@ namespace SmallArena.Player
 
         private void Update()
         {
+            if (netIdentity != null && !netIdentity.isLocalPlayer) return;
             if (inputHandler == null || inputSource == null) return;
             // Collection is independent of punch cooldown. A same-frame E + J uses the buff.
             var interactPressed = inputSource.ConsumeInteractPressed();
