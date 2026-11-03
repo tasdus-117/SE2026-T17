@@ -1,5 +1,6 @@
 using Mirror;
 using SmallArena.Networking;
+using SmallArena.Server.Simulation;
 using UnityEngine;
 
 namespace SmallArena.Tests.PlayMode
@@ -11,6 +12,9 @@ namespace SmallArena.Tests.PlayMode
         {
             var player = Object.Instantiate(prefab, position, rotation);
             player.SetActive(false);
+            Object.DestroyImmediate(player.GetComponent<ServerPlayerMovement>());
+            Object.DestroyImmediate(player.GetComponent<NetworkMovement>());
+            Object.DestroyImmediate(player.GetComponent<NetworkTransformReliable>());
             Object.DestroyImmediate(player.GetComponent<NetworkPlayer>());
             Object.DestroyImmediate(player.GetComponent<NetworkIdentity>());
             player.SetActive(true);

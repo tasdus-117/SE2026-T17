@@ -102,7 +102,7 @@ internal static class ArenaLayoutVerifier
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
             expectedTypes.Add("MonoBehaviour");
-            var expectedCount = expectedTypes.Count + (name == "Player" ? 4 : 0);
+            var expectedCount = expectedTypes.Count + (name == "Player" ? 7 : 0);
             Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
             var layerName = name == "WeaponPickup" ? "Pickup" : name;
@@ -129,6 +129,16 @@ internal static class ArenaLayoutVerifier
         var networkIdentity = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == identityGuid);
         Check(Number(networkIdentity.Data, "sceneId") == 0 && Number(networkIdentity.Data, "_assetId") != 0, "Network player prefab must have an asset ID and no scene ID.");
         Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == networkPlayerGuid) == 1, "NetworkPlayer bridge missing.");
+        var networkMovementGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/NetworkMovement.cs.meta"));
+        var simulationGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Simulation/ServerPlayerMovement.cs.meta"));
+        var transformGuid = ReadGuid(System.IO.Path.Combine(root, "Assets/Mirror/Components/NetworkTransform/NetworkTransformReliable.cs.meta"));
+        Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == networkMovementGuid) == 1, "Network movement command bridge missing.");
+        Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == simulationGuid) == 1, "Server movement simulation missing.");
+        var replication = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == transformGuid);
+        Check(Number(replication.Data, "syncDirection") == 0 && Number(replication.Data, "syncMode") == 0, "Transform must synchronize ServerToClient to all observers, including owner.");
+        Check(Id(Field(replication.Data, "target")) == player.Only("Transform").Id && Number(replication.Data, "coordinateSpace") == 1, "Replication must target the official world transform.");
+        Check(Number(replication.Data, "syncPosition") == 1 && Number(replication.Data, "syncRotation") == 1 && Number(replication.Data, "syncScale") == 0, "Replication position/rotation configuration mismatch.");
+        Check(Number(replication.Data, "interpolatePosition") == 1 && Number(replication.Data, "interpolateRotation") == 1, "Client transform interpolation must remain enabled.");
         var controller = player.Only("CharacterController");
         var inputGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Input/PlayerInputHandler.cs.meta"));
         var movementGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Presentation/PlayerController.cs.meta"));
@@ -236,7 +246,7 @@ internal static class ArenaLayoutVerifier
             Check(Id(Field(modification, "m_TransformParent")) == 0, "Entity must be a scene root.");
             var removed = Sequence(Field(modification, "m_RemovedComponents")).ToArray();
             if (name == "Player")
-                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010 }), "Offline player must remove only NetworkIdentity/NetworkPlayer.");
+                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010, 1011, 1012, 1013 }), "Offline player must remove identity, lifecycle, command, simulation and replication components.");
             else Check(removed.Length == 0, "Unexpected removed prefab component.");
             foreach (var key in new[] { "m_RemovedGameObjects", "m_AddedGameObjects", "m_AddedComponents" })
                 Check(!Sequence(Field(modification, key)).Any(), "Unexpected structural prefab override.");

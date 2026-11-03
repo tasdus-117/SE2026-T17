@@ -4,7 +4,7 @@ Arena 3D tối đa 4 người, định hướng Unity + Mirror, server quyết �
 
 ## Trạng thái bàn giao
 
-Project Unity thật và mẫu hành vi offline đã được phục hồi từ `9eed902` và di trú vào cấu trúc mới của main `adedfa1`. Có bảy asmdef, scene/prefab và bộ test. [TV1.1](docs/architecture/tv1.1-network-lifecycle.md) bổ sung NetworkPlayer, lifecycle/spawn do server quyết định và giới hạn input/camera theo local owner; movement replication, lobby/reconnect và workflow CI chưa hoàn thành. Các file `.gitkeep` tiếp tục giữ chỗ cho phần nhóm chưa triển khai.
+Project Unity thật và mẫu hành vi offline đã được phục hồi từ `9eed902` và di trú vào cấu trúc mới của main `adedfa1`. Có bảy asmdef, scene/prefab và bộ test. [TV1.1](docs/architecture/tv1.1-network-lifecycle.md) bổ sung lifecycle/spawn và gate local owner; [TV1.2](docs/architecture/tv1.2-server-movement.md) thêm Command input, validation, physics server và transform replication. Kiểm chứng nhiều tiến trình, lobby/reconnect và workflow CI chưa hoàn thành. Các file `.gitkeep` tiếp tục giữ chỗ cho phần nhóm chưa triển khai.
 
 Xem [báo cáo kiểm toán/di trú](docs/architecture/main-migration-audit.md) và [kết quả kiểm chứng](docs/testing/migration-results.md). Các tệp ngữ cảnh tác nhân và cấu hình máy cá nhân được giữ cục bộ, không đưa vào Git.
 
@@ -16,7 +16,7 @@ Xem [báo cáo kiểm toán/di trú](docs/architecture/main-migration-audit.md) 
 4. WASD di chuyển, Space nhảy, J đấm, E nhặt hộp vàng. Bot hết 10 HP sẽ hiện Victory; Play Again tạo trận mới. Multiplayer/Tutorial còn Coming Soon.
 5. Player/Bot prefab ở `Prefabs/Characters`, pickup ở `Prefabs/Combat`. Di chuyển asset cùng `.meta`; không đổi GUID để sửa đường dẫn.
 6. Domain/Protocol độc lập engine; Server và Client chỉ dùng Shared/Networking, không tham chiếu nhau. Runtime tổng hợp cũ đã loại bỏ. Chạy các lệnh kiểm tra trong runbook trước khi tích hợp.
-7. Trọng tâm TV1 tiếp theo: TV1.2 — gửi ý định, mô phỏng/replication chuyển động phía server và kiểm chứng hai client; sau đó lobby/reconnect. Lifecycle host ở TV1.1 và mẫu offline không thay thế kiểm chứng nhiều tiến trình.
+7. Trọng tâm TV1 tiếp theo: TV1.3 — kiểm chứng nhiều client quan sát cùng trạng thái server và phục hồi khi disconnect; sau đó lobby/reconnect có phiên. Test host/replica trong tiến trình và mẫu offline không thay thế kiểm chứng nhiều tiến trình.
 
 ## Tài liệu
 
