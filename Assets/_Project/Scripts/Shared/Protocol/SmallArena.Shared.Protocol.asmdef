@@ -1,0 +1,14 @@
+{
+  "name": "SmallArena.Shared.Protocol",
+  "rootNamespace": "SmallArena.Shared.Protocol",
+  "references": ["SmallArena.Shared.Domain"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

@@ -1,0 +1,1 @@
+TV3 sở hữu camera và presentation. PlayerController ở đây giữ hành vi di chuyển offline đã kiểm chứng; camera theo dõi trong LateUpdate với yaw cố định. Khi làm mạng, input/ownership và di chuyển authoritative phải đi qua đường server; không coi chuyển động CharacterController cục bộ này là đồng bộ mạng đã hoàn thành.
