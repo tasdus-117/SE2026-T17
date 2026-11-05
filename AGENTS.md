@@ -2,9 +2,10 @@
 
 ## Project and evidence
 - Owner identifier: `23001901`; repository: SE2026-T17, Small Arena / Unity 3D Arena Combat Game.
-- This checkout currently has no game implementation. `Long_document/srs.md` v0.2 is a draft requirements/design source, not an approved implementation baseline. `Long_document/learning-roadmap.md` owns learning plans.
-- Unity, C#, URP, Input System and Cinemachine are proposed, not installed or pinned here. Do not invent framework versions, build commands, implementation results or architectural approvals.
-- Confirmed offline MVP, proposed tuning, and future multiplayer scope must remain distinct. Preserve SRS requirement/test IDs. Existing AD-065 material is separate assignment context, not authority to execute that assignment.
+- Unity/C# và Windows đã xác nhận. Kế hoạch cá nhân TV2 của owner 23001901 ưu tiên `docs/SE2026-T17-Huong-dan-va-phan-cong-nhom.md`: Mirror, server riêng, tối đa bốn client, một súng raycast, HP/chết/hồi sinh/điểm hạ đối thủ đều theo hướng đề xuất. Quyền cập nhật kế hoạch không đồng nghĩa cả nhóm/giảng viên đã duyệt. `Long_document/srs.md` v0.4 sở hữu yêu cầu đề xuất, xung đột và quyết định mở; giữ v0.3 online/v0.2 offline làm lịch sử. Checkout chưa có Unity implementation.
+- Unity and C# are CONFIRMED; exact Editor/packages, URP, Input System, Cinemachine, networking framework and services remain PROPOSED or UNDECIDED until approved and verified. Do not invent versions, commands or results.
+- Phân công vẫn đề xuất reconnect và bằng chứng protocol/mạng/tải/gian lận/CI client-server. Không gộp luật lịch sử melee, ring-out/elimination/spectator, pickup/E-drop/2x, host+3, camera cố định hoặc đúng bốn người mới start vào kế hoạch raycast/respawn mới. Nhảy là bổ sung; private code và số tối thiểu start chưa được phân công thiết lập. Giữ ID/lịch sử, dùng ID mới khi đổi nghĩa, chốt quyết định nhóm trước triển khai. TV2 sở hữu gameplay rules/combat/tests, TV1 mạng/server simulation/session/build-CI, TV3 input/camera/UI/arena/prefabs. AD-065 độc lập, không có quyền thực thi hoặc import từ task này.
+- Source map: README.md navigates; Long_document/srs.md owns requirements/rules; docs/ROADMAP.md owns milestones/catalogue; docs/ARCHITECTURE.md owns design/technology assessment; docs/PROTOCOL.md owns proposed network contract; docs/TESTING.md owns planned online verification/evidence; Long_document/learning-roadmap.md owns learning only. Memory documents record actual progress, not product obligations.
 - Git and inspected source are authoritative. Investigate discrepancies with memory, report them, and correct stale records. Mark missing evidence UNKNOWN or UNVERIFIED.
 
 ## Session startup and context
@@ -16,7 +17,7 @@
 
 ## Git safety and isolation
 - Never modify project files or implement code on `main`, `master`, or `develop`. Treat all three as protected. Read-only inspection is allowed.
-- Personal integration branch: `long23001901` (not yet established). It is the authoritative source for integrated development and memory once approved and created. Never use `chore/23001901/project-agent-setup` as the permanent game development branch.
+- Personal integration branch: `long23001901`, approved and established from `1d7a6c91fb7c2a3ef2fa233c1d5efe5cc60b462e` on 2026-11-01 for the new Unity/C# project. It is authoritative for integrated development/memory; task-branch documentation remains unintegrated until authorized integration. Never use the setup branch as the permanent game development branch.
 - Separate substantial features/independent tasks into `feature/23001901/<feature-name>`, fixes into `fix/23001901/<bug-name>`, documentation into `docs/23001901/<document-name>`, and maintenance into `chore/23001901/<task-name>`.
 - Protect every shared integration branch and other members' branches as well as main/master/develop. Preserve all assignment branches and academic history.
 - Inspect existing branches first; obtain explicit approval before creating or switching branches. Existing session authorization is sufficient for its stated scope. Verify the active branch after switching and before edits.
