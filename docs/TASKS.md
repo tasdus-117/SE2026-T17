@@ -58,7 +58,7 @@ Mỗi task gồm hai bước: draft/review không cần Unity và implementation
 - Acceptance criteria: Mọi khác biệt có resolution cá nhân, không cộng hai scope; nhóm ghi outcome khi review.
 - Verification/evidence: Matrix đối chiếu D/M/N/P, agenda đủ GD-01–09, dependency DAG/history/link/UTF-8/Git checks tại WORK_LOG; gameplay NOT RUN, human review chưa có.
 - Open decisions và next action: Gửi PR review TV1/TV3/nhóm, ghi actual decision/approver/date. TV2-002 có thể bắt đầu draft ký hiệu sau authorization riêng; chưa implementation.
-- Source history: d977f57 / 4ecb97a / 61aebf3 giữ nguyên trên old head. Delivery hiện hành: selective adapted port từ 61aebf3 lên feature/TV2-001-scope-reconciliation-main, base origin/main 11849adbb7e4627e9d623958c950a780c4e58c5d, target PR main. Không retry old-target PR; status/commit/push/review mới xem PROJECT_STATE. Integration chưa thực hiện; merge cần quyền riêng.
+- Source history: d977f57 / 4ecb97a / 61aebf3 giữ nguyên trên old head. Delivery hiện hành: selective adapted port từ 61aebf3 lên feature/TV2-001-scope-reconciliation-main, base origin/main 11849adbb7e4627e9d623958c950a780c4e58c5d, target PR main. Không retry old-target PR; Port content 7cda5959a93ebced0bd33776d9b7d6e57a5f50a4 đã push/remote verified. NEW main PR creation bị hủy ở connector; search chưa thấy PR, review chưa requested. Delivery hiện hành xem PROJECT_STATE; integration chưa thực hiện, merge cần quyền riêng.
 
 ## TV2-002 — Dữ liệu nhân vật, state và config
 
