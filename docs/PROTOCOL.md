@@ -2,6 +2,20 @@
 
 2026-11-02. PROPOSED, chưa code/wire/API Mirror. [SRS](../Long_document/srs.md) v0.4 sở hữu luật/GD; [TASKS](TASKS.md) TV2-004 sở hữu việc review; [ARCHITECTURE](ARCHITECTURE.md) sở hữu ownership. MSG-01–13 cũ ở phần lịch sử, không dùng như contract song song. Tên CT-201–205 dưới đây là contract mới, chưa định kiểu dữ liệu/channel/serialization.
 
+## TV2-001 — đối chiếu contract đã có
+
+Kiểm ngày 2026-11-05. CT-201–205 vẫn là logical draft TV2; “chưa code” phía trên nói về các CT mới trong personal tree, không phủ nhận movement wire đã có tại N = 4a7568f3698c5a8f2a533afff3a04368314076c5. Full source refs/paths trong [SRS matrix](../Long_document/srs.md#tv2-001--đối-chiếu-nguồn-ngày-2026-11-05). Đây là mapping/gaps để TV2-004 review, không định nghĩa wire schema mới.
+
+| CT | Implementation quan sát tại N hoặc M | Gap cần review / gate |
+| --- | --- | --- |
+| CT-201 | N Shared/Protocol/MovementInput.cs: uint Sequence, float MoveX/MoveZ world axes, uint JumpSequence; NetworkMovement.CmdSubmitMovement Unreliable/requiresAuthority, sender interval 1/60 s; server validator reject nonfinite, clamp magnitude≤1, uint serial comparison; ServerPlayerMovement.FixedUpdate dùng server delta, 5 m/s và timeout 0.25 s | Sender throttle không chứng minh ingress chống flood. Cần TV1+TV2 ghi serial acceptance window/reset theo connection/life, rate budget, state eligibility, V/τ và clamp/reject policy được duyệt GD-01/08/09; TV3 xác nhận world/camera aim, jump GD-03 |
+| CT-202 | M Shared/Protocol/PlayerIntentContracts.cs chỉ ICombatInputSource local punch/interact; CombatController.Update sphere/local Time.time | Không có raycast shot wire được xác minh. TV2-004 với TV1/TV3 chốt actor từ ownership, life/match context, aim/origin, optional shot id/retry; GD-02/03. Không reuse MovementInput Sequence làm combat identity tự động |
+| CT-203 | M Health.OnHealthChanged/OnDeath local events | Không network combat outcome/rejection/score authority được xác minh. TV2-004/007/009 chốt one effect/life credit và delivery dedup với TV1; GD-05 |
+| CT-204 | N NetworkTransformReliable ServerToClient theo report/design và NetworkPlayer lifecycle | Pose replication không đồng nghĩa HP/life/score/config revision snapshot. TV2-002/004 và TV1 sync review; GD-01/04/08 |
+| CT-205 | N ArenaNetworkManager spawn reservation, disconnect destroy/release | Không token retention/respawn/ready/load/match bridge. TV1 session, TV2 transitions, TV3 feedback; GD-04/06/07/08. Không suy Mirror connId là reconnect identity |
+
+Vui lòng chốt fields/types/units/limits/order/reject reasons cùng examples ở TV2-004; task này chỉ đối chiếu gaps. Không triển khai bridge, không sửa TV1 movement. [TESTING](TESTING.md#tv2-001--phân-loại-bằng-chứng) phân biệt report cùng-process với multi-process chưa chạy.
+
 ## Hợp đồng phối hợp
 
 | Contract | Dữ liệu logic / bên gửi | Xử lý / bên sở hữu | Bàn giao và test |

@@ -1,9 +1,9 @@
 # SE2026-T17 — Hướng dẫn khởi động và phân công nhóm
 
-**Đề tài:** Small Arena — game 3D nhiều người chơi, server quyết định trạng thái chính thức.  
-**Quy mô nhóm:** 3 thành viên.  
-**Repo:** https://github.com/tasdus-117/SE2026-T17  
-**Định hướng triển khai:** Unity + Mirror.  
+**Đề tài:** Small Arena — game 3D nhiều người chơi, server quyết định trạng thái chính thức.
+**Quy mô nhóm:** 3 thành viên.
+**Repo:** https://github.com/tasdus-117/SE2026-T17
+**Định hướng triển khai:** Unity + Mirror.
 **Trạng thái khởi đầu:** Đã có bộ khung thư mục và tài liệu trên nhánh main sau PR #2; chưa có gameplay hay Unity project hoàn chỉnh.
 
 Tài liệu này là kế hoạch làm việc đề xuất để nhóm thống nhất trước khi triển khai. Thay tên thành viên và chốt lịch thực tế trong buổi họp đầu tiên.

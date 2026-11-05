@@ -2,13 +2,12 @@
 
 Windows client, arena FFA tối đa 4 người. Theo [phân công đề xuất](docs/SE2026-T17-Huong-dan-va-phan-cong-nhom.md), hướng kế hoạch cá nhân TV2 (23001901) là Unity + Mirror, server chạy riêng, một súng raycast, HP/chết/hồi sinh/điểm số. Owner cho phép cập nhật kế hoạch cá nhân; cả nhóm/giảng viên chưa xác nhận mọi đề xuất. Unity/C# đã xác nhận, exact stack và gameplay parameters chưa duyệt.
 
-## Trạng thái đã kiểm — 2026-11-02
+## Trạng thái đã kiểm — 2026-11-05
 
-- Nhánh docs/23001901/online-ffa-roadmap tại 9d29f97, cùng cached upstream; base long23001901 = 1d7a6c9, ahead 2 / behind 0. Tài liệu chưa integrated; phiên này không commit/push/PR/merge.
-- Checkout chỉ có tài liệu/assignment artifacts; không Assets, Packages, ProjectSettings hay game source/test harness/CI. Đường dẫn Unity trong phân công là đề xuất. Claim về main/PR #2 của phân công không chứng minh checkout này; không thay nguồn bằng main.
-- TV1 sở hữu project/network/simulation/session/build-CI; TV2 rules/domain/combat/tests; TV3 input/camera/UI/arena/prefab. TV2 góp M1 ngay bằng speed/eligibility/input limits; chủ trì combat M3.
-- Baseline host+3/melee/ring-out/spectator/pickup-E-drop trước đây được giữ lịch sử trong SRS và docs; không gộp với raycast/respawn thành mandatory scope mới. Xem bảng xung đột và GD-01–09 trong SRS.
-
+- Personal integration long23001901 tại 1d7a6c9 vẫn là nền Git/tài liệu. Main remote tại 11849ad có Unity/offline combat; TV1 tại 4a7568f có authoritative movement, chưa có multi-process UDP/KCP/latency evidence do TV2 chạy. [Inventory theo SHA](docs/ARCHITECTURE.md#tv2-001--inventory-theo-ref) và [phân loại test evidence](docs/TESTING.md#tv2-001--phân-loại-bằng-chứng) ghi giới hạn cụ thể.
+- TV2-001 được làm riêng trên feature/TV2-001-scope-reconciliation-and-decisions từ origin/long23001901; prerequisite docs từ 5338ba4 được chuyển chọn lọc, chưa integration. Task BLOCKED chờ human decisions/review; nhóm chưa duyệt GD-01–09.
+- [SRS matrix](Long_document/srs.md#tv2-001--đối-chiếu-nguồn-ngày-2026-11-05) giữ scope conflicts; [DECISIONS agenda](docs/DECISIONS.md#tv2-001--agenda-quyết-định-ngày-2026-11-05) giữ alternatives/recommendations/approval fields; [TASKS](docs/TASKS.md) giữ dependency/gates cho đủ 13 TV2 tasks.
+- TV1 sở hữu mạng/simulation/session/build-CI, TV2 rules/combat/tests, TV3 input/camera/UI/arena. Identity mapping TV3 chưa xác nhận; không gán từ PR author. Không gộp melee/elimination/pickup lịch sử vào raycast/respawn.
 ## Bản đồ nguồn
 
 | Tài liệu | Sở hữu |
@@ -24,4 +23,4 @@ Windows client, arena FFA tối đa 4 người. Theo [phân công đề xuất](
 
 ## Setup/build/test
 
-UNKNOWN: chưa có command online được kiểm chứng. TV1 khởi tạo sau TECH-001 và các approval cần thiết. TV2 bắt đầu ngay bằng scope/GD agenda, data/state/config schema, movement limits, CT examples và symbolic test vectors. Không chạy assignment để nhận là gameplay test; không import AD-065 hoặc tạo Unity project trong task tài liệu.
+Command online chưa được TV2 chạy/kiểm chứng. Reuse project/commands trên refs TV1 chỉ sau review, approval và integration phù hợp; không tạo project thứ hai. TV2 bắt đầu ngay bằng scope/GD agenda, data/state/config schema, movement limits, CT examples và symbolic test vectors. Không chạy assignment để nhận là gameplay test; không import AD-065 hoặc tạo Unity project trong task tài liệu.

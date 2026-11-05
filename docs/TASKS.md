@@ -1,6 +1,34 @@
 # Nhiệm vụ và trạng thái thực
 
-Cập nhật 2026-11-02. [Phân công](SE2026-T17-Huong-dan-va-phan-cong-nhom.md) ưu tiên cho trách nhiệm TV2; [SRS](../Long_document/srs.md) v0.4 giữ scope/GD, [ROADMAP](ROADMAP.md) giữ milestone. TV2 = 23001901; TV1/TV3 chưa điền danh tính. Không có Unity implementation/test execution. Các task TV2 đều TODO, có thể bắt đầu đặc tả/test design ngay; chỉ execution cần project/approval/config được ghi ở từng task. TODO không có nghĩa gameplay đã hoàn tất.
+Cập nhật 2026-11-02. [Phân công](SE2026-T17-Huong-dan-va-phan-cong-nhom.md) ưu tiên cho trách nhiệm TV2; [SRS](../Long_document/srs.md) v0.4 giữ scope/GD, [ROADMAP](ROADMAP.md) giữ milestone. TV2 = 23001901; TV1/TV3 chưa điền danh tính. Personal integration chưa có Unity implementation; main/TV1 có source và teammate test reports, TV2 chưa rerun. TV2-001 BLOCKED chờ review, TV2-002–013 TODO, có thể bắt đầu đặc tả/test design ngay; chỉ execution cần project/approval/config được ghi ở từng task. TODO không có nghĩa gameplay đã hoàn tất.
+
+## TV2-001 — trạng thái kiểm ngày 2026-11-05
+
+Hiệu chỉnh current summary ngày 02-11: Unity/source/tests có trên main/TV1, chưa có trong personal integration, xem [inventory](ARCHITECTURE.md#tv2-001--inventory-theo-ref). DOC-002 content đã vào docs source commit 5338ba4, trái claim “Commit NONE” snapshot phía dưới; chưa tích hợp long23001901. TV2-002–013 vẫn TODO; không được implement trong phiên TV2-001. “Proposed paths chưa tồn tại” chỉ đúng personal tree, phải reuse/reconcile code có sẵn trước code task sau.
+
+TV2-001 documentation complete, **Status BLOCKED** chờ TV1/TV3/nhóm review và ghi outcome GD-01–09. Ma trận có source refs/paths, 9 GD agendas, ownership/blockers, draft/execution DAG và current evidence correction. Source/prerequisite transfer commit d977f57 từ D=5338ba4 được tách khỏi task content; commit delivery/PR cập nhật trong handoff/PR, không tự tham chiếu hash. Không DONE vì human review/integration chưa có. [SRS matrix](../Long_document/srs.md#tv2-001--đối-chiếu-nguồn-ngày-2026-11-05), [agenda](DECISIONS.md#tv2-001--agenda-quyết-định-ngày-2026-11-05), [WORK_LOG](WORK_LOG.md) sở hữu nội dung/evidence tương ứng.
+
+## TV2 — direct dependencies và gate song song
+
+Các cạnh dưới đây phụ thuộc **usable draft**, không full task DONE/integration. Gate execution chung **E**: prerequisites/interfaces đã review và có trong approved personal integration commit, approved dedicated branch từ commit đó; GD liên quan/config versions, project/toolchain phù hợp và input TV1/TV3 đã được xác minh. Draft gate **D**: đầu vào nêu trong cột 2 có bản đủ dùng, ghi assumption/UNDECIDED rõ. Execution/design của từng task không được coi như được cấp quyền bởi prompt TV2-001. Bảng là nguồn cạnh DAG; giải thích trong ROADMAP cross-link bảng này.
+
+| Task | Direct draft prerequisites | Draft-ready gate / output dùng được | Execution-ready ngoài E | TV1 / TV3 inputs | Shared files và conflict risk |
+| --- | --- | --- | --- | --- | --- |
+| TV2-001 | NONE | Nguồn phân công/SRS/ref đọc được → matrix/agenda | Review nhóm/GD outcomes và authorized integration để DONE; không cần Unity | TV1 current contract/toolchain; TV3 identity/camera/arena confirmation | SRS/DECISIONS/TASKS/memory; một owner, giữ history |
+| TV2-002 | TV2-001 | Matrix/agenda draft → schema/life/config draft ký hiệu | GD-01/04/06/08, approved data interfaces và project reuse assessment | TV1 participant/session/clock; TV3 state presentation | Shared/Domain, Settings, ARCHITECTURE; không tạo schema/assembly trùng |
+| TV2-003 | TV2-002 | Schema draft → limits/units/vectors | GD-01, motor/input contract được TV1 review; M1 pose evidence cho integration | TV1 actual validator/motor; TV3 axes/jump | Domain/tests/CT-201; không sửa motor đồng thời TV1 |
+| TV2-004 | TV2-003 | Limits draft (schema transitive) → CT examples/gaps | TV1+TV3 duyệt wire/life/aim/clock/ordering; GD-03/07/08 | TV1 ownership/delivery/replay/session; TV3 aim/HUD/load | PROTOCOL, Shared/Protocol, Domain; contract change review cả ba |
+| TV2-005 | TV2-002, TV2-004 | Schema+contract drafts → gun spec | GD-01/02/03, approved config/cooldown/aim interface | TV1 clock/adapter; TV3 aim/feedback | Settings/Combat/Domain/tests; schema freeze hoặc serial reconciliation |
+| TV2-006 | TV2-004, TV2-005 | Contract+gun specs → validation/fixture draft | GD-03, server pose/layers/physics fixtures + gun config | TV1 ingress/pose; TV3 arena/layers | Combat/physics tests; scene changes TV3 phối hợp, không concurrent |
+| TV2-007 | TV2-002, TV2-006 | States+validation spec → death/life effect draft | GD-01/05, accepted-hit/life identity và idempotency contract | TV1 sync/event delivery; TV3 death display | Domain/Health/Combat/events/tests; không mutate shared life schema tự do |
+| TV2-008 | TV2-007, TV2-004 | Life spec+lifecycle bridge → respawn draft | GD-04 và GD-08 cho reconnect cases; approved spawn/life components | TV1 spawn/session clock; TV3 spawn points/obstruction | Domain/Combat/Settings/CT-205/scene prefab; life changes phối hợp TV2-009 |
+| TV2-009 | TV2-007, TV2-004 | Death spec+lifecycle bridge → credit/match draft | GD-05/06/07; GD-08 cho reconnect; ready/load/score interfaces | TV1 lobby/clock/session; TV3 HUD/results | Domain/Combat/CT-205; cùng life/terminal contracts với TV2-008 |
+| TV2-010 | TV2-002, TV2-004 | Schema+contract drafts → independent expected vectors | Rule interfaces/config approved, runnable production+runner; numerical expected theo GD liên quan | TV1 runner/fake clock; TV3 state meaning review | Tests/EditMode, TESTING; không mirror implementation hoặc giành shared code |
+| TV2-011 | TV2-004, TV2-010 | Contract+test design → run sheet | M0/M1, combat components TV2-006–009 phù hợp cases, approved configs/builds/2 processes; không đợi M4 | TV1 server/client builds/logs; TV3 arena/HUD/two views | TESTING/harness/evidence; run config freeze, ≥2 clients không thay run đủ 4 |
+| TV2-012 | TV2-006, TV2-007, TV2-009, TV2-011 | Specs+run design → negatives/impairment design | Combat suite sẵn sàng, GD-08/09, TV1 reconnect adapter/impairment cho cases tương ứng | TV1 injection/auth/network simulator; TV3 feedback/video | TESTING/harness/protocol; avoid real tokens, retain expected/actual riêng |
+| TV2-013 | TV2-010, TV2-011, TV2-012 | Evidence designs → index/checklist | Actual runs/artifacts/config/defects+human sign-off; TV1 build/CI artifacts | TV1 license/OS/CI builds; TV3 demo/video | TESTING/README/WORK_LOG; không claim planned artifacts như actual results |
+
+Topological order đã kiểm: 001,002,003,004,005,006,007,008,009,010,011,012,013. Số thứ tự ở đây là suffix TV2; không missing node/cycle. Gate E có thể yêu cầu components/runtime chưa thể hiện thành draft edge, không thêm cạnh ngược từ test design về production spec. Parallel groups/ownership tại [ROADMAP](ROADMAP.md#tv2-001--nhóm-công-việc-song-song).
 
 ## DOC-002 — Cập nhật kế hoạch cá nhân TV2
 
@@ -13,22 +41,22 @@ Cập nhật 2026-11-02. [Phân công](SE2026-T17-Huong-dan-va-phan-cong-nhom.md
 
 ## Quy ước nhiệm vụ TV2
 
-Mỗi task gồm hai bước: draft/review không cần Unity và implementation/execution khi đủ gate. DONE cho task gameplay đòi deliverable đã tích hợp luồng liên quan, checks thực, human review/integration được phép và evidence; viết kế hoạch không đủ. Tất cả proposed paths chưa tồn tại. Mọi task cần approved feature branch trước code; M0/TECH-001, approved configs/contracts và phần TV1/TV3 tương ứng trước integration execution. Commit/PR của từng task TV2 hiện NONE, tests NOT RUN.
+Mỗi task gồm hai bước: draft/review không cần Unity và implementation/execution khi đủ gate. DONE cho task gameplay đòi deliverable đã tích hợp luồng liên quan, checks thực, human review/integration được phép và evidence; viết kế hoạch không đủ. Các proposed paths phải đối chiếu source trên main/TV1 trước triển khai; chúng chưa có trong personal integration. Mọi task cần approved feature branch trước code; M0/TECH-001, approved configs/contracts và phần TV1/TV3 tương ứng trước integration execution. Delivery TV2-001 ghi ở PROJECT_STATE/PR; TV2-002–013 chưa có commit/PR, gameplay tests TV2 NOT RUN.
 
 Đầu ra bản nháp của dependency có thể dùng để thiết kế độc lập; không phải tuyên bố dependency DONE. Vòng đời task thực vẫn TODO/IN_PROGRESS/BLOCKED/DONE. TV2-009 đóng góp sớm M2 qua contract start; phần score hoàn chỉnh ở M3.
 
 ## TV2-001 — Đối chiếu scope và quyết định mở
 
-- Milestone: M0. Priority: P0. Status: TODO.
+- Milestone: M0. Priority: P0. Status: BLOCKED (2026-11-05: tài liệu hoàn tất, chờ human decisions/review/integration).
 - Primary owner: TV2 / 23001901. Collaborators: TV1, TV3, cả nhóm.
 - Objective/scope/exclusions: Đối chiếu yêu cầu, lập GD-01–09 và người quyết định; không tự phê duyệt toàn nhóm.
 - Requirements: Nguồn phân công/SRS v0.4. Dependencies để bắt đầu: Không. Gate hoàn tất: review/ghi nhận quyết định thực từ TV1/TV3/nhóm; không cần Unity hoặc M0 để làm agenda và đối chiếu.
 - Inputs: Phân công đầy đủ, hai baseline SRS.
 - Outputs/deliverables: Bảng xung đột và decision agenda có owner/blocker. Proposed files: docs/DECISIONS.md; Long_document/srs.md.
 - Acceptance criteria: Mọi khác biệt có resolution cá nhân, không cộng hai scope; nhóm ghi outcome khi review.
-- Verification/evidence: Đọc từng dòng so nguồn, giữ agenda/review notes và quyết định thực. Planned / NOT RUN.
-- Open decisions và next action: GD-01–09; bắt đầu agenda, xin TV1/TV3 review.
-- Commits: NONE. PR: NONE. Integration: chưa thực hiện.
+- Verification/evidence: Matrix đối chiếu D/M/N/P, agenda đủ GD-01–09, dependency DAG/history/link/UTF-8/Git checks tại WORK_LOG; gameplay NOT RUN, human review chưa có.
+- Open decisions và next action: Gửi PR review TV1/TV3/nhóm, ghi actual decision/approver/date. TV2-002 có thể bắt đầu draft ký hiệu sau authorization riêng; chưa implementation.
+- Commits: prerequisite d977f57; content/delivery commits và PR xem PROJECT_STATE/PR handoff. Integration: chưa thực hiện, cần quyền merge riêng.
 
 ## TV2-002 — Dữ liệu nhân vật, state và config
 

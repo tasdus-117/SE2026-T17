@@ -2,6 +2,18 @@
 
 Cập nhật 2026-11-02. Theo [phân công đề xuất](SE2026-T17-Huong-dan-va-phan-cong-nhom.md), owner 23001901 là TV2. Kế hoạch cá nhân được phép cập nhật; scope toàn nhóm, framework/version và deadline chưa được xác nhận. [SRS v0.4](../Long_document/srs.md) sở hữu luật/đối chiếu xung đột; [TASKS](TASKS.md) sở hữu task và actual status. A–E/F-001–019 phía dưới chỉ là lịch sử, không chạy song song như mandatory scope.
 
+## TV2-001 — nhóm công việc song song
+
+Kiểm ngày 2026-11-05; [TASKS dependency table](TASKS.md#tv2--direct-dependencies-và-gate-song-song) là nguồn cạnh/inputs/shared-file risks cho đủ TV2-001–013, DAG không vòng. Chuỗi draft ban đầu 001→002→003→004, không yêu cầu mọi task phải DONE mới mở thiết kế bước sau. M0/M1 có implementation trên main/TV1 nhưng chưa có evidence mọi máy/build/multi-process đạt; không giữ kết luận toàn repo chưa Unity, cũng không tự coi M0/M1 completed.
+
+- Sau schema+contract draft: TV2-005 gun spec song song TV2-010 independent expected test design. Chúng cùng dùng data/contracts, phải thống nhất interface/version; không phải hai việc không liên quan.
+- Khi CT và TV2-010 run inputs đủ dùng: TV2-011 soạn run sheet song song production specs 005/006/007; chạy combat khi components/build/approved configs có, không phải ngay khi draft xong.
+- Sau life/death contract 007 và bridge 004 ổn định: TV2-008 respawn và TV2-009 credit/match có thể song song dưới life schema ownership chung; terminal/timer changes phải reconcile tuần tự.
+- Sau interface agreement: independent rule test implementation có thể đi cùng scoped production implementation, với expected từ rules, không sao chép algorithm. Physics/multi-process execution là gate riêng; basic combat không chờ reconnect M4, reconnect cases cần TV1 adapter và GD-08.
+- TV2-012 negatives/impairment design khi 006/007/009/011 drafts đủ; TV2-013 evidence index design sau 010/011/012 designs, final evidence đợi actual runs.
+
+Mỗi task độc lập tương lai dùng một `feature/<TASK-ID>-<description>` và worktree từ approved integration commit đã chứa prerequisites. Không tự stack tất cả branch hoặc tạo future branches bây giờ. Shared Domain/Protocol/Settings, SRS/TASKS/memory phải chỉ định owner hoặc serial reconciliation. TV3 điều phối scenes/prefabs, TV1 duyệt network components, TV2 duyệt combat; không concurrent scene/prefab edits chưa thống nhất. TV1/TV3 role→identity chưa được xác nhận bằng bảng phân công, không gán từ PR author.
+
 ## Mốc nhóm và bàn giao
 
 | Mốc | Nhóm / phụ trách | TV2 và đầu vào → bàn giao | Gate/bằng chứng dự kiến |

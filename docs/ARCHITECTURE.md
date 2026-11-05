@@ -2,6 +2,38 @@
 
 2026-11-02. [Phân công](SE2026-T17-Huong-dan-va-phan-cong-nhom.md) ưu tiên cho kế hoạch TV2; [SRS](../Long_document/srs.md) v0.4 giữ conflict/resolution/GD. Unity/C# xác nhận, **Mirror và server riêng PROPOSED**, exact versions UNDECIDED. Không kiểm/cài package trong task này; không áp đặt Mirror API theo phiên bản chưa chọn. Đánh giá NGO/giá/license ngày 2026-11-01 bên dưới là hồ sơ lịch sử, không phải recommendation hiện hành hay giá đã kiểm lại.
 
+## TV2-001 — inventory theo ref
+
+Kiểm ngày 2026-11-05 bằng git fetch origin, for-each-ref, ls-tree/show/grep/log/diff; chỉ đọc refs đồng đội, không chạy script hoặc Editor của họ. Các câu “chưa có project/paths chưa tồn tại” ngày 02-11 trong current docs chỉ áp dụng personal docs/integration checkout. Inventory không là team approval hay clean-build proof. Full SHA cố định cho nguồn chính trong [SRS matrix](../Long_document/srs.md#tv2-001--đối-chiếu-nguồn-ngày-2026-11-05).
+
+| Remote ref | HEAD đã fetch | Inspection / quan hệ |
+| --- | --- | --- |
+| origin/main (origin/HEAD symbolic cùng tip) | 11849adbb7e4627e9d623958c950a780c4e58c5d | Unity/offline code; PR #4 merged, tree bằng migration |
+| origin/long23001901 | 1d7a6c91fb7c2a3ef2fa233c1d5efe5cc60b462e | Approved personal Git base; không Unity tree |
+| origin/docs/23001901/online-ffa-roadmap | 5338ba4629ce1668ff92269dc8e7d7b7c500df64 | Planning D; merge-base với integration 1d7a6c9, ahead 3 / behind 0 |
+| origin/feature/tv1-m1-migration | c1e557704433265ce4fae7e39666b7947cb4bbbf | git diff --quiet main migration exit 0; PR #4 head |
+| origin/feature/tv1-m1-server-connect | 4a7568f3698c5a8f2a533afff3a04368314076c5 | Networking/movement N; merge-base main c1e5577, ahead 2 / behind 1; chưa tự coi integrated main |
+| origin/feature/system-platform-networking | 9eed902701859003e466eae0f51ce4593ddca86c | PR #3 open, xzviett; client/offline snapshot P |
+| origin/feature/system-skeleton | db886ddf2bdd5986cd4fc5140ca2e34b46700bc8 | Enumerated only; không import/execution |
+| origin/tasdus117 | 1257ad73e57a238d2a86bdddb6f72c1278977541 | Enumerated only; không source gameplay mới |
+| origin/chore/23001901/project-agent-setup | 1d7a6c91fb7c2a3ef2fa233c1d5efe5cc60b462e | Setup history, read-only |
+| origin/assignment/AD-065-23001901 | f4835ce35aea6bff79ce5fcd266813abb3c733bd | Ngoài scope, không sửa worktree/branch |
+
+Đây là toàn bộ remote branch refs sau fetch, không nhánh nào tên TV3. Local heads ban đầu: assignment=f4835ce, setup=1d7a6c9, docs=5338ba4, long23001901=1d7a6c9, main=b5054a6 (local main cũ, không switch/update). Chỉ tạo nhánh TV2-001 từ remote integration đã kiểm. Tìm PR toàn repo trả #1–4: #1 assignment/spike không nhập; #2 scaffolding history; #3 open; #4 merged. Author history P có xzviett/2005tranxuanviet@gmail.com, nhưng bảng phân công D §3 vẫn để tên TV1/TV3 trống; không gán TV3 cho người/branch chỉ từ tên/author. TV1 label của N được chính report của nhánh sử dụng, danh tính cá nhân vẫn chưa xác nhận bằng role record.
+
+| Source inventory (M trừ khi ghi N) | Điều thực sự đã xác minh bằng file |
+| --- | --- |
+| ProjectSettings/ProjectVersion.txt | 6000.6.7f1, revision b22767f04f04; không kiểm local Editor installation |
+| Packages/manifest.json | Input System 1.20.0, URP 17.6.0, test-framework 1.8.0, UGUI 2.6.0, Newtonsoft 3.2.2. Đây là declared dependencies, không chứng minh runtime load/compatibility |
+| Assets/Mirror/Core/NetworkBehaviour.cs.meta và nhiều Core/Editor .meta | packageVersion 96.0.1 cùng vendor source có thật; Mirror không được khai trong manifest UPM. Đây là imported metadata inventory, không bảo đảm mọi vendor file nguyên bản/không sửa |
+| Assets/_Project/Scripts/Shared/Domain/ và Shared/Protocol/PlayerIntentContracts.cs | Domain/Protocol assembly đã tồn tại; local combat input interfaces khác CT-202 network shot; không tạo domain/assembly thứ hai chỉ vì kế hoạch cũ ghi chưa có |
+| N Scripts/Networking/{ArenaNetworkManager,NetworkPlayer,NetworkMovement}.cs dưới Assets/_Project/ | Mirror authority Command, connection/spawn teardown; chưa đủ lobby/combat/reconnect |
+| N docs/architecture/tv1.2-server-movement.md và docs/protocol/protocol.md | Movement design + wire payload; [bridge gap](PROTOCOL.md#tv2-001--đối-chiếu-contract-đã-có) cần TV1/TV2 review |
+| M Tests/EditMode/MatchStateTests.cs và Tests/PlayMode/{CombatTests,WeaponPickupTests,ThirdPersonCameraTests}.cs dưới Assets/_Project/ | Tests source present; inspected declarations không phải kết quả chạy. N NetworkMovementTests.cs có fixture cùng-process |
+| M tools/Verify-Scaffold.ps1, Verify-ArenaLayout.ps1, Compile-UnityAssemblies.ps1, Run-DomainTests.ps1 | Unity checkers, không phải checker Markdown/DAG; không chạy unreviewed teammate scripts. TV2-001 dùng kiểm tạm ngoài deliverable |
+
+Reuse assessment: Health clamp/dead guard và MatchStateMachine terminal notification là candidates giữ invariant sau contract review; không đủ life identity/respawn/kill credit. CombatController phụ thuộc local input/melee và WeaponPickup historical buff nên không coi như authoritative raycast component. Không port code/scenes/prefabs/packages/CI hoặc khởi tạo project trong task này.
+
 ## Luồng và ownership
 
 Client TV3 thu intent → adapter TV1 xác thực connection/ownership và decode bounded input → Domain/Combat TV2 kiểm eligibility/rules → simulation/combat server → TV1 đồng bộ state/results → TV3 hiển thị. Một server chạy riêng trên máy nhóm; không yêu cầu cloud/multi-service/database/account. OS server, port/transport, identity proof, build/license route do TECH-001/TV1 phối hợp nhóm chốt. Server loss khác player disconnect; policy GD-08 chưa duyệt.

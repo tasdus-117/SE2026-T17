@@ -2,6 +2,20 @@
 
 2026-11-02. TC-201–209 dưới đây **Planned / NOT RUN**. Không Unity project, tests executable, builds hoặc CI được tạo/chạy trong task này. TC-101–120 và TC-001–037 giữ lịch sử, không là gate song song. [SRS v0.4](../Long_document/srs.md) định nghĩa FR/AC mới; [TASKS](TASKS.md) định nghĩa công việc.
 
+## TV2-001 — phân loại bằng chứng
+
+2026-11-05: TV2-001 chỉ thay tài liệu, không chạy Unity/build/gameplay/network tests. Các câu “không có project/tests” ngày 02-11 mô tả personal checkout, không toàn remote repo. Source SHA M/N/P định nghĩa trong [SRS matrix](../Long_document/srs.md#tv2-001--đối-chiếu-nguồn-ngày-2026-11-05); không lấy report của người khác làm test rerun của TV2.
+
+| Mức bằng chứng | Quan sát thực / giới hạn | Mapping |
+| --- | --- | --- |
+| Code present — đã đọc | M Health/CombatController/MatchStateMachine, camera, domain test declarations; N MovementInput/validator/simulation/NetworkMovement và fixture | Candidate reuse/gaps, không đánh dấu FR/AC/TC-201–209 PASS |
+| Reported by teammate — chưa rerun | N docs/testing/tv1.2-results.md: 7/7 group asmdef; PlayMode 209 total =207 pass+2 package skipped, group 205/205; EditMode 34/34; 2,785 layout assertions. PR #4 có report migration riêng | Report TV1, không kết quả task này; raw artifacts môi trường họ chưa được độc lập xác minh. Hai skipped không tính pass |
+| Evidence limitation trong chính report | TV1 test Mirror LocalConnection cùng process; không UDP/KCP nhiều process/latency/jitter, chưa combat/HUD/lobby/token recovery | TC-201/202 actual multi-client và TC-208/209 vẫn NOT RUN bởi TV2 |
+| Executed by TV2-001 | Document checks UTF-8/fences/links/anchors, matrix/GD coverage, FR/AC/CT/TC mapping, task DAG, history and Git checks ghi WORK_LOG | Chứng minh deliverable tài liệu, không chứng minh raycast/physics, acceptance hay toolchain |
+| Human decisions/review/integration | Không có approval nhóm hoặc integration task được quan sát | GD-01–09 UNDECIDED; TV2-001 BLOCKED ở review gate; AI review request không phải human approval |
+
+Tiếp theo TV2-010 cần rule vectors độc lập khỏi code; TV2-011 cần server process + ≥2 client processes với config/build/source và logs/two-view video, không đổi tên fixture thành network acceptance. Run đủ 4/load tách riêng; reconnect TC-208 chờ TV1 adapter/policy, combat cơ bản không chờ reconnect. Không thêm speculative test suite vào TV2-001.
+
 ## Catalogue kiểm thử đề xuất
 
 | TC / FR / AC | Task / người chính | Thao tác Planned | Expected / bằng chứng cần có |

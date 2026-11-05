@@ -1,28 +1,27 @@
-# Project State — handoff kế hoạch cá nhân TV2
+# Project State — TV2-001 review handoff
 
-Last updated: 2026-11-02 (Asia/Bangkok). Owner 23001901 / TV2. Documentation-only, chưa implementation.
+Last updated: 2026-11-05 (Asia/Bangkok). Owner 23001901 / TV2; AI hỗ trợ tài liệu tuần tự, không delegation.
 
-## Branch/base và quyền thao tác
+## Branch/base và task
 
-- Active branch: docs/23001901/online-ffa-roadmap, đúng nhánh owner cho phép sửa trong update_prompt_1.md. HEAD 9d29f9749782cf3dd69f3f9083d8fd06611f49b8, cached origin/docs cùng tip; không network fetch/remote reverify trong phiên.
-- long23001901 = 1d7a6c91fb7c2a3ef2fa233c1d5efe5cc60b462e; merge-base cùng SHA, docs ahead 2 / behind 0. Hai commits lịch sử 178ee30 (content), 9d29f97 (delivery handoff). Không merge/rebase/cherry-pick đang diễn ra. Không switch/create branch.
-- DOC-001 đã commit/push theo lịch sử; DOC-002 phiên này chỉ thay đổi working tree, chưa commit/push/PR/integration. Không sửa main/setup/assignment, không stage/stash/reset/clean/import. Mọi integration sau cần approval riêng.
+- Worktree task: .tv2-001-worktree/; active feature/TV2-001-scope-reconciliation-and-decisions. Tạo từ latest fetched origin/long23001901 = 1d7a6c91fb7c2a3ef2fa233c1d5efe5cc60b462e; merge-base cùng SHA. Trước content commit: HEAD d977f57e7ffa3e7b98136476e64d6876893e50d7, ahead 1/behind 0; delivery hash ghi ở PR/handoff sau commit. Không merge/rebase/cherry-pick đang diễn ra.
+- Prerequisite commit d977f57 chuyển chọn lọc 13 Markdown paths từ source docs/23001901/online-ffa-roadmap 5338ba4629ce1668ff92269dc8e7d7b7c500df64. Không import prompts/prototypes/assignment/code. Content TV2-001 tách commit riêng.
+- TV2-001 BLOCKED ở required human decision/review/integration gate; document deliverables hoàn tất và đã kiểm. GD-01–09 UNDECIDED, actual decision/approver/date chưa có. TV2-002–013 TODO; không code gameplay trong task này.
 
-## Kết quả và phạm vi
+## Kết quả và bằng chứng
 
-- Đã đọc toàn bộ phân công untracked và exact docs branch, actual tree/history; không Assets/Packages/ProjectSettings/game code/tests/CI. Không dùng claim main/PR #2 như bằng chứng project hiện hữu.
-- Nguồn ưu tiên về trách nhiệm TV2 là phân công theo owner authorization; Mirror/server riêng/raycast/HP-death-respawn-score là PROPOSED cho kế hoạch cá nhân, chưa whole-team approval. Baseline v0.3/v0.2 giữ lịch sử, không gộp scope. Xem SRS v0.4 conflict table/GD-01–09.
-- TASKS sở hữu TV2-001–013 đều TODO; không gọi gameplay DONE vì viết plan. ROADMAP M0–M6 giữ toàn nhóm, TV2 góp M1 speed/input rules và chủ M3 combat. Không TV2 plan trùng lặp.
-- PROTOCOL CT-201–205, TESTING TC-201–209 đều đề xuất/Planned; learning từ Java/OOP tách product delivery. TV1 network/simulation/CI; TV3 input/camera/UI/arena; TV2 rules/combat/evidence.
+- SRS có source-backed conflict matrix; DECISIONS có actionable agenda đủ 9 GD và workflow naming mới; TASKS/ROADMAP có 13 tasks/24 draft dependency edges, DAG không vòng, draft-ready khác execution-ready và parallel groups.
+- Main remote 11849ad có Unity/offline code, TV1 4a7568f có authoritative movement; source docs cũ nói chưa implementation đã được sửa theo ref/date. Inventory đầy đủ tại ARCHITECTURE; PROTOCOL ghi CT gaps, TESTING phân biệt static inspection/reported tests/rerun/multi-process evidence.
+- Unity 6000.6.7f1 từ ProjectVersion, Mirror 96.0.1 từ imported metadata; declared packages không tự thành approved toolchain. Health/melee/Victory là reuse candidates, chưa là raycast/respawn/kill score.
+- PR #3 open author xzviett, #4 merged; chưa có role record gán TV3 identity/branch. Không suy từ author. N report cùng-process không chứng minh UDP/KCP/latency; TV2 không rerun Unity/gameplay/build.
+- Kiểm tạm Node tại TEMP/tv2-001-check.cjs: UTF-8/fences/conflict markers/local links+anchors, đủ GD fields/FR-AC-TC/CT, 13 tasks/24 edges theo expected DAG, 7 historical suffixes nguyên vẹn, DECISIONS append-only so source, 13-path allowlist, secret-pattern scan. Kết quả/count cuối ghi WORK_LOG/PR. git diff --check cả base và task PASS sau bỏ 4 trailing hard-break endings trong phân công, không sửa nội dung/workflow nhóm.
 
-## Working tree và preservation
+## Preservation và delivery
 
-12 tracked Markdown paths task-related: README.md, AGENTS.md, Long_document/{srs,learning-roadmap}.md, docs/{TASKS,ROADMAP,ARCHITECTURE,PROTOCOL,TESTING,PROJECT_STATE,DECISIONS,WORK_LOG}.md. Không staged paths. Preexisting untracked docs/SE2026-T17-Huong-dan-va-phan-cong-nhom.md và docs/prompts/ giữ nguyên, không stage. Hash nguồn/prompts và kiểm docs ghi WORK_LOG. Không chỉnh assignment artifacts/worktree.
+- Worktree gốc vẫn docs/23001901/online-ffa-roadmap tại 5338ba4; untracked execution prompt giữ nguyên. .tv2-001-worktree/ xuất hiện untracked ở worktree gốc do vị trí cô lập; không stage vào docs branch. Assignment worktree/branch không đổi.
+- Chỉ task-related Markdown trong task branch được stage/commit. Source docs/main/integration/teammate/setup/assignment refs read-only. Không thay remote permissions/protections hoặc dừng Editor.
+- Snapshot này trước content commit/push/PR: content changes chưa commit, push/PR chưa thực hiện. Delivery sẽ được cập nhật bằng record riêng sau khi quan sát thực, không tự tham chiếu hash. Không merge được ủy quyền.
 
-## Verification, blockers và exact next action
+## Exact next action
 
-DOC-002 DONE cho cập nhật tài liệu: PASS 71 local links/11 anchors, IDs mới (9 FR/9 AC/9 TC/5 CT/9 GD), đủ trường 13 tasks và DAG không vòng; 7 tài liệu giữ nguyên baseline cũ, DECISIONS/WORK_LOG append-only, 3 source hashes giữ nguyên, UTF-8/fences/common-secret-pattern checks và git diff --check PASS. Chi tiết WORK_LOG. Gameplay/build/rule/physics/multi-client/load/latency/cheat/CI đều NOT RUN. Không actual command online hoặc toolchain pins để tuyên bố pass. Review nhóm/human độc lập chưa diễn ra.
-
-GD-01–09, TECH-001 và baseline approval chặn triển khai/tuning/integration tương ứng; không chặn specification/test design. GAME-001 setup thực vẫn BLOCKED, TV1 chủ trì. PLAN-001 còn BLOCKED cho toàn nhóm phê duyệt; không tự coi baseline mới đã approved.
-
-Resume: kiểm branch/status/ops/merge-base/ahead-behind, đọc DOC-002 và TV2-001 trong TASKS. Review diff tài liệu đang uncommitted; TV2 bắt đầu TV2-001 decision agenda → TV2-002 schema → TV2-003 M1 movement limits → TV2-004 CT review với TV1/TV3, đồng thời thiết kế test vectors TV2-010/011. Chỉ sau team approval, authorized documentation integration và approved dedicated branch từ latest long23001901 mới triển khai. Không commit/push/PR/merge nếu chưa owner cho phép riêng.
+Hoàn tất content commit, push exact task branch, mở PR base long23001901, đăng task summary và một @codex review sau khi kiểm request hiện có; quan sát actual review/check output và ghi delivery record. Sau delivery: TV1/TV3/nhóm review matrix/GD, ghi quyết định/approver/date; chưa merge nếu chưa được phép riêng. TV2-002 schema draft bằng ký hiệu là việc tiếp theo có thể bắt đầu sau authorization nhánh/task phù hợp và prerequisites trong approved integration; không tạo thêm branch trong TV2-001.
