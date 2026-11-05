@@ -54,4 +54,4 @@ TV1 triển khai tiếp kết nối → spawn → ownership → gửi ý định
 
 ## Ngữ cảnh và bằng chứng
 
-[PROJECT_CONTEXT.md](../../PROJECT_CONTEXT.md) là ngữ cảnh tiếng Việt duy nhất; AGENTS.md chỉ dẫn agent đọc và cập nhật nó. Kết quả hiện hành ở [migration-results.md](../testing/migration-results.md); dữ liệu thô ở TestResults/Logs không commit.
+`PROJECT_CONTEXT.md` (cục bộ, không tracked) là ngữ cảnh tiếng Việt duy nhất; AGENTS.md chỉ dẫn agent đọc và cập nhật nó. Kết quả hiện hành ở [migration-results.md](../testing/migration-results.md); dữ liệu thô ở TestResults/Logs không commit.

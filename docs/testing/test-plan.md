@@ -2,7 +2,7 @@
 
 ## Baseline offline sau di trú
 
-Bộ test nguồn 9eed902 đã được phục hồi vào Tests/EditMode và Tests/PlayMode. Test tải prefab theo Characters/Combat và kiểm tra cùng hành vi di chuyển, nhảy, camera, Health/combat, pickup, Victory/HUD, menu/replay. Số liệu mới nhất ở [migration-results.md](migration-results.md) và [PROJECT_CONTEXT.md](../../PROJECT_CONTEXT.md); không dùng cache cũ thay lần chạy sau di trú.
+Bộ test nguồn 9eed902 đã được phục hồi vào Tests/EditMode và Tests/PlayMode. Test tải prefab theo Characters/Combat và kiểm tra cùng hành vi di chuyển, nhảy, camera, Health/combat, pickup, Victory/HUD, menu/replay. Số liệu mới nhất ở [migration-results.md](migration-results.md) và `PROJECT_CONTEXT.md` (ngữ cảnh cục bộ, Git ignore); không dùng cache cũ thay lần chạy sau di trú.
 
 Kiểm tra cấu trúc buộc Domain/Protocol không dùng engine, Server không dùng Client và ngược lại, không có vòng asmdef, GUID duy nhất và build index 0/1/2 đúng. Unit test Domain chạy độc lập; PlayMode cần Unity native. Các ca mạng/tải/gian lận bên dưới vẫn là kế hoạch M1/online, không được đánh dấu đạt nhờ test offline.
 
@@ -30,3 +30,7 @@ Thử input vượt phạm vi, NaN/Infinity, spam lệnh, phát lại yêu cầu
 ## Vị trí kết quả
 
 Lưu kết quả chạy vào `TestResults/` hoặc `reports/` và đính kèm CI artifact khi có CI thật. Chỉ commit bản tổng hợp có giá trị vào docs/testing. Mỗi test cần điều kiện ban đầu, thao tác, kết quả mong đợi và bằng chứng thực tế.
+
+## Ca thử đề xuất TV2
+
+[TC-201–209 và evidence levels](../TESTING.md) hỗ trợ combat rule/integration design. Chúng đều Planned/NOT RUN bởi TV2; kết quả offline của nhóm vẫn nằm trong migration-results, không chứng minh multi-process raycast/respawn.

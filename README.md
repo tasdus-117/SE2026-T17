@@ -27,3 +27,9 @@ Xem [báo cáo kiểm toán/di trú](docs/architecture/main-migration-audit.md) 
 - `docs/operations/runbook.md`: chạy, build, CI và cấu hình.
 
 Quy ước: tên file C# và lớp dùng PascalCase; một lớp chính trong một file. Không dùng thư mục chung tên `Managers` hoặc `Utils` để chứa mọi thứ. Thêm thư mục theo nhu cầu thật.
+
+## TV2-001 — proposal đang chờ review
+
+[TV2 scope/SRS](Long_document/srs.md), [decision agenda](docs/DECISIONS.md), [tasks/dependencies](docs/TASKS.md), [roadmap](docs/ROADMAP.md) và [handoff](docs/PROJECT_STATE.md) được port chọn lọc từ nhánh TV2 cũ lên baseline main. Đây là đề xuất rules/contract/tests, chưa phê duyệt raycast/respawn/score hoặc chứng nhận gameplay online. Tài liệu kiến trúc/giao thức/kiểm thử dùng chung phía trên tiếp tục là nguồn project hiện hữu.
+
+Workflow owner TV2: independent feature/<TASK-ID>-<description> từ latest fetched origin/main chứa prerequisites, PR vào main; long23001901 giữ lịch sử. Các task phụ thuộc chờ prerequisite merged trừ stacking được ghi rõ; không automatic merge. Ngữ cảnh agent cá nhân tiếp tục chỉ lưu cục bộ.

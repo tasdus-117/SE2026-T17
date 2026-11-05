@@ -4,7 +4,7 @@ Ngày kiểm chứng: 2026-11-03, Unity 6000.6.7f1.
 
 ## Ngữ cảnh và phạm vi
 
-Đã đọc ngữ cảnh tiếng Việt và toàn bộ `docs/architecture/` trước khi sửa/xóa. [PROJECT_CONTEXT.md](../../PROJECT_CONTEXT.md) thay thế tên AGENT.md; giữ đầy đủ nội dung trước đó, cập nhật chỉ dẫn trong [AGENTS.md](../../AGENTS.md), README, tài liệu kiến trúc, kế hoạch test và công cụ kiểm tra scaffold. Kiến trúc, ranh giới TV1–TV3 và trọng tâm TV1.1 không đổi.
+Đã đọc ngữ cảnh tiếng Việt và toàn bộ `docs/architecture/` trước khi sửa/xóa. `PROJECT_CONTEXT.md` (cục bộ, không tracked) thay thế tên AGENT.md; giữ đầy đủ nội dung trước đó, cập nhật chỉ dẫn trong `AGENTS.md` (cục bộ, không tracked), README, tài liệu kiến trúc, kế hoạch test và công cụ kiểm tra scaffold. Kiến trúc, ranh giới TV1–TV3 và trọng tâm TV1.1 không đổi.
 
 Không xóa/di chuyển tài nguyên trong Assets, không sửa gameplay, scene, prefab, input actions, bảy asmdef hoặc test. Các thư mục scaffold, vendor, tài nguyên TMP và công cụ dựng scene có mục đích sử dụng nên được giữ lại.
 

@@ -17,3 +17,7 @@ Hợp đồng logic cần được mô tả dù Mirror phụ trách serializatio
 Với mỗi thông điệp, ghi rõ: trường, kiểu, đơn vị, khoảng hợp lệ, giới hạn kích thước, thứ tự/độ tin cậy cần thiết, giới hạn tần suất, xử lý lặp/mất/đến muộn và mã lỗi. Không tin timestamp client mà không kiểm tra giới hạn.
 
 Không coi Player ID là bằng chứng sở hữu phiên. Không commit token thật hay ghi token đầy đủ vào log.
+
+## Đề xuất CT từ TV2
+
+[CT-201–205 và gap analysis](../PROTOCOL.md) là bản nháp TV2 cần TV1/TV3 review; không phải wire/API đã được duyệt. Tài liệu này tiếp tục là shared protocol source, chỉ cập nhật contract thực qua review rõ ràng.

@@ -4,7 +4,7 @@
 
 Bảy asmdef hiện tại: Shared.Domain, Shared.Protocol, Networking, Server, Client, EditMode.Tests và PlayMode.Tests (tiền tố SmallArena.). Domain/Protocol độc lập engine; Protocol dùng Domain; Networking dùng Shared/Mirror; Server và Client dùng Shared/Networking, không tham chiếu nhau. Trạng thái offline do MatchStateMachine trong Domain quản lý; adapter Server nhận input/readiness/lệnh kết thúc qua interface Shared.
 
-Mẫu offline không chứng minh authority trên mạng. PlayerController cục bộ dùng để kiểm chứng hành vi; TV1.1 cần tích hợp ownership, spawn và đường gửi/xác thực input, không tin giá trị client tự khai báo. Xem [báo cáo di trú](main-migration-audit.md) và [ngữ cảnh hiện hành](../../PROJECT_CONTEXT.md).
+Mẫu offline không chứng minh authority trên mạng. PlayerController cục bộ dùng để kiểm chứng hành vi; TV1.1 cần tích hợp ownership, spawn và đường gửi/xác thực input, không tin giá trị client tự khai báo. Xem [báo cáo di trú](main-migration-audit.md) và ngữ cảnh cục bộ `PROJECT_CONTEXT.md` (Git ignore).
 
 ## Luồng xử lý
 
@@ -35,3 +35,7 @@ Host có cả client và server trong một tiến trình. Không giả định 
 - Bắn raycast hay projectile.
 - Có prediction, reconciliation, lag compensation ở mức nào.
 - Thời gian giữ phiên reconnect và cách xác thực quyền lấy lại phiên.
+
+## Review gameplay TV2
+
+[Ma trận TV2-001](../../Long_document/srs.md) và [agenda GD-01–09](../DECISIONS.md) tách implementation offline với raycast/respawn/score đề xuất. Chưa có team approval; authority/dependency hiện hữu ở tài liệu này không bị thay bởi personal proposal.
