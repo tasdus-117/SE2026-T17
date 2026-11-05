@@ -1,3 +1,51 @@
+# Kiểm thử TV2 và bằng chứng phối hợp
+
+2026-11-02. TC-201–209 dưới đây **Planned / NOT RUN**. Không Unity project, tests executable, builds hoặc CI được tạo/chạy trong task này. TC-101–120 và TC-001–037 giữ lịch sử, không là gate song song. [SRS v0.4](../Long_document/srs.md) định nghĩa FR/AC mới; [TASKS](TASKS.md) định nghĩa công việc.
+
+## Catalogue kiểm thử đề xuất
+
+| TC / FR / AC | Task / người chính | Thao tác Planned | Expected / bằng chứng cần có |
+| --- | --- | --- | --- |
+| TC-201 / FR-201 / AC-201 | TV2-004/011; TV1 network, TV2 support | Server riêng + 2 clients đúng ownership và movement; M2 thêm đủ 4, thử người thứ 5 và start theo GD-07 | Một avatar mỗi người, không điều khiển hộ, capacity 4; topology/build/roster/log/video hai view; leave không crash |
+| TC-202 / FR-202 / AC-202 | TV2-002/003/010; TV1 simulation | Zero/diagonal/at-bound/out-of-bound, NaN/infinity, state không được move; sửa speed client | Reject/normalize đúng CT-201, server speed không vượt approved rule; input vectors và pose/time traces; finite bounds/units rõ |
+| TC-203 / FR-203 / AC-203 | TV2-005/010 | Server clock giả cho just-before/at/after cooldown; invalid config; range edge; ammo chỉ nếu GD-02 chọn | Fire eligibility đúng, config invalid không được dùng, không lấy client clock; expected table/log có config revision |
+| TC-204 / FR-204 / AC-204 | TV2-006/010/011 | Valid hit/miss, wall, out of range, zero/nonfinite direction, fake origin/hit/damage, dead shooter/target, multi-collider, retry nếu adapter có | Chỉ server accepted shot gây một effect; obstruction ngăn hit; rejected request không đổi HP; geometry diagram/scene/layers/log và two-client state comparison |
+| TC-205 / FR-205 / AC-205 | TV2-007/010 | Damage nhỏ/bằng/lớn HP, callbacks lặp, hai hit kết liễu trong cùng step, callback cũ sau respawn | HP>=0 và <=maxHP; death một lần mỗi life, không credit lặp; before/after state/life/event trace; GD-05 quyết credit |
+| TC-206 / FR-206 / AC-206 | TV2-008/010/011; TV1 spawn, TV3 arena | Trước/đúng/sau respawn delay, spawn blocked/unsafe, callback trùng và shot trong respawn, protection nếu chọn | Server transition đúng một lần; safe spawn/fallback theo GD-04; reset HP/cooldown theo approved policy; spawn/life/timer logs và video |
+| TC-207 / FR-207 / AC-207 | TV2-009/010/011 | Kill credit/suicide/environment theo GD-05; time/score/tie, start thiếu điều kiện, duplicate end, late callback | Score và terminal result đúng một lần theo GD-06/07; client không quyết winner; match timeline/state/score trace |
+| TC-208 / FR-208 / AC-208 | TV2-012; TV1 reconnect, TV3 UI | Disconnect/resume alive, dead, pending respawn, cooldown chưa hết; invalid token, connection cũ; expiry và server loss theo GD-08 | Không cooldown bypass/duplicate HP/death/respawn/score; đúng phiên và state server; token redacted; session+life+timer timeline, không tự dùng spectator/forfeit policy cũ |
+| TC-209 / FR-209 / AC-209 | TV2-011/012/013; cả nhóm M5–M6 | Run server+>=2 clients combat, thêm đủ 4 tải; impairment; negative matrix; smoke client/server artifacts | Mỗi case có expected/actual/verdict/defect và build/config; actual RTT/jitter/loss, CPU/RAM/tick/bandwidth theo TV1; CI artifact/run evidence TV1, combat sign-off thực TV2 |
+
+## Phân tầng và test độc lập
+
+TV2-010 có thể viết test vectors/pseudocode ngay: symbolic H,D,C,R,V cho HP/damage/cooldown/range/speed; kiểm biên, invariants, transition và expected result, không lấy giá trị offline. Pure rule tests dự kiến Assets/_Project/Tests/EditMode/ với clock/config fake; Unity physics raycast cần scene fixture/Play Mode phù hợp sau M0, không coi kiểm pure math là chứng minh wall occlusion. TV1 kiểm ownership/input reception/server motor; TV2 kiểm rule eligibility và combat; TV3 kiểm input/camera/HUD. Test shared input cần cùng trace để tránh hai người cùng nhận ownership hoặc bỏ lọt interface.
+
+TV2-011 thiết kế run integration không cần project; execution cần M0/M1 + combat components, approved configs, server OS/transport thật. Một server riêng và ít nhất hai client độc lập: A bắn B, cả hai views khớp HP/death/respawn/score; đối chiếu authoritative log; thêm đủ 4 cho M2/M5. Không chờ reconnect để chạy combat cơ bản; TC-208 bổ sung khi M4 sẵn sàng.
+
+## Cheat matrix M5 — Planned
+
+| Injection | Chủ trì / hỗ trợ | Invariant / test |
+| --- | --- | --- |
+| Bắn quá nhanh, sửa client clock, bắn khi Dead/Waiting/Finished | TV2 / TV1 adapter | Không accepted effect ngoài eligibility/cooldown; TC-203/204 |
+| Fake origin/direction/hit/damage, xuyên tường, quá range | TV2 / TV3 geometry | Server geometry/stats quyết định; TC-204 |
+| Lặp shot khi delivery thực có retry; multi-collider/death callback trùng; callback life cũ | TV2 / TV1 contract | Một damage/score/death mỗi effect/life; TC-204/205/207 |
+| Spoof actor/input, out-of-range/nonfinite, local speed hack | TV1 ingress/simulation / TV2 limits | Không control người khác hoặc vượt rule; TC-201/202 |
+| Reconnect để reset cooldown/respawn/score; token sai/connection cũ | TV1 session / TV2 policy | Đúng identity và lifecycle; TC-208 |
+
+Không mở rộng thành commercial anti-cheat, lag compensation, prediction hoặc anti-tamper server. Mỗi negative case kèm valid request sau đó để phát hiện reject làm hỏng state.
+
+## Mạng, tải, CI và evidence
+
+RTT 0/50/100/200 ms là điểm thử PROPOSED từ phân công, không threshold đạt. TV1 chọn công cụ theo exact transport; ghi one-way hay RTT và actual measurement, thêm jitter/loss sau khi chốt profile. Load scope một phòng tối đa 4, không many-room service; nhóm chốt duration/hardware/tick/resource budget trước verdict performance. TV2 quan sát cooldown/hit/death/respawn/score invariants dưới impairment, không nhận toàn profiling/CI.
+
+Mỗi run cần TC/FR/AC/task, source commit, config/protocol/Editor/Mirror versions, server OS/topology/máy, client count, artifact hashes, người/ngày, steps + expected/actual, logs/video/raw samples, defects/retest, verdict PASS/FAIL/NOT RUN. Human review và AI assistance ghi thực; không tự chứng nhận reviewer. Không ghi credentials. TV1 chủ trì licensed runner/client-server build/CI; TV2 cung cấp test entry points sau khi có thật, config, combat smoke và evidence index cho M6. Không có command online đã kiểm để đưa ra lúc này.
+
+---
+
+## LỊCH SỬ — Baseline ngày 2026-11-01, không dùng làm cổng nghiệm thu kế hoạch TV2
+
+> Toàn bộ nội dung bên dưới được giữ để truy vết. Các nhãn CURRENT, CONFIRMED, mandatory, TODO và next action bên trong chỉ có nghĩa tại thời điểm baseline cũ. Không cộng các nghĩa vụ cũ vào kế hoạch TV2 mới.
+
 # Kế hoạch kiểm thử và bằng chứng online FFA
 
 2026-11-01. Mọi TC-101–120 dưới đây **Planned / NOT RUN**. Không có Unity project/build/test harness/CI trong baseline này; kiểm Markdown không chứng minh gameplay. [SRS](../Long_document/srs.md) sở hữu yêu cầu và AC; đây là thủ tục/evidence, [ROADMAP](ROADMAP.md) gắn feature. Chỉ chuyển execution result khi có artifact/commit/config và người chạy thực; failure không phải waiver.

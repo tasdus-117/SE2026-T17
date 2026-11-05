@@ -1,3 +1,80 @@
+# Small Arena — SRS và đối chiếu kế hoạch TV2
+
+Phiên bản 0.4, 2026-11-02 (Asia/Bangkok). [Phân công nhóm](../docs/SE2026-T17-Huong-dan-va-phan-cong-nhom.md) đã được đọc toàn bộ và là nguồn ưu tiên về trách nhiệm TV2 theo chỉ thị owner trong update_prompt_1.md. Đây là **kế hoạch cá nhân được phép cập nhật**, không chứng nhận cả nhóm/giảng viên duyệt mọi đề xuất. Unity/C# đã xác nhận; Mirror/server riêng/raycast/respawn là hướng PROPOSED theo phân công, chưa có phiên bản cài đặt hoặc gameplay chạy được.
+
+## Phạm vi áp dụng và quyền sở hữu nguồn
+
+Phần v0.4 này là đặc tả đề xuất phục vụ TV2; v0.3 online và v0.2 offline được lưu nguyên phía dưới. Baseline v0.3 bị superseded **trong kế hoạch cá nhân này**, không tuyên bố đã hủy yêu cầu được duyệt của toàn nhóm. Chưa có baseline gameplay mới được cả nhóm phê duyệt để triển khai. Không áp dụng đồng thời melee/elimination và raycast/respawn như một MVP lớn hơn.
+
+SRS sở hữu nghĩa yêu cầu và quyết định gameplay; [TASKS](../docs/TASKS.md) sở hữu công việc/trạng thái; [ROADMAP](../docs/ROADMAP.md) sở hữu M0–M6/phối hợp; [PROTOCOL](../docs/PROTOCOL.md) sở hữu contract; [TESTING](../docs/TESTING.md) sở hữu ca thử/bằng chứng; learning chỉ sở hữu kết quả học. Không tạo TV2 plan riêng. Tất cả đường dẫn Unity dưới đây là dự kiến, chưa tồn tại.
+
+## Đối chiếu xung đột và cách xử lý
+
+| Nguồn/section cũ | Hướng dẫn phân công | Tác động TV2 | Xử lý trong kế hoạch cá nhân | Quyết định nhóm còn lại |
+| --- | --- | --- | --- | --- |
+| ARCHITECTURE / Khuyến nghị NGO + UTP + MPS | Unity + Mirror | Domain tách adapter mạng | Mirror PROPOSED; dừng khuyến nghị NGO như hướng hiện hành | TECH-001: release/Editor/transport tương thích, license và build |
+| FR-107/110/111; F-008/010 melee và 2x weapon | Một súng raycast | Cooldown/range/damage, server raycast | FR-203/204 mới; melee/2x không là nghĩa vụ TV2 mới | Súng/aim và ammo có hay không |
+| FR-108/109/114 elimination/ring-out/spectator | HP, chết, hồi sinh, điểm hạ | State machine và kill credit mới | FR-205–207; không dùng last-survivor làm điều kiện thắng mặc định | Respawn, credit, kết thúc trận/hòa |
+| FR-101/105/113 và topology host+3 | Server chạy riêng trên máy nhóm, clients kết nối | TV2 cung cấp rules cho server TV1 | FR-201; không tự triển khai hosting/network | OS server, cách truy cập, xử lý server mất |
+| FR-102 jump và fixed-heading camera | Đi/chạy, xoay; nhảy bổ sung | Chỉ quy tắc movement M1 | Nhảy không bắt buộc; camera do TV3 phối hợp chốt | Góc nhìn/aim/controller; có làm nhảy sau không |
+| FR-110/111 pickup/E drop/knockback | Không thiết lập các cơ chế này | Không viết rule/test bắt buộc cho chúng | Ngoài kế hoạch TV2 đợt này; không tự nhập lại | Nếu cần, yêu cầu mới và scope riêng |
+| FR-104 private code và đúng 4 mới start | Một phòng tối đa 4; M2 demo đủ 4/ready | TV2 cần điều kiện vào Playing | Không suy demo 4 thành minStart=4; không buộc room code | Số tối thiểu start; cách join/ready với TV1+TV3 |
+| AGENTS / Git cá nhân so với phân công §7 main/PR | Quy trình nhóm là đề xuất | Không thay đổi quyền Git | Giữ long23001901 và mọi approval gate | Đích PR nhóm cần chốt sau; không thao tác Git theo ví dụ |
+
+## Yêu cầu đề xuất mới — chưa triển khai, chưa duyệt toàn nhóm
+
+Mọi FR-201–209 là PROPOSED, implementation TODO. AC-201–209 là điều kiện quan sát được sau khi các tham số/contract được nhóm duyệt; không phải test đã đạt. TC-201–209 trong TESTING đều Planned / NOT RUN. Không đổi nghĩa FR-001–017, FR-101–114 hoặc NFR/UC/AC/TC lịch sử.
+
+| ID | Nghĩa đề xuất | Acceptance / test / nhiệm vụ |
+| --- | --- | --- |
+| FR-201 | Một server chạy riêng, một phòng tối đa 4 Windows clients; TV1 sở hữu kết nối/spawn/ownership/sync/build, TV3 client/arena | AC-201: server + ít nhất 2 clients cùng chạy, chỉ điều khiển đúng avatar; demo M2 đủ 4 và reject người thứ 5; TC-201; TV2-004/012 hỗ trợ |
+| FR-202 | TV2 định nghĩa data/state/config, tốc độ/eligibility/giới hạn input; TV1 nhận input và mô phỏng authoritative movement | AC-202: giá trị không hữu hạn/ngoài miền và trạng thái cấm không làm speed server vượt luật; TC-202; TV2-002/003 |
+| FR-203 | Một súng raycast với cooldown theo server time, range/damage từ config; ammo/reload chỉ khi duyệt | AC-203: trước biên cooldown reject, đúng/sau biên hợp lệ nếu mọi gate đạt; config không hợp lệ bị phát hiện; TC-203; TV2-005 |
+| FR-204 | Server kiểm alive/match/cooldown, origin/direction theo server state, range, obstruction và target; client chỉ gửi intent | AC-204: wall/out-of-range/invalid aim/fake hit không gây damage; request hợp lệ chỉ áp dụng effect một lần; TC-204; TV2-004/006 |
+| FR-205 | Server áp dụng HP không âm, Alive → Dead đúng một lần mỗi life; callback trùng không gây chết/điểm lặp | AC-205: overkill clamp 0, dead không bắn/di chuyển theo eligibility đã duyệt, một death mỗi life; TC-205; TV2-007 |
+| FR-206 | Dead → RespawnPending → Alive khi server cho phép; life mới có trạng thái/config đúng, spawn hợp lệ | AC-206: một respawn mỗi life, không hồi sinh sớm; vị trí từ TV1/TV3 đạt safe-spawn policy; TC-206; TV2-008 |
+| FR-207 | Server ghi kill scores và vòng đời Waiting → Playing → Finished hoặc Aborted; điều kiện start/end/tie cần duyệt | AC-207: death hợp lệ chỉ credit một lần, match kết thúc một lần đúng policy, request sau terminal không tác động; TC-207; TV2-009 |
+| FR-208 | Reconnect do TV1 xác thực; TV2 cung cấp policy cooldown/HP/life/death/respawn/score qua gián đoạn | AC-208: không reset cooldown để bắn nhanh, không respawn/death/score hai lần; actual policy theo GD-08; TC-208; TV2-004/008/009/012 |
+| FR-209 | TV2 cung cấp rule tests, integrated combat và cheat evidence; hỗ trợ M5–M6, TV1 giữ CI/network | AC-209: từng case có expected/actual/build/config/log/defect/verdict; clean client/server evidence do nhóm tạo, TV2 xác nhận combat; TC-209; TV2-010–013 |
+
+Chất lượng chung vẫn cần protocol, reconnect, kiểm thử tải/mạng/gian lận và client/server CI theo phân công; không nhập budget/SLA cũ hay cam kết headless target chưa chốt. NFR-101–106 giữ nguyên nghĩa lịch sử, chưa dùng như gate mới khi chứa host/melee/weapon/elimination. FR-201/209 và TESTING mô tả hướng kiểm chứng mới, nhóm phải duyệt budget trước execution.
+
+## Sổ quyết định cần thống nhất
+
+Các mục đều UNDECIDED; không có default 10 HP/1 damage hoặc cooldown từ offline. Nếu đề nghị giá trị sau này phải ghi PROPOSED kèm người/ngày duyệt. Đặc tả và test design dùng biến ký hiệu có thể bắt đầu ngay; chỉ execution/acceptance dùng tham số mới bị chặn.
+
+| ID | Cần chốt | Người phối hợp/quyết định | Chặn việc nào |
+| --- | --- | --- | --- |
+| GD-01 | Initial/max HP, speed, damage, cooldown, range, input bounds/units | TV2 đề xuất; TV1 duyệt simulation, cả nhóm chốt tuning | TV2-002/003/005/007 execution |
+| GD-02 | Có ammo/reload không; hành vi empty/reload nếu có | TV2 + TV3, cả nhóm | TV2-005 scope chốt; không tự thêm ammo |
+| GD-03 | Camera perspective, aim basis/origin/direction, dung sai và layer/trigger/self-hit policy | TV3 chủ camera; TV2 geometry; TV1 state | TV2-004/006 tích hợp |
+| GD-04 | Respawn delay, điểm spawn, tiêu chí safe spawn/fallback, spawn protection có không | TV2 rule, TV3 vị trí/arena, TV1 spawn | TV2-008 execution |
+| GD-05 | Suicide/environment damage/kill credit và simultaneous hits | TV2 đề xuất, cả nhóm | TV2-007/009 acceptance |
+| GD-06 | Match end: time/score limit, ties, terminal order | TV2 + TV1 lifecycle, TV3 hiển thị; cả nhóm | TV2-009 execution |
+| GD-07 | Minimum start, ready/load, join khi đang chơi | TV1 lobby + TV2 eligibility + TV3 UI; cả nhóm | TV2-009/M2 start gate |
+| GD-08 | Disconnect/reconnect: cooldown clock, dead/respawn timer, avatar offline, expiry, server loss | TV1 session + TV2 rule + TV3 feedback; cả nhóm | TV2-008/009/012 reconnect tests |
+| GD-09 | Phê duyệt thay baseline, Mirror/version/transport, OS server, budget mạng/tải, lịch M0–M6 | Cả nhóm; TV1 TECH-001 | M0 và triển khai phụ thuộc; không chặn tài liệu độc lập |
+
+## Bản đồ supersession cho kế hoạch cá nhân
+
+| ID cũ giữ nguyên | Ánh xạ mới / giới hạn |
+| --- | --- |
+| FR-101, FR-104–106 / AC-101,104–106 / UC-101 | FR-201/202; bỏ giả định host/code/min=4; TC cũ giữ lịch sử |
+| FR-102–103 / AC-102–103 / UC-102 | FR-202 phần movement; jump/fixed camera/ring-out không nhập vào hướng mới |
+| FR-107, FR-110–111 / AC-107,110–111 / UC-102–103 | FR-203/204 thay combat; không tái dùng nghĩa melee/pickup/2x |
+| FR-108–109, FR-114 / AC-108–109,114 / UC-104 | FR-205–207 thay lifecycle; presentation thuộc TV3; spectator không bắt buộc mới |
+| FR-112–113 / AC-112–113 / UC-105 | FR-208; giữ nhu cầu reconnect, policy cũ vulnerable/forfeit/host abort chưa nhập tự động |
+| NFR-101–106 / AC-N101–N106 / TC-115–120 | FR-209 và TC-209 cho evidence mới; không công nhận các test cũ đã chạy |
+| F-001–019, A–E và O-01–09 | Catalogue lịch sử; M0–M6 và TV2-001–013 là sequencing/task hiện hành; GD-01–09 là quyết định mới |
+
+Các baseline dưới đây không bị sửa nội dung, kể cả bảng supersession v0.2 → v0.3. Không dùng historical values làm config hiện hành.
+
+---
+
+## LỊCH SỬ — Baseline ngày 2026-11-01, không dùng làm cổng nghiệm thu kế hoạch TV2
+
+> Toàn bộ nội dung bên dưới được giữ để truy vết. Các nhãn CURRENT, CONFIRMED, mandatory, TODO và next action bên trong chỉ có nghĩa tại thời điểm baseline cũ. Không cộng các nghĩa vụ cũ vào kế hoạch TV2 mới.
+
 # Small Arena — SRS online FFA
 
 Phiên bản 0.3 — 2026-11-01 (Asia/Bangkok). Nguồn xác nhận sản phẩm: yêu cầu chủ dự án trong `docs/prompts/create_roadmap_prompt.md`; nguồn phê duyệt nền Git: chỉ thị chủ dự án trong phiên này. Prompt được giữ nguyên, không tự động đưa vào commit. CONFIRMED không đồng nghĩa đã triển khai. Tất cả yêu cầu online dưới đây có implementation status TODO; mọi TC online đều Planned.

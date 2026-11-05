@@ -1,3 +1,26 @@
+# Kế hoạch học cho TV2 — từ Java/OOP đến gameplay Unity/C#
+
+2026-11-02. Kết quả học là PROPOSED/chưa thực hiện; khác deliverable sản phẩm ở [TASKS](../docs/TASKS.md). Dùng [phân công](../docs/SE2026-T17-Huong-dan-va-phan-cong-nhom.md) làm hướng cá nhân; học vừa đủ cho M1 rồi M3, không học hết mạng/UI/CI thay TV1/TV3. Phần học melee/elimination/NGO cũ bên dưới chỉ là lịch sử.
+
+| Thứ tự / mốc | Học từ nền Java/OOP | Kết quả học quan sát được | Hỗ trợ sản phẩm, không thay acceptance |
+| --- | --- | --- | --- |
+| 1 / M0, làm ngay | Java class/interface/enum/collection → C# properties, struct/value vs reference, events/delegates, null và generics; compiler subset kiểm theo Editor được chọn | Giải thích data/config immutable hoặc mutable, copy struct và event subscription; pseudocode state machine có review | TV2-002 data/state/config; không cần tạo Unity project để đọc/thiết kế |
+| 2 / M0–M1 | Unity component, scene/prefab, serialization; Awake/OnEnable/Start/Update/FixedUpdate/OnDisable và object lifetime | Giải thích nơi rule thuần tách MonoBehaviour, vì sao không dùng client frame time làm cooldown server; bài tập nhỏ chỉ sau project approval | TV2-002/003, TV1 motor/TV3 prefab |
+| 3 / M1 | Vector/units, finite values, input magnitude, speed và eligibility; interface thay network singleton | Viết bảng zero/diagonal/invalid/state-gated inputs và expected; giải thích server mô phỏng khác client thu input | TV2-003/004 + TC-202 |
+| 4 / M1, sớm | Server authority vs ownership, connection vs participant; Mirror concepts sau chọn exact version | Vẽ luồng intent → ownership TV1 → rule TV2 → sync TV1 → HUD TV3; không client damage/pose truth | TV2-004 contracts; không implement networking như bài tập bắt buộc |
+| 5 / M3 | Physics.Raycast, origin/direction/range, collider/layer/trigger, obstruction, aim/camera frame | Vẽ hit/miss/wall và invalid-origin cases; sau M0 thử fixture để hiểu physics thật; API chỉ tra theo version đã pin | TV2-005/006; không dùng melee OverlapSphere làm default |
+| 6 / M3 | Server clock cooldown, HP clamp, explicit life states, exactly-once death/credit, config validation | Viết trace two lethal hits + duplicate callback + new life; chứng minh không HP âm/score trùng | TV2-007/008/009; tuning vẫn GD-01–08 |
+| 7 / M1–M5 | Arrange/Act/Assert, fake clock/config, boundary/table tests; Edit Mode vs physics/integration tests | Viết expected vectors ngay; sau M0 chạy suite thật, phân biệt rule pass với two-client physics pass | TV2-010/011/012; Planned không là PASS |
+| 8 / M5–M6 | Đọc logs, actual RTT vs one-way delay, artifact/config provenance và support CI | Đọc một run và chỉ ra thiếu evidence, giữ defect/retest; học cách chạy suite do TV1 đưa, không nhận pipeline | TV2-013 evidence |
+
+Những gì làm ngay không cần Unity: C# bridge đọc/giải thích, state/config schema, test vectors, contract examples và danh sách GD cần hỏi nhóm. Execution Unity/physics/multi-client chỉ sau approved project/branch. Không có course/test/human review nào được ghi hoàn thành trong task tài liệu này. Tài nguyên học cũ giữ dưới đây để tra cứu; URL/API theo phiên bản cần kiểm lại trước dùng, không là compatibility approval.
+
+---
+
+## LỊCH SỬ — Baseline ngày 2026-11-01, không dùng làm cổng nghiệm thu kế hoạch TV2
+
+> Toàn bộ nội dung bên dưới được giữ để truy vết. Các nhãn CURRENT, CONFIRMED, mandatory, TODO và next action bên trong chỉ có nghĩa tại thời điểm baseline cũ. Không cộng các nghĩa vụ cũ vào kế hoạch TV2 mới.
+
 # Learning & Research Plan — Unity/C# online FFA
 
 Phiên bản 0.3, 2026-11-01. Kế hoạch học PROPOSED, không có bài học/thí nghiệm nào được ghi hoàn thành. Unity/C# là CONFIRMED; exact Editor/package/controller/network framework chưa duyệt. [SRS](srs.md) sở hữu yêu cầu; [product roadmap](../docs/ROADMAP.md) sở hữu milestone/feature, không dùng lịch học làm delivery promise.

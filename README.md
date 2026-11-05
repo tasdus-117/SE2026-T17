@@ -1,29 +1,27 @@
-# Small Arena — Unity/C# online FFA
+# Small Arena — Unity/C# và kế hoạch phối hợp nhóm
 
-Game arena combat 3D cho Windows PC, bốn người FFA (1v1v1v1), một participant host authoritative server cùng local client. Một arena có terrain/walls, movement/jump, melee, HP/ring-out elimination, spectator, private code rooms, reconnect và một melee weapon auto-pickup/E-to-drop ngay trong first online MVP. 2v2 và additional weapon types là FUTURE, ngoài baseline khoảng 60 ngày từ 2026-11-01.
+Windows client, arena FFA tối đa 4 người. Theo [phân công đề xuất](docs/SE2026-T17-Huong-dan-va-phan-cong-nhom.md), hướng kế hoạch cá nhân TV2 (23001901) là Unity + Mirror, server chạy riêng, một súng raycast, HP/chết/hồi sinh/điểm số. Owner cho phép cập nhật kế hoạch cá nhân; cả nhóm/giảng viên chưa xác nhận mọi đề xuất. Unity/C# đã xác nhận, exact stack và gameplay parameters chưa duyệt.
 
-## Trạng thái đã kiểm chứng — 2026-11-01
+## Trạng thái đã kiểm — 2026-11-02
 
-- Owner `23001901`; repository `tasdus-117/SE2026-T17`. Unity/C# là CONFIRMED; Editor/packages/framework/services chưa pin/duyệt/cài trong checkout này.
-- `long23001901` đã được chủ dự án duyệt, tạo và push từ setup commit `1d7a6c91fb7c2a3ef2fa233c1d5efe5cc60b462e`. Nền gồm tài liệu có sẵn, không Unity project/game source/tests/CI/build configuration.
-- Tài liệu online mới thuộc `docs/23001901/online-ffa-roadmap`, **awaiting integration into long23001901**; push không đồng nghĩa merged. Xem [state](docs/PROJECT_STATE.md) cho delivery evidence mới nhất.
-- Assignment AD-065 và prototype branches không phải current implementation; không import code trong task này. Các historical test reports không là gameplay/WAN evidence.
+- Nhánh docs/23001901/online-ffa-roadmap tại 9d29f97, cùng cached upstream; base long23001901 = 1d7a6c9, ahead 2 / behind 0. Tài liệu chưa integrated; phiên này không commit/push/PR/merge.
+- Checkout chỉ có tài liệu/assignment artifacts; không Assets, Packages, ProjectSettings hay game source/test harness/CI. Đường dẫn Unity trong phân công là đề xuất. Claim về main/PR #2 của phân công không chứng minh checkout này; không thay nguồn bằng main.
+- TV1 sở hữu project/network/simulation/session/build-CI; TV2 rules/domain/combat/tests; TV3 input/camera/UI/arena/prefab. TV2 góp M1 ngay bằng speed/eligibility/input limits; chủ trì combat M3.
+- Baseline host+3/melee/ring-out/spectator/pickup-E-drop trước đây được giữ lịch sử trong SRS và docs; không gộp với raycast/respawn thành mandatory scope mới. Xem bảng xung đột và GD-01–09 trong SRS.
 
-## Bản đồ tài liệu
+## Bản đồ nguồn
 
-| Đường dẫn | Trách nhiệm |
+| Tài liệu | Sở hữu |
 | --- | --- |
-| [SRS](Long_document/srs.md) | Current requirements/rules/FR-NFR-UC-AC traceability; full historical offline v0.2 và bảng supersession |
-| [Roadmap và feature catalogue](docs/ROADMAP.md) | A foundation/spike → B first complete online MVP → C verified FFA; D future 2v2/weapons; E optional; 19 bounded current features |
-| [Architecture](docs/ARCHITECTURE.md) | Authority/ownership/topology, NGO vs Mirror, recommendation PROPOSED, official sources/date/cost/license limits |
-| [Protocol plan](docs/PROTOCOL.md) | Logical messages, validation/order/identity/reconnect/version; chưa implementation |
-| [Testing/evidence](docs/TESTING.md) | Planned TC-101–120, latency/load/cheat/CI/demo và reproducible 2x displacement measurement |
-| [Learning plan](Long_document/learning-roadmap.md) | Học Unity/C# và networking sớm, không product delivery schedule |
-| [Instructions](AGENTS.md) | Quy tắc Git/session/sources |
-| [State](docs/PROJECT_STATE.md), [Tasks](docs/TASKS.md), [Decisions](docs/DECISIONS.md), [Work log](docs/WORK_LOG.md) | Tiến độ thật, approvals/proposals, verification và handoff |
+| [SRS](Long_document/srs.md) | Yêu cầu đề xuất mới/ID mapping, scope conflicts và quyết định mở; full v0.3 online/v0.2 offline |
+| [TASKS](docs/TASKS.md) | TV2-001–013, deliverable/acceptance/verification/actual status; task cũ giữ lịch sử |
+| [ROADMAP](docs/ROADMAP.md) | M0–M6, trình tự/phối hợp cả nhóm |
+| [ARCHITECTURE](docs/ARCHITECTURE.md), [PROTOCOL](docs/PROTOCOL.md) | Boundaries, proposed paths và logical contracts; chưa Mirror API |
+| [TESTING](docs/TESTING.md) | TC-201–209 Planned, rule/integration/cheat/evidence; không passing gameplay tests |
+| [Learning](Long_document/learning-roadmap.md) | Học cho TV2 từ Java/OOP; không là product deliverables |
+| [AGENTS](AGENTS.md) | Git/session safeguards |
+| [State](docs/PROJECT_STATE.md), [Decisions](docs/DECISIONS.md), [Work log](docs/WORK_LOG.md) | Handoff, approvals/unknowns, kết quả thực |
 
-## Setup, build và test entry points
+## Setup/build/test
 
-**UNKNOWN / chưa có lệnh online được kiểm chứng.** Chưa có `Assets`, `Packages`, `ProjectSettings`, executable tests hoặc CI workflow cho game trên baseline được chọn. Không chạy lệnh assignment như thể build game. Next bounded task là TECH-001 review/approve exact matrix và service/license route; sau approved documentation integration và feature branch approval, F-001 tạo reproducible foundation và ghi setup/build commands từ kết quả thật tại đây. [TESTING](docs/TESTING.md) mô tả planned gates, không passing builds.
-
-Không có gameplay/build/load/latency/cheat execution trong documentation task. Giữ rõ CONFIRMED/PROPOSED/UNDECIDED, CURRENT/FUTURE, TODO/DONE và committed/pushed/integrated.
+UNKNOWN: chưa có command online được kiểm chứng. TV1 khởi tạo sau TECH-001 và các approval cần thiết. TV2 bắt đầu ngay bằng scope/GD agenda, data/state/config schema, movement limits, CT examples và symbolic test vectors. Không chạy assignment để nhận là gameplay test; không import AD-065 hoặc tạo Unity project trong task tài liệu.

@@ -58,3 +58,12 @@ No gameplay architecture or toolchain decision is adopted by setup. The existing
 - Rationale: Đường official GameObject/session/code/relay có thể giảm connectivity work cho ba sinh viên; không performance superiority claim.
 - Alternatives: Mirror nếu approved spike cho thấy phù hợp hơn; không implement cả hai. Dedicated hosting/database/REST không cần cho scope hiện tại.
 - Consequences: Owner/team phải duyệt exact version/dependency matrix, service budget/identity/reconnect và CI license route. F-001/F-003 chưa chạy; version-sensitive sources/date nằm ARCHITECTURE; project quota/entitlements còn UNVERIFIED.
+
+## TV2-PLAN-001 — Ưu tiên phân công cho kế hoạch cá nhân
+
+- Ngày: 2026-11-02 (Asia/Bangkok). Status: ACCEPTED về quyền cập nhật kế hoạch TV2 theo owner; gameplay/framework toàn nhóm vẫn PROPOSED/UNDECIDED.
+- Context: Owner chỉ định đọc update_prompt_1.md và làm việc trên exact docs branch; đã đọc toàn bộ phân công. Phân công tự nhận là đề xuất, có scope khác PROD-001/TECH-001 ngày trước và hướng Git main khác workflow cá nhân đã được duyệt.
+- Approach: SRS v0.4 dùng FR/AC-201–209 mới, GD-01–09 và conflict/mapping; lưu nguyên v0.3/v0.2. TASKS sở hữu TV2-001–013 và trạng thái, ROADMAP M0–M6; không thêm TV2 plan riêng. Chỉ cập nhật AGENTS scope, giữ mọi Git safeguards. Phân công và prompts untracked giữ nguyên.
+- Rationale: Rõ việc TV2 M1/M3 mà không giả định proposal thành team approval hoặc nhập cả hai rule sets. Không dùng code/path đề xuất như evidence implementation.
+- Alternatives: Gộp melee+raycast, elimination+respawn, NGO+Mirror thành mandatory scope; nhận luôn networking/UI/CI cho TV2; thay main hoặc import assignment — loại vì sai nguồn/quyền/phạm vi.
+- Consequences: PROD-001/TECH-001 cũ giữ lịch sử, superseded trong kế hoạch cá nhân về topology/combat. TECH-001 hiện hướng Mirror/version/server OS/license do TV1 phối hợp nhóm, chưa pin/install. GD-01–09 chặn execution từng phần, không chặn draft/test design. Git baseline long23001901 vẫn 1d7a6c9; không commit/push/PR/merge trong phiên này. Cần review TV1/TV3 và nhóm trước triển khai; chưa có human review độc lập.

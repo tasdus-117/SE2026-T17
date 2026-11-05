@@ -1,3 +1,45 @@
+# Lộ trình nhóm M0–M6 và phối hợp TV2
+
+Cập nhật 2026-11-02. Theo [phân công đề xuất](SE2026-T17-Huong-dan-va-phan-cong-nhom.md), owner 23001901 là TV2. Kế hoạch cá nhân được phép cập nhật; scope toàn nhóm, framework/version và deadline chưa được xác nhận. [SRS v0.4](../Long_document/srs.md) sở hữu luật/đối chiếu xung đột; [TASKS](TASKS.md) sở hữu task và actual status. A–E/F-001–019 phía dưới chỉ là lịch sử, không chạy song song như mandatory scope.
+
+## Mốc nhóm và bàn giao
+
+| Mốc | Nhóm / phụ trách | TV2 và đầu vào → bàn giao | Gate/bằng chứng dự kiến |
+| --- | --- | --- | --- |
+| M0 | TV1 khởi tạo Unity/Mirror, cả nhóm xác nhận version/server OS | TV2-001/002: phân công/SRS → quyết định còn mở, data/state/config draft; TV2 không tạo project | Ba máy mở cùng project và smoke client/server do TV1; chưa chạy |
+| M1 | TV1 connection/spawn/input/server simulation; TV3 arena/camera/input/UI kết nối | TV2-003/004: state/config draft → speed/eligibility/input bounds, input contract, ca thử speed hack | Một server + 2 clients nhìn nhau di chuyển, đúng ownership, sửa speed local không vượt server, leave không crash; fresh-clone instructions |
+| M2 | TV1 lobby/capacity/ready; TV3 UI | TV2-004/009 phối hợp start eligibility, không sở hữu lobby | Demo 4, từ chối người thứ 5; min start chưa chốt GD-07, không suy bằng 4 |
+| M3 | TV2 combat/rules; TV1 adapter/state sync/spawn; TV3 aim/arena/HUD/prefab | TV2-005 → 006 → 007 → 008/009, TV2-010 rule tests: approved contract/config → raycast/HP/death/respawn/score và results | TC-203–207 đạt sau duyệt GD; tích hợp sớm từng component, không chờ cuối M3 |
+| M4 | TV1 session/reconnect; TV3 reconnect UI | TV2 cung cấp policy life/timer/cooldown/score GD-08, TV2-012 kiểm contract | Lấy lại đúng phiên, reject token sai; không damage/score/respawn trùng |
+| M5 | Cả nhóm tải/mạng/gian lận | TV2-011/012: test design → combat matrix/results/log/defects | Ít nhất server + 2 clients để combat; thêm run đủ 4 cho capacity/load, impairment có actual RTT/loss |
+| M6 | TV1 điều phối build/CI; cả nhóm bàn giao | TV2-013: combat config/tests/evidence/known issues, hỗ trợ smoke artifacts | Client/server cùng commit, runner/license/OS đã duyệt, kết quả thật và reviewer; không gọi pipeline của TV2 |
+
+Deadline chưa được nhóm điền. TV2 bắt đầu ở M0/M1 bằng đặc tả; M3 mới là mốc sở hữu combat đầy đủ. M4 không phải dependency để viết test M3; integration combat cơ bản không đợi reconnect, ca reconnect mở rộng sau khi TV1 có adapter.
+
+## Thứ tự TV2 và việc có thể làm ngay
+
+TV2-001 → TV2-002 → TV2-003 → TV2-004; sau đó TV2-005 → TV2-006 → TV2-007 → TV2-008 và TV2-009. TV2-010 thiết kế tests ngay sau data/contract draft, không đợi gameplay. TV2-011 thiết kế integration ngay sau contract draft. TV2-012 thiết kế cheats sau validation/HP/match draft, mở rộng execution khi có reconnect. TV2-013 gom evidence đã chạy cho M6.
+
+Dependency trong TASKS là đầu ra bản nháp/review để bắt đầu bước sau, không mặc định đợi cả task DONE/integrated; các execution gate được ghi riêng. Nhờ vậy không có vòng “code đợi test, test đợi code”.
+
+Ngay bây giờ: soạn bảng GD-01–09 cần nhóm quyết định, state transition và config schema bằng biến ký hiệu, input limits/negative cases, ví dụ input/shot/result cho TV1–TV3, bảng expected cho cooldown/HP/death. Không cần Unity để review tài liệu/test vectors. Không tạo ba project riêng hoặc nhận networking/UI thay thành viên khác.
+
+## Hợp tác và tránh chồng quyền
+
+TV1 giữ Networking, Server/Simulation, Sessions, Validation ở ingress, ownership và state synchronization. TV2 cung cấp Domain rules, Combat, config và rule tests; validation gameplay khác kiểm ownership của TV1. TV3 giữ input collection, camera/aim presentation, arena/spawn points, scenes/UI/prefab assembly. Player prefab: TV3 lắp, TV1 review networking, TV2 review combat. Một người sửa scene/prefab tại một thời điểm; contract đổi phải trao đổi cả ba và cập nhật PROTOCOL cùng review.
+
+Đường dẫn Assets/_Project/{Scripts/Server/Combat,Scripts/Shared/Domain,Settings,Tests/EditMode}/ là PROPOSED và đã kiểm không tồn tại trên nhánh này. Không có Unity project/Packages/ProjectSettings/CI thực; không lấy đề cập “main sau PR #2” trong phân công làm bằng chứng cho checkout này.
+
+## Git và bước triển khai sau
+
+Task tài liệu này chỉ sửa docs trên docs/23001901/online-ffa-roadmap, không commit/push/PR/merge. Nhánh hơn long23001901 hai commit, base 1d7a6c9; tài liệu chưa integrated. Sau review và integration được phép mới xin dedicated feature branch từ latest approved long23001901. Giữ quy tắc cá nhân trong AGENTS; ví dụ nhánh/main trong phân công chưa thay quyền Git đã được owner quy định.
+
+---
+
+## LỊCH SỬ — Baseline ngày 2026-11-01, không dùng làm cổng nghiệm thu kế hoạch TV2
+
+> Toàn bộ nội dung bên dưới được giữ để truy vết. Các nhãn CURRENT, CONFIRMED, mandatory, TODO và next action bên trong chỉ có nghĩa tại thời điểm baseline cũ. Không cộng các nghĩa vụ cũ vào kế hoạch TV2 mới.
+
 # Small Arena — Roadmap và feature catalogue
 
 Ngày 2026-11-01. Product roadmap cho ba sinh viên đang học Unity/C#, có Codex/Claude hỗ trợ; không phải lịch học. Horizon khoảng 60 ngày từ **2026-11-01 đến cuối tháng 12-2026** để quản trị rủi ro, không phải cam kết giao hàng hoặc giả định số giờ mỗi tuần. [SRS](../Long_document/srs.md) là nguồn luật; [TASKS](TASKS.md) ghi tiến độ thật. Chưa có feature gameplay nào DONE.

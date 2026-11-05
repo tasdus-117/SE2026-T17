@@ -1,3 +1,46 @@
+# Kiến trúc phối hợp TV1–TV2–TV3 — hướng đề xuất
+
+2026-11-02. [Phân công](SE2026-T17-Huong-dan-va-phan-cong-nhom.md) ưu tiên cho kế hoạch TV2; [SRS](../Long_document/srs.md) v0.4 giữ conflict/resolution/GD. Unity/C# xác nhận, **Mirror và server riêng PROPOSED**, exact versions UNDECIDED. Không kiểm/cài package trong task này; không áp đặt Mirror API theo phiên bản chưa chọn. Đánh giá NGO/giá/license ngày 2026-11-01 bên dưới là hồ sơ lịch sử, không phải recommendation hiện hành hay giá đã kiểm lại.
+
+## Luồng và ownership
+
+Client TV3 thu intent → adapter TV1 xác thực connection/ownership và decode bounded input → Domain/Combat TV2 kiểm eligibility/rules → simulation/combat server → TV1 đồng bộ state/results → TV3 hiển thị. Một server chạy riêng trên máy nhóm; không yêu cầu cloud/multi-service/database/account. OS server, port/transport, identity proof, build/license route do TECH-001/TV1 phối hợp nhóm chốt. Server loss khác player disconnect; policy GD-08 chưa duyệt.
+
+| Phần | Chủ trì | Đầu ra phối hợp / không nhận thay |
+| --- | --- | --- |
+| Project/Mirror/connection/spawn/ownership | TV1 | Authenticated participant → avatar; TV2 không nhận networking |
+| Input reception và authoritative movement | TV1 | Gọi speed/eligibility/limits TV2; TV3 chỉ thu input, không quyết pose |
+| Shared character/config/state và gameplay validation | TV2 (23001901) | Pure rule/data contract, cooldown/range/damage/HP/death/respawn/score; không phụ thuộc UI/network transport |
+| Server raycast combat | TV2 | Dùng server pose/collider, báo effect/result cho TV1 sync; TV3 chốt aim và layer/arena |
+| Lobby/session/reconnect | TV1 | TV2 cung cấp start/end/life/timer policy; TV3 UI; không giao toàn lifecycle kết nối cho TV2 |
+| Camera/input/UI/arena/scenes/prefabs | TV3 | TV2 cung cấp state và safe-spawn constraints, TV1 duyệt network components |
+| Tests/build/CI | Mỗi người tests phần mình; TV1 CI | TV2 rule/combat/cheat suite và evidence; TV3 client views; cả nhóm load/demo |
+
+## Domain và state đề xuất
+
+Character data: participant/entity reference do TV1 cấp, life identity để phân biệt lần sống, HP/maxHP, alive/dead/respawn state, nextAllowedShotServerTime, score và config revision. Không lưu camera/UI/transport trong Domain. Match state đề xuất Waiting → Playing → Finished hoặc Aborted. Life state Alive → Dead → RespawnPending → Alive; disconnect là trạng thái kết nối trực giao, không tự đổi Dead thành Alive. Thời điểm áp dụng respawn, reset HP/cooldown, credit và terminal ordering theo GD-04–08; không mang spectator/contender-removal cũ vào state machine mới.
+
+Config schema dự kiến chứa HP, speed, input limits, gun damage/range/cooldown, respawn và match policy; TV2 định nghĩa units/validity và version, nhóm duyệt giá trị. Có thể dùng C# data và Unity configuration asset sau khi project có thật; chưa chọn ScriptableObject/format/assembly names trước review. Không viết config asset hoặc test executable trong task này.
+
+## Đường dẫn và dependency dự kiến
+
+| Path | Phạm vi dự kiến | Kết quả kiểm checkout 2026-11-02 |
+| --- | --- | --- |
+| Assets/_Project/Scripts/Shared/Domain/ | Data, config contract, pure rules TV2 | Không tồn tại |
+| Assets/_Project/Scripts/Server/Combat/ | Server combat/HP/death policy TV2 | Không tồn tại |
+| Assets/_Project/Settings/ | Rule/gun config TV2 phối hợp nhóm | Không tồn tại |
+| Assets/_Project/Tests/EditMode/ | Independent rule tests TV2 | Không tồn tại |
+
+Đồ thị assembly dự kiến: Domain không tham chiếu Networking/Combat/Presentation; Combat và adapter TV1 tham chiếu Domain; presentation TV3 dùng DTO/state contract, không tham chiếu server combat. Bootstrap/scene wiring kết hợp các thành phần. TV1 gọi rule qua interface thay vì Domain gọi ngược network singleton. TV2 tests dùng Domain, physics fixture sau này dùng server combat; không dependency ngược từ production vào test. Đây là định hướng review tránh vòng, chưa có .asmdef thực.
+
+TECH-001 phải kiểm exact Unity/Mirror/transport compatibility từ nguồn chính thức, pin dependencies, server OS/modules và licensing/runner route trước setup. Không coi bản so sánh cũ hay tên thư mục trong phân công là installed inventory. Không lag compensation/prediction/commercial anti-cheat hoặc kiến trúc đa dịch vụ trong scope này.
+
+---
+
+## LỊCH SỬ — Baseline ngày 2026-11-01, không dùng làm cổng nghiệm thu kế hoạch TV2
+
+> Toàn bộ nội dung bên dưới được giữ để truy vết. Các nhãn CURRENT, CONFIRMED, mandatory, TODO và next action bên trong chỉ có nghĩa tại thời điểm baseline cũ. Không cộng các nghĩa vụ cũ vào kế hoạch TV2 mới.
+
 # Kiến trúc và lựa chọn networking
 
 Ngày kiểm tra nguồn: **2026-11-01** (Asia/Bangkok). Đây là design/assessment **PROPOSED**, chưa phải code, package inventory hay framework approval. Unity/C# và host topology là CONFIRMED theo [SRS](../Long_document/srs.md); exact versions/services chưa chọn. Implementation TODO. [Roadmap](ROADMAP.md) điều phối thí nghiệm sớm F-003, [protocol](PROTOCOL.md) và [testing](TESTING.md) là planned contracts/evidence.

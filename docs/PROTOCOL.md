@@ -1,3 +1,37 @@
+# Hợp đồng logic cho movement và combat TV2
+
+2026-11-02. PROPOSED, chưa code/wire/API Mirror. [SRS](../Long_document/srs.md) v0.4 sở hữu luật/GD; [TASKS](TASKS.md) TV2-004 sở hữu việc review; [ARCHITECTURE](ARCHITECTURE.md) sở hữu ownership. MSG-01–13 cũ ở phần lịch sử, không dùng như contract song song. Tên CT-201–205 dưới đây là contract mới, chưa định kiểu dữ liệu/channel/serialization.
+
+## Hợp đồng phối hợp
+
+| Contract | Dữ liệu logic / bên gửi | Xử lý / bên sở hữu | Bàn giao và test |
+| --- | --- | --- | --- |
+| CT-201 MovementIntent | TV3 thu movement axes, aim intent nếu chọn, thứ tự input nếu adapter cần; không authoritative position/speed | TV1 nhận, xác thực ownership, finite/bounded decode; TV2 quy định magnitude/units, speed và eligibility; TV1 simulate/collide | TV2-003/004; TC-202; missing/stale input policy TV1+TV2 |
+| CT-202 ShotRequest | Client gửi ý định bắn và aim theo GD-03; shot identity chỉ nếu retry/delivery cần; không damage/hit target truth | TV1 suy actor từ authenticated connection; TV2 kiểm match/life/cooldown/server geometry/range/obstruction/target | TV2-004/006; TC-203/204 |
+| CT-203 CombatResult | Server tạo accepted/rejected reason, shot/life context và HP/death/score revision cần thiết | TV2 tạo gameplay outcome, TV1 sync; client không gửi HP/damage/score đã quyết định | TV3 hiển thị authoritative result; TC-204/205/207 |
+| CT-204 GameplayState | Server pose từ TV1, HP/life/score/cooldown và match state theo TV2; config revision | TV1 truyền baseline/update; TV3 dùng presentation contract, không tự trừ HP/credit; stale state không rollback | TC-205–208; fields/units/revision phải review cả ba |
+| CT-205 LifecycleBridge | TV1 báo start eligibility/disconnect/resume/spawn availability; TV2 trả gameplay transitions/timers; TV3 báo load và hiển thị | TV1 sở hữu session/lobby/auth, TV2 sở hữu life/match rules; reconnect lấy state server hiện tại | TC-201/206–208; GD-04/06/07/08 |
+
+## Gate server và tính đúng một lần
+
+1. TV1 xác thực connection và gắn actor từ ownership; không tin participant/actor do client khai. Kiểm schema/size/rate ở ingress theo transport được chọn; TV2 xác định giá trị gameplay finite và trong miền. Nếu cần normalization/clamp movement, contract phải chỉ rõ miền nào reject và miền nào normalize; không chấp nhận NaN/infinity.
+2. TV2 kiểm match Playing, life Alive, movement/fire eligibility, config hợp lệ và cooldown dùng server time. Client timestamp không quyết định hết cooldown. Range/damage/HP/score chỉ do server config/state quyết định.
+3. Origin phải lấy từ pose/muzzle server hoặc đối chiếu với pose server trong dung sai GD-03. Direction phải hữu hạn, khác zero, normalized/validated theo aim contract; client aim tự do trong giới hạn đã duyệt khác việc tin vị trí bất kỳ. Chưa chốt camera không suy tia luôn theo movement-facing cũ.
+4. Server raycast kiểm obstruction/layer/trigger/target và range; không dùng client hit claim. Quy tắc self-hit, dead target, điểm origin nằm trong collider và target nhiều colliders được review trước integration. Một shot hợp lệ không damage cùng target nhiều lần chỉ vì nhiều colliders.
+5. Một accepted shot/effect không áp dụng damage hai lần; một Alive → Dead của cùng life chỉ award score một lần. Gắn life context để callback trước respawn không giết/credit life mới. HP clamp [0,maxHP]; explicit Dead/RespawnPending/Alive transitions theo server policy.
+6. Chỉ bổ sung request sequence/id và bounded replay window khi TV1 xác nhận delivery/retry/reconnect path thực có khả năng phát lại intent. Không tự đặt global replay database/cache hay copy envelope MSG cũ. Dù adapter không retry, death callbacks và multi-collider vẫn cần idempotent gameplay effect. Cơ chế cụ thể, reset theo match/life/connection và giới hạn bộ nhớ là deliverable TV2-004 với TV1.
+7. TV1 sync revision/state và current snapshot cho reconnect; TV3 hiển thị kết quả server, loại presentation event trùng nếu adapter có replay. Reconnect không tạo quyền tự reset cooldown/HP/score; việc timer tiếp tục hay tạm dừng, offline avatar và respawn theo GD-08 cần nhóm duyệt.
+
+## Review trước tích hợp
+
+TV1+TV2 chốt fields/types/units/limits/reject reasons/life identity, ownership ingress vs gameplay gate, ordering và missing/stale input. TV3 chốt camera/aim, HUD fields và feedback của reject/death/respawn/results. Lưu ví dụ hợp lệ/không hợp lệ và mapping CT → selected Mirror adapter sau TECH-001; chưa quy định RPC/SyncVar/channel theo phiên bản chưa kiểm. Contract thay phải review cả ba cùng tài liệu, không đợi cuối M3.
+
+---
+
+## LỊCH SỬ — Baseline ngày 2026-11-01, không dùng làm cổng nghiệm thu kế hoạch TV2
+
+> Toàn bộ nội dung bên dưới được giữ để truy vết. Các nhãn CURRENT, CONFIRMED, mandatory, TODO và next action bên trong chỉ có nghĩa tại thời điểm baseline cũ. Không cộng các nghĩa vụ cũ vào kế hoạch TV2 mới.
+
 # Protocol plan — framework-neutral, chưa triển khai
 
 2026-11-01. Contract draft **PROPOSED**, implementation TODO; không RPC signature/serialization/channel nào được duyệt. [SRS](../Long_document/srs.md) sở hữu luật, [ARCHITECTURE](ARCHITECTURE.md) sở hữu authority/topology; protocol chỉ mô tả thông tin và validation dự kiến. F-014 phải thay placeholders bằng API/wire mapping của **một** framework sau TECH-001 và kiểm TC-115. Không REST/database/backend mới.
