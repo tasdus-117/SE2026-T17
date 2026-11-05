@@ -56,7 +56,7 @@ Mỗi task gồm hai bước: draft/review không cần Unity và implementation
 - Acceptance criteria: Mọi khác biệt có resolution cá nhân, không cộng hai scope; nhóm ghi outcome khi review.
 - Verification/evidence: Matrix đối chiếu D/M/N/P, agenda đủ GD-01–09, dependency DAG/history/link/UTF-8/Git checks tại WORK_LOG; gameplay NOT RUN, human review chưa có.
 - Open decisions và next action: Gửi PR review TV1/TV3/nhóm, ghi actual decision/approver/date. TV2-002 có thể bắt đầu draft ký hiệu sau authorization riêng; chưa implementation.
-- Commits: prerequisite d977f57; content/delivery commits và PR xem PROJECT_STATE/PR handoff. Integration: chưa thực hiện, cần quyền merge riêng.
+- Commits: prerequisite d977f57; content 4ecb97ae3b72946a8ade7451993e40115ae6a6f8 đã push và remote SHA verified. PR creation bị hủy ở connector; exact-head search chưa thấy PR, Codex review chưa requested; delivery mới nhất xem PROJECT_STATE. Integration: chưa thực hiện, cần quyền merge riêng.
 
 ## TV2-002 — Dữ liệu nhân vật, state và config
 

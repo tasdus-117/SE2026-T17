@@ -4,7 +4,7 @@ Last updated: 2026-11-05 (Asia/Bangkok). Owner 23001901 / TV2; AI hỗ trợ tà
 
 ## Branch/base và task
 
-- Worktree task: .tv2-001-worktree/; active feature/TV2-001-scope-reconciliation-and-decisions. Tạo từ latest fetched origin/long23001901 = 1d7a6c91fb7c2a3ef2fa233c1d5efe5cc60b462e; merge-base cùng SHA. Trước content commit: HEAD d977f57e7ffa3e7b98136476e64d6876893e50d7, ahead 1/behind 0; delivery hash ghi ở PR/handoff sau commit. Không merge/rebase/cherry-pick đang diễn ra.
+- Worktree task: .tv2-001-worktree/; active feature/TV2-001-scope-reconciliation-and-decisions. Tạo từ latest fetched origin/long23001901 = 1d7a6c91fb7c2a3ef2fa233c1d5efe5cc60b462e; merge-base cùng SHA. Content commit 4ecb97ae3b72946a8ade7451993e40115ae6a6f8 đã commit/push và ls-remote xác nhận đúng SHA; lúc kiểm delivery trước memory commit: ahead 2/behind 0, task worktree clean. Memory delivery commit sau đó không tự ghi hash của chính nó. Không merge/rebase/cherry-pick đang diễn ra.
 - Prerequisite commit d977f57 chuyển chọn lọc 13 Markdown paths từ source docs/23001901/online-ffa-roadmap 5338ba4629ce1668ff92269dc8e7d7b7c500df64. Không import prompts/prototypes/assignment/code. Content TV2-001 tách commit riêng.
 - TV2-001 BLOCKED ở required human decision/review/integration gate; document deliverables hoàn tất và đã kiểm. GD-01–09 UNDECIDED, actual decision/approver/date chưa có. TV2-002–013 TODO; không code gameplay trong task này.
 
@@ -20,8 +20,8 @@ Last updated: 2026-11-05 (Asia/Bangkok). Owner 23001901 / TV2; AI hỗ trợ tà
 
 - Worktree gốc vẫn docs/23001901/online-ffa-roadmap tại 5338ba4; untracked execution prompt giữ nguyên. .tv2-001-worktree/ xuất hiện untracked ở worktree gốc do vị trí cô lập; không stage vào docs branch. Assignment worktree/branch không đổi.
 - Chỉ task-related Markdown trong task branch được stage/commit. Source docs/main/integration/teammate/setup/assignment refs read-only. Không thay remote permissions/protections hoặc dừng Editor.
-- Snapshot này trước content commit/push/PR: content changes chưa commit, push/PR chưa thực hiện. Delivery sẽ được cập nhật bằng record riêng sau khi quan sát thực, không tự tham chiếu hash. Không merge được ủy quyền.
+- Content commit/push đã xác minh. GitHub compare base/head xác nhận đúng 13 Markdown paths, ahead 2/behind 0 ở 4ecb97a. create_pull_request trả “user cancelled MCP tool call”; repo PR search theo exact head sau đó không tìm thấy PR. Chưa có PR URL, summary comment, @codex review request hoặc external review. Đã hỏi owner có tiếp tục thao tác PR bị hủy không; chưa có câu trả lời tại snapshot này. Không merge được ủy quyền.
 
 ## Exact next action
 
-Hoàn tất content commit, push exact task branch, mở PR base long23001901, đăng task summary và một @codex review sau khi kiểm request hiện có; quan sát actual review/check output và ghi delivery record. Sau delivery: TV1/TV3/nhóm review matrix/GD, ghi quyết định/approver/date; chưa merge nếu chưa được phép riêng. TV2-002 schema draft bằng ký hiệu là việc tiếp theo có thể bắt đầu sau authorization nhánh/task phù hợp và prerequisites trong approved integration; không tạo thêm branch trong TV2-001.
+Sau khi owner xác nhận tiếp tục thao tác PR đã bị hủy: kiểm exact-head PR lần nữa, tạo/update một PR base long23001901, đăng summary và một @codex review nếu chưa có, quan sát actual results; ghi delivery. Content đã push, không tạo lại branch. Sau delivery: TV1/TV3/nhóm review matrix/GD, ghi quyết định/approver/date; chưa merge nếu chưa được phép riêng. TV2-002 schema draft bằng ký hiệu là việc tiếp theo có thể bắt đầu sau authorization nhánh/task phù hợp và prerequisites trong approved integration; không tạo thêm branch trong TV2-001.
