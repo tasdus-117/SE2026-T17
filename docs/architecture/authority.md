@@ -6,6 +6,8 @@ Bảy asmdef hiện tại: Shared.Domain, Shared.Protocol, Networking, Server, C
 
 Mẫu offline không chứng minh authority trên mạng. [TV1.1](tv1.1-network-lifecycle.md) có server-owned spawn và gate local owner. [TV1.2](tv1.2-server-movement.md) chuyển di chuyển mạng sang Command ý định → validation → FixedUpdate/CharacterController trên server → NetworkTransformReliable ServerToClient. Client không gửi pose, speed hoặc delta được tin cậy; nhánh PlayerController offline vẫn giữ riêng. [TV1.3](../testing/tv1.3-results.md) đã kiểm chứng native client và connection ảo trong PlayMode, gồm Command giả quyền và cleanup disconnect; chưa chứng nhận nhiều tiến trình độc lập. Xem [báo cáo di trú](main-migration-audit.md) và ngữ cảnh cục bộ `PROJECT_CONTEXT.md`.
 
+Trong [M2 hosted lobby](m2-lobby-rooms.md), Server/Sessions giữ thành viên/readiness/host và khóa pha Waiting → Loading → Playing. Networking chỉ bridge lifecycle/message/scene, UI chỉ gửi yêu cầu Ready/Start và đọc snapshot. Request không chứa ID tự khai hoặc quyền host. NetworkServer giới hạn bốn connection, server gate không spawn avatar trong lobby. Domain match/combat mạng không được thay thế bằng pha lobby này.
+
 ## Luồng xử lý
 
 Input client → hợp đồng Protocol → adapter Mirror → kiểm tra server → mô phỏng/combat → trạng thái server → replication → client hiển thị.

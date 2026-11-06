@@ -316,7 +316,8 @@ namespace SmallArena.Tests.PlayMode
                 var identity = connectionA.identity;
                 var id = identity.netId;
                 manager.StopClient();
-                yield return Until(() => !NetworkClient.active && !NetworkServer.connections.ContainsKey(M1LoopbackTransport.NativeClientId));
+                yield return Until(() => !NetworkClient.active && !NetworkServer.connections.ContainsKey(M1LoopbackTransport.NativeClientId)
+                    && !transport.VisibleTo(2).Contains(id));
                 yield return null;
                 Assert.That(stops, Is.EqualTo(1));
                 Assert.That(NetworkClient.spawned, Is.Empty);

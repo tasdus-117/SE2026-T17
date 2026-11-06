@@ -72,6 +72,8 @@ internal static class ArenaLayoutVerifier
             "com.unity.render-pipelines.universal/Runtime/UniversalAdditionalLightData.cs.meta",
             "com.unity.render-pipelines.universal/Editor/AssetVersion.cs.meta",
             "com.unity.ugui/Runtime/TMP/TextMeshProUGUI.cs.meta",
+            "com.unity.ugui/Runtime/TMP/TMP_InputField.cs.meta",
+            "com.unity.ugui/Runtime/UGUI/UI/Core/RectMask2D.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Layout/CanvasScaler.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Button.cs.meta",
@@ -379,13 +381,14 @@ internal static class ArenaLayoutVerifier
         {
             var owner = mainMenu.Named(buttonName);
             var button = mainMenu.OfType("MonoBehaviour").Single(item => Id(Field(item.Data, "m_GameObject")) == owner.Id && Text(Map(Field(item.Data, "m_Script")), "guid") == buttonGuid);
-            var enabled = buttonName == "SinglePlayerButton" || buttonName == "ExitButton";
+            var enabled = buttonName != "TutorialButton";
             Check(Number(button.Data, "m_Interactable") == (enabled ? 1 : 0), "Menu option interactability mismatch.");
             if (enabled)
             {
                 var calls = Sequence(Field(Map(Field(Map(Field(button.Data, "m_OnClick")), "m_PersistentCalls")), "m_Calls")).Select(Map).ToArray();
                 Check(calls.Length == 1 && Id(Field(calls[0], "m_Target")) == menuController.Id, "Menu button callback target is incorrect.");
-                Check(Text(calls[0], "m_MethodName") == (buttonName == "SinglePlayerButton" ? "OnSinglePlayerClicked" : "OnExitClicked"), "Menu button callback method is incorrect.");
+                var method = buttonName == "SinglePlayerButton" ? "OnSinglePlayerClicked" : buttonName == "MultiplayerButton" ? "OnMultiplayerClicked" : "OnExitClicked";
+                Check(Text(calls[0], "m_MethodName") == method, "Menu button callback method is incorrect.");
             }
         }
         Check(mainMenu.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == inputModuleGuid) == 1,

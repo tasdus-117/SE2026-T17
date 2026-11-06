@@ -8,6 +8,8 @@ Scene hiện có: MainMenu (index 0), Bootstrap (index 1), Arena_MVP (index 2). 
 
 [TV1.1](tv1.1-network-lifecycle.md) thêm ArenaNetworkManager/NetworkPlayer trong Networking và bốn NetworkStartPosition trong Arena_MVP. [TV1.2](tv1.2-server-movement.md) thêm MovementInput trong Shared/Protocol, NetworkMovement trong Networking, validator và ServerPlayerMovement trong Server; NetworkTransformReliable thực hiện ServerToClient replication. Scene offline gỡ đủ năm component mạng bằng override. OfflineMatchScope tách actor/HUD mẫu khi tải arena trong phiên mạng. [TV1.3](../testing/tv1.3-results.md) đã chạy đạt bảy test PlayMode loopback; M1 ký theo phạm vi lifecycle/movement trong engine. Bước tiếp theo M2 lobby/room; chưa có combat mạng hoặc phục hồi phiên có token.
 
+M2 TV1 bổ sung LobbyMessages trong Networking, LobbyRoom/ServerLobbyController trong Server/Sessions, view/controller UI trong Client/UI và ArenaNetworkRoot prefab cho MainMenu. [Phòng chờ cơ bản](m2-lobby-rooms.md) đã kiểm chứng Host/Join/Ready/Start và capacity bốn người; [kết quả native/standalone](../testing/m2-lobby-results.md) ghi rõ phạm vi. Bootstrap M1 trực tiếp và các tính năng offline vẫn giữ riêng.
+
 ## Gốc repository
 
 - `Assets/`: mã và tài nguyên Unity nhập vào project.
