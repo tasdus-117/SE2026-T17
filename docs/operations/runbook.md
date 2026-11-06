@@ -2,18 +2,20 @@
 
 ## Chạy mẫu offline và kiểm tra thực tế
 
-Dùng Unity 6000.6.7f1 mở gốc repository; chạy MainMenu và chọn Single Player. Build order: MainMenu 0, Bootstrap 1, Arena_MVP 2. Mirror 96.0.1 giữ nguyên ở Assets/Mirror; Packages/ProjectSettings được phục hồi từ project thật.
+Dùng Unity 6000.6.8f1 (khớp ProjectVersion.txt) mở gốc repository; chạy MainMenu và chọn Single Player. Build order: MainMenu 0, Bootstrap 1, Arena_MVP 2. Mirror 96.0.1 giữ nguyên ở Assets/Mirror; giữ Packages/ProjectSettings của project.
 
 Từ PowerShell ở gốc repository:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/Verify-Scaffold.ps1 -CompileProbes
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/Run-DomainTests.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/Verify-ArenaLayout.ps1
-& 'C:/Program Files/Unity/Hub/Editor/6000.6.7f1/Editor/Unity.exe' -batchmode -nographics -projectPath (Get-Location).Path -runTests -testPlatform PlayMode -testResults "$PWD/TestResults/Migration/PlayMode.xml" -logFile "$PWD/Logs/Migration-PlayMode.log"
+$editorRoot = 'C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor'
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Run-DomainTests.ps1 -EditorRoot $editorRoot
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Verify-ArenaLayout.ps1 -EditorRoot $editorRoot
+& "$editorRoot/Unity.exe" -batchmode -nographics -projectPath (Get-Location).Path -runTests -testPlatform PlayMode -testResults "$PWD/TestResults/TV13Verified/PlayMode.xml" -logFile "$PWD/Logs/TV13Verified-PlayMode.log" | Out-Null
+& "$editorRoot/Unity.exe" -batchmode -nographics -projectPath (Get-Location).Path -runTests -testPlatform EditMode -testFilter SmallArena.Tests.EditMode -testResults "$PWD/TestResults/TV13Verified/EditMode.xml" -logFile "$PWD/Logs/TV13Verified-EditMode.log" | Out-Null
 ```
 
-Đóng project đang mở trước khi chạy batch cùng thư mục, hoặc dùng bản sao kiểm chứng; không ép tắt editor chứa thay đổi chưa lưu. Roslyn chỉ kiểm tra biên dịch, không thay Unity import/Mirror weaving hoặc physics native. Kết quả tổng hợp ở [migration-results.md](../testing/migration-results.md); dữ liệu thô trong TestResults/Logs được Git bỏ qua.
+Đóng project đang mở trước khi chạy batch cùng thư mục, hoặc dùng bản sao kiểm chứng; không ép tắt editor chứa thay đổi chưa lưu. Cần license Editor hợp lệ trong Hub; nếu gặp mã 198, kiểm tra lại license trước khi chạy. Roslyn chỉ kiểm tra biên dịch, không thay Unity import/Mirror weaving hoặc physics native. Kết quả M1 hiện hành ở [tv1.3-results.md](../testing/tv1.3-results.md), lịch sử di trú ở [migration-results.md](../testing/migration-results.md); dữ liệu thô trong TestResults/Logs được Git bỏ qua.
 
 Các mục scripts/CI bên dưới vẫn là kế hoạch. Script cục bộ không phải workflow CI hay bằng chứng build/network nhiều tiến trình.
 

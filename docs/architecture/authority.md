@@ -4,7 +4,7 @@
 
 Bảy asmdef hiện tại: Shared.Domain, Shared.Protocol, Networking, Server, Client, EditMode.Tests và PlayMode.Tests (tiền tố SmallArena.). Domain/Protocol độc lập engine; Protocol dùng Domain; Networking dùng Shared/Mirror; Server và Client dùng Shared/Networking, không tham chiếu nhau. Trạng thái offline do MatchStateMachine trong Domain quản lý; adapter Server nhận input/readiness/lệnh kết thúc qua interface Shared.
 
-Mẫu offline không chứng minh authority trên mạng. [TV1.1](tv1.1-network-lifecycle.md) có server-owned spawn và gate local owner. [TV1.2](tv1.2-server-movement.md) chuyển di chuyển mạng sang Command ý định → validation → FixedUpdate/CharacterController trên server → NetworkTransformReliable ServerToClient. Client không gửi pose, speed hoặc delta được tin cậy; nhánh PlayerController offline vẫn giữ riêng. TV1.3 kiểm chứng nhiều tiến trình và phục hồi khi disconnect. Xem [báo cáo di trú](main-migration-audit.md) và ngữ cảnh cục bộ `PROJECT_CONTEXT.md`.
+Mẫu offline không chứng minh authority trên mạng. [TV1.1](tv1.1-network-lifecycle.md) có server-owned spawn và gate local owner. [TV1.2](tv1.2-server-movement.md) chuyển di chuyển mạng sang Command ý định → validation → FixedUpdate/CharacterController trên server → NetworkTransformReliable ServerToClient. Client không gửi pose, speed hoặc delta được tin cậy; nhánh PlayerController offline vẫn giữ riêng. [TV1.3](../testing/tv1.3-results.md) đã kiểm chứng native client và connection ảo trong PlayMode, gồm Command giả quyền và cleanup disconnect; chưa chứng nhận nhiều tiến trình độc lập. Xem [báo cáo di trú](main-migration-audit.md) và ngữ cảnh cục bộ `PROJECT_CONTEXT.md`.
 
 ## Luồng xử lý
 

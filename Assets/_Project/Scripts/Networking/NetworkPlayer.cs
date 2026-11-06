@@ -14,9 +14,23 @@ namespace SmallArena.Networking
 
         public static event Action<NetworkPlayer> OnLocalPlayerSpawned;
         public static event Action<NetworkPlayer> OnLocalPlayerDespawned;
+        private bool localLifecycleStarted;
 
-        public override void OnStartLocalPlayer() => OnLocalPlayerSpawned?.Invoke(this);
-        public override void OnStopLocalPlayer() => OnLocalPlayerDespawned?.Invoke(this);
+        public override void OnStartLocalPlayer()
+        {
+            if (localLifecycleStarted) return;
+            localLifecycleStarted = true;
+            OnLocalPlayerSpawned?.Invoke(this);
+        }
+
+        public override void OnStopLocalPlayer()
+        {
+            if (!localLifecycleStarted) return;
+            localLifecycleStarted = false;
+            OnLocalPlayerDespawned?.Invoke(this);
+        }
+
+        public override void OnStopClient() => OnStopLocalPlayer();
 
         [Server]
         public void SetConnectionId(int connId) => ConnectionId = connId;

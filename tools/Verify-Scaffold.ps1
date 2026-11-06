@@ -1,11 +1,14 @@
 param(
-    [string]$EditorRoot = 'C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor',
+    [string]$EditorRoot = '',
     [switch]$CompileProbes
 )
 
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $taskRoot
+$versionText = [IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/ProjectVersion.txt'))
+$projectVersion = [regex]::Match($versionText, '(?m)^m_EditorVersion:\s*(\S+)').Groups[1].Value
+if (-not $EditorRoot) { $EditorRoot = Join-Path (Join-Path 'C:\Program Files\Unity\Hub\Editor' $projectVersion) 'Editor' }
 
 function Assert-Scaffold([bool]$Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }
@@ -76,7 +79,11 @@ foreach ($meta in @(Get-Item -LiteralPath 'Assets.meta') + @(Get-ChildItem -Lite
 }
 Assert-Scaffold ([IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/EditorSettings.asset')) -match 'm_SerializationMode: 2') 'Force Text is disabled.'
 Assert-Scaffold ([IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/VersionControlSettings.asset')) -match 'm_Mode: Visible Meta Files') 'Visible Meta Files is disabled.'
-Assert-Scaffold ([IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/ProjectVersion.txt')) -match 'm_EditorVersion: 6000.6.7f1') 'Unexpected Editor version.'
+Assert-Scaffold ($projectVersion -match '^6000\.') 'Project must use Unity 6.'
+$editorBinary = Join-Path $EditorRoot 'Unity.exe'
+Assert-Scaffold (Test-Path -LiteralPath $editorBinary) "Missing Unity Editor binary: $editorBinary"
+$installedVersion = (Get-Item -LiteralPath $editorBinary).VersionInfo.ProductVersion.Split('_')[0]
+Assert-Scaffold ($installedVersion -eq $projectVersion) "Project version $projectVersion does not match installed Editor $installedVersion."
 $graphics = [IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/GraphicsSettings.asset'))
 $pipelineMatch = [regex]::Match($graphics, 'm_CustomRenderPipeline: .*guid: ([0-9a-f]{32})')
 Assert-Scaffold ($pipelineMatch.Success -and $guids.ContainsKey($pipelineMatch.Groups[1].Value)) 'Default URP asset is missing or unassigned.'
