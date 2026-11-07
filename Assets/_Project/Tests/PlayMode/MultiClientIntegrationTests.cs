@@ -347,6 +347,7 @@ namespace SmallArena.Tests.PlayMode
         private bool server;
         private bool client;
         public CommandMessage? MovementTemplate { get; private set; }
+        public CommandMessage? AttackTemplate { get; private set; }
         public HashSet<uint> VisibleTo(int id) => visible.TryGetValue(id, out var set) ? set : new HashSet<uint>();
         public int StateMessagesTo(int id, uint netId) => states.TryGetValue(id, out var counts) && counts.TryGetValue(netId, out var count) ? count : 0;
         public override bool Available() => true;
@@ -379,7 +380,9 @@ namespace SmallArena.Tests.PlayMode
                 if (id != NetworkMessages.GetId<CommandMessage>()) return;
                 var command = reader.Read<CommandMessage>();
                 command.payload = default; // Keep metadata only, never the pooled payload.
-                MovementTemplate = command;
+                if (NetworkClient.spawned.TryGetValue(command.netId, out var identity)
+                    && identity.NetworkBehaviours[command.componentIndex] is NetworkPlayer) AttackTemplate = command;
+                else MovementTemplate = command;
             });
             var copy = segment.ToArray();
             // A disconnected transport drops buffered outgoing packets, like KCP.

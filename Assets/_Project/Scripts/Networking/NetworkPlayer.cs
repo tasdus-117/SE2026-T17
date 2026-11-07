@@ -16,6 +16,17 @@ namespace SmallArena.Networking
         public static event Action<NetworkPlayer> OnLocalPlayerDespawned;
         private bool localLifecycleStarted;
 
+        public void RequestAttack(Vector3 aimDirection)
+        {
+            if (isLocalPlayer && isClient && NetworkClient.ready) CmdPerformAttack(aimDirection);
+        }
+
+        [Command(requiresAuthority = true)]
+        private void CmdPerformAttack(Vector3 aimDirection)
+        {
+            if (TryGetComponent<NetworkCombat>(out var combat)) combat.PerformAttack(aimDirection);
+        }
+
         public override void OnStartLocalPlayer()
         {
             if (localLifecycleStarted) return;

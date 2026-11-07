@@ -59,6 +59,8 @@ internal static class ArenaLayoutVerifier
         var mainMenuPath = System.IO.Path.Combine(prefix, "Scenes/MainMenu.unity");
         var mainMenu = Read(mainMenuPath);
         var inGameMenu = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/InGameMenu.prefab"));
+        var networkHud = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/NetworkHUD.prefab"));
+        var overhead = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/OpponentHealthBar.prefab"));
         var names = new[] { "Player", "Bot", "WeaponPickup" };
         var prefabs = names.ToDictionary(name => name, name => Read(System.IO.Path.Combine(prefix,
             "Prefabs/" + (name == "WeaponPickup" ? "Combat/" : "Characters/") + name + ".prefab")));
@@ -78,6 +80,7 @@ internal static class ArenaLayoutVerifier
             "com.unity.ugui/Runtime/UGUI/UI/Core/Layout/CanvasScaler.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Button.cs.meta",
+            "com.unity.ugui/Runtime/UGUI/UI/Core/Slider.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/GraphicRaycaster.cs.meta",
             "com.unity.ugui/Runtime/UGUI/EventSystem/EventSystem.cs.meta",
             "com.unity.render-pipelines.core/Runtime/Volume/Volume.cs.meta"
@@ -105,7 +108,7 @@ internal static class ArenaLayoutVerifier
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
             expectedTypes.Add("MonoBehaviour");
-            var expectedCount = expectedTypes.Count + (name == "Player" ? 7 : 0);
+            var expectedCount = expectedTypes.Count + (name == "Player" ? 11 : 0);
             Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
             var layerName = name == "WeaponPickup" ? "Pickup" : name;
@@ -132,6 +135,10 @@ internal static class ArenaLayoutVerifier
         var networkIdentity = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == identityGuid);
         Check(Number(networkIdentity.Data, "sceneId") == 0 && Number(networkIdentity.Data, "_assetId") != 0, "Network player prefab must have an asset ID and no scene ID.");
         Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == networkPlayerGuid) == 1, "NetworkPlayer bridge missing.");
+        foreach (var script in new[] { "Networking/NetworkHealth", "Networking/NetworkCombat", "Client/Input/NetworkCombatInput", "Client/Presentation/OpponentHealthPresenter" })
+            Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == ReadGuid(System.IO.Path.Combine(prefix, "Scripts/" + script + ".cs.meta"))) == 1, "Network combat component missing: " + script);
+        Check(Number(overhead.Only("Canvas").Data, "m_RenderMode") == 2, "Opponent health must use a world-space canvas.");
+        Check(Number(networkHud.Only("Canvas").Data, "m_SortingOrder") == 20, "Network HUD must remain below the pause menu.");
         var networkMovementGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/NetworkMovement.cs.meta"));
         var simulationGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Simulation/ServerPlayerMovement.cs.meta"));
         var transformGuid = ReadGuid(System.IO.Path.Combine(root, "Assets/Mirror/Components/NetworkTransform/NetworkTransformReliable.cs.meta"));
@@ -227,7 +234,7 @@ internal static class ArenaLayoutVerifier
                 Check(geometryBoxes[northSouth].Overlaps(geometryBoxes[eastWest]), "Open corner seam.");
 
         var instances = scene.OfType("PrefabInstance").ToArray();
-        Check(instances.Length == 4, "Expected three gameplay prefabs and the independent in-game menu prefab.");
+        Check(instances.Length == 5, "Expected three gameplay prefabs, in-game menu and network HUD.");
         var inGameMenuGuid = ReadGuid(inGameMenu.Path + ".meta");
         var menuInstance = instances.Single(item => Text(Map(Field(item.Data, "m_SourcePrefab")), "guid") == inGameMenuGuid);
         Check(Id(Field(Map(Field(menuInstance.Data, "m_Modification")), "m_TransformParent")) == 0, "Menu must be independent of the offline match scope.");
@@ -259,7 +266,7 @@ internal static class ArenaLayoutVerifier
             Check(Id(Field(modification, "m_TransformParent")) == 0, "Entity must be a scene root.");
             var removed = Sequence(Field(modification, "m_RemovedComponents")).ToArray();
             if (name == "Player")
-                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010, 1011, 1012, 1013 }), "Offline player must remove identity, lifecycle, command, simulation and replication components.");
+                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017 }), "Offline player must remove all network simulation, health, combat and presentation components.");
             else Check(removed.Length == 0, "Unexpected removed prefab component.");
             foreach (var key in new[] { "m_RemovedGameObjects", "m_AddedGameObjects", "m_AddedComponents" })
                 Check(!Sequence(Field(modification, key)).Any(), "Unexpected structural prefab override.");

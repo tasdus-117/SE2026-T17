@@ -5,6 +5,8 @@ using SmallArena.Domain;
 using SmallArena.Protocol;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 namespace SmallArena.Input
 {
@@ -22,6 +24,9 @@ namespace SmallArena.Input
         private InputAction interact;
         private bool jumpPressed;
         private bool punchPressed;
+        private bool mousePunchPressed;
+        private Mouse punchMouse;
+        private readonly List<RaycastResult> uiHits = new List<RaycastResult>();
         private bool interactPressed;
         private NetworkIdentity netIdentity;
         private bool menuInputBlocked;
@@ -42,7 +47,24 @@ namespace SmallArena.Input
         }
 
         public bool ConsumeJumpPressed() => Consume(ref jumpPressed);
-        public bool ConsumePunchPressed() => Consume(ref punchPressed);
+        public bool ConsumePunchPressed()
+        {
+            var keyboard = Consume(ref punchPressed);
+            var mouse = Consume(ref mousePunchPressed);
+            return keyboard || mouse && !PointerOverUI();
+        }
+        private bool PointerOverUI()
+        {
+            var system = EventSystem.current;
+            if (system == null) return false;
+            // Run after input callbacks; querying UI there uses stale state and emits Input System warnings.
+            if (system.IsPointerOverGameObject()) return true;
+            var pointer = punchMouse ?? Mouse.current;
+            if (pointer == null) return false;
+            uiHits.Clear();
+            system.RaycastAll(new PointerEventData(system) { position = pointer.position.ReadValue() }, uiHits);
+            return uiHits.Count != 0;
+        }
         public bool ConsumeInteractPressed() => Consume(ref interactPressed);
 
         /// <summary>Optional composition seam; call while inactive, before the first enable.</summary>
@@ -164,7 +186,9 @@ namespace SmallArena.Input
 
         private void OnPunch(InputAction.CallbackContext context)
         {
-            if (context.ReadValueAsButton()) punchPressed = true;
+            if (!context.ReadValueAsButton()) return;
+            if (context.control.device is Mouse pointer) { mousePunchPressed = true; punchMouse = pointer; }
+            else punchPressed = true;
         }
 
         private void OnInteract(InputAction.CallbackContext context)
@@ -177,6 +201,8 @@ namespace SmallArena.Input
             MoveInput = Vector2.zero;
             jumpPressed = false;
             punchPressed = false;
+            mousePunchPressed = false;
+            punchMouse = null;
             interactPressed = false;
         }
 

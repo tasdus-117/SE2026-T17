@@ -19,6 +19,7 @@ namespace SmallArena.Server.Simulation
 
         private CharacterController character;
         private NetworkMovement bridge;
+        private NetworkHealth health;
         private Vector2 move;
         private float verticalVelocity;
         private bool pendingJump;
@@ -36,6 +37,7 @@ namespace SmallArena.Server.Simulation
         {
             character = GetComponent<CharacterController>();
             bridge = GetComponent<NetworkMovement>();
+            health = GetComponent<NetworkHealth>();
         }
 
         public override void OnStartServer()
@@ -63,7 +65,7 @@ namespace SmallArena.Server.Simulation
 
         private void ReceiveInput(MovementInput input)
         {
-            if (!isServer || !isActiveAndEnabled || (hasInput && !MovementInputValidator.IsNewer(input.Sequence, lastSequence))) return;
+            if (!isServer || !isActiveAndEnabled || health != null && !health.CanAct || (hasInput && !MovementInputValidator.IsNewer(input.Sequence, lastSequence))) return;
             if (!MovementInputValidator.TryClamp(input.MoveX, input.MoveZ, out var accepted)) return;
             move = accepted;
             lastSequence = input.Sequence;
@@ -80,7 +82,7 @@ namespace SmallArena.Server.Simulation
         private void FixedUpdate()
         {
             if (!isServer || !NetworkServer.active || !character.enabled) return;
-            var fresh = hasInput && NetworkTime.localTime - lastInputTime <= InputTimeout;
+            var fresh = (health == null || health.CanAct) && hasInput && NetworkTime.localTime - lastInputTime <= InputTimeout;
             var direction = fresh ? move : Vector2.zero;
             var jump = fresh && pendingJump;
             pendingJump = false;

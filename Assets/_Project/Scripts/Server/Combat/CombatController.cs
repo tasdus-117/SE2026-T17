@@ -55,7 +55,8 @@ namespace SmallArena.Player
 
         private void Update()
         {
-            if (netIdentity != null && !netIdentity.isLocalPlayer) return;
+            // Network actors use the owner Command pipeline, never the offline damage/pickup path.
+            if (netIdentity != null) return;
             if (inputHandler == null || inputSource == null) return;
             // Collection is independent of punch cooldown. A same-frame E + J uses the buff.
             var interactPressed = inputSource.ConsumeInteractPressed();

@@ -10,6 +10,13 @@ Trong [M2 hosted lobby](m2-lobby-rooms.md), Server/Sessions giữ thành viên/r
 
 ## Luồng xử lý
 
+[Combat/HUD mạng](network-combat-and-hud.md) bổ sung Command owner → melee server
+→ SyncVar HP/kết quả → HUD/overhead client. NetworkPlayer giữ bridge mỏng;
+NetworkCombat, NetworkHealth và NetworkMatchRules thuộc Networking theo phạm vi
+tích hợp hiện tại, không thêm Gameplay.asmdef thứ tám. UI không gọi TakeDamage;
+luồng offline được giữ riêng. Xem tài liệu liên kết để biết tuning, guard tải
+scene và kết quả regression thực tế.
+
 Input client → hợp đồng Protocol → adapter Mirror → kiểm tra server → mô phỏng/combat → trạng thái server → replication → client hiển thị.
 
 Server quyết định vị trí hợp lệ, máu, sát thương, cooldown, trạng thái trận và điểm số. Client gửi thao tác, không gửi kết quả được tin cậy. Hiệu ứng tại client có thể xuất hiện trước khi xác nhận nhưng phải có chính sách sửa sai lệch.

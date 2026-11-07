@@ -2,6 +2,8 @@ using Mirror;
 using SmallArena.Networking;
 using SmallArena.Server.Simulation;
 using UnityEngine;
+using SmallArena.Client;
+using SmallArena.Client.Presentation;
 
 namespace SmallArena.Tests.PlayMode
 {
@@ -12,6 +14,10 @@ namespace SmallArena.Tests.PlayMode
         {
             var player = Object.Instantiate(prefab, position, rotation);
             player.SetActive(false);
+            Object.DestroyImmediate(player.GetComponent<OpponentHealthPresenter>());
+            Object.DestroyImmediate(player.GetComponent<NetworkCombatInput>());
+            Object.DestroyImmediate(player.GetComponent<NetworkCombat>());
+            Object.DestroyImmediate(player.GetComponent<NetworkHealth>());
             Object.DestroyImmediate(player.GetComponent<ServerPlayerMovement>());
             Object.DestroyImmediate(player.GetComponent<NetworkMovement>());
             Object.DestroyImmediate(player.GetComponent<NetworkTransformReliable>());
