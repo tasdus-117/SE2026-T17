@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SmallArena.Networking;
 
 namespace SmallArena.Client.UI
 {
@@ -14,7 +15,7 @@ namespace SmallArena.Client.UI
 
         public static void LoadSinglePlayer() => SceneManager.LoadScene("Arena_MVP", LoadSceneMode.Single);
 
-        public static void LoadMainMenu() => SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+        public static void LoadMainMenu() => MatchSessionNavigation.ReturnToMainMenu();
 
         public static void ReloadActiveScene() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
     }

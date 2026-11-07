@@ -29,6 +29,19 @@ namespace SmallArena.Client.Verification
             public uint localPlayer;
             public string[] errors;
         }
+        [Serializable] private sealed class TeardownResult
+        {
+            public string role;
+            public string scenario;
+            public bool success;
+            public bool hostSurvivedClientLeave;
+            public string scene;
+            public bool networkStopped;
+            public bool freshManager;
+            public bool noIdentities;
+            public bool menuCursor;
+            public string[] errors;
+        }
         private readonly List<string> errors = new List<string>();
         private string role;
         private string directory;
@@ -89,8 +102,43 @@ namespace SmallArena.Client.Verification
             while ((SceneManager.GetActiveScene().name != "Arena_MVP" || NetworkClient.localPlayer == null || NetworkClient.spawned.Count != 2)
                 && Time.realtimeSinceStartup < deadline) yield return null;
             Finish(opened && manager.CurrentRoom.Phase == LobbyPhase.Playing && NetworkClient.spawned.Count == 2 && NetworkClient.localPlayer != null && errors.Count == 0);
+            if (Argument("--menu-teardown") != null) yield return Teardown();
             yield return new WaitForSecondsRealtime(2);
             Application.Quit(errors.Count == 0 ? 0 : 1);
+        }
+        private IEnumerator Teardown()
+        {
+            var scenario = Argument("--menu-teardown");
+            var deadline = Time.realtimeSinceStartup + 45;
+            var other = role == "host" ? "client" : "host";
+            while (!File.Exists(Path.Combine(directory, other + ".json")) && Time.realtimeSinceStartup < deadline) yield return null;
+            var menu = FindAnyObjectByType<InGameMenuController>();
+            var oldManager = manager;
+            var survived = false;
+            menu.ShowMatchResult(role == "host");
+            if (role == scenario) menu.GetComponent<InGameMenuView>().ResultReturnButton.onClick.Invoke();
+            else if (role == "host")
+            {
+                while (!File.Exists(Path.Combine(directory, "client.menu.json")) && Time.realtimeSinceStartup < deadline) yield return null;
+                survived = NetworkServer.active && NetworkClient.activeHost && NetworkServer.connections.Count == 1 && NetworkServer.spawned.Count == 1;
+                menu.LeaveMatch();
+            }
+            // In the host-leave case the client does not click Leave: transport disconnect must navigate it.
+            while ((SceneManager.GetActiveScene().name != "MainMenu" || MatchSessionNavigation.IsReturning) && Time.realtimeSinceStartup < deadline) yield return null;
+            yield return new WaitForSecondsRealtime(0.5f);
+            var fresh = NetworkManager.singleton as ArenaNetworkManager;
+            var stopped = !NetworkServer.active && !NetworkClient.active && NetworkClient.connection == null && NetworkClient.localPlayer == null;
+            var clean = NetworkServer.spawned.Count == 0 && NetworkClient.spawned.Count == 0 && FindObjectsByType<NetworkIdentity>().Length == 0;
+            var freshRoom = oldManager == null && fresh != null && fresh.RoomEnabled && fresh.CurrentRoom.Phase == LobbyPhase.Offline && FindObjectsByType<ArenaNetworkManager>().Length == 1;
+            var cursor = Cursor.lockState == CursorLockMode.None && Cursor.visible;
+            var success = SceneManager.GetActiveScene().name == "MainMenu" && stopped && clean && freshRoom && cursor && errors.Count == 0 && (role != "host" || scenario != "client" || survived);
+            File.WriteAllText(Path.Combine(directory, role + ".menu.json"), JsonUtility.ToJson(new TeardownResult
+            {
+                role = role, scenario = scenario, success = success, hostSurvivedClientLeave = survived,
+                scene = SceneManager.GetActiveScene().name, networkStopped = stopped, freshManager = freshRoom,
+                noIdentities = clean, menuCursor = cursor, errors = errors.ToArray()
+            }, true));
+            if (!success) Application.Quit(1);
         }
         private void Finish(bool success)
         {

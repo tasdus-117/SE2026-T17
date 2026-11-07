@@ -24,12 +24,22 @@ namespace SmallArena.Input
         private bool punchPressed;
         private bool interactPressed;
         private NetworkIdentity netIdentity;
+        private bool menuInputBlocked;
+        public bool IsMenuInputBlocked => menuInputBlocked;
 
         public Vector2 MoveInput { get; private set; }
         public bool IsInputReady => isActiveAndEnabled && CanReadInput && ownedActions != null;
         private bool CanReadInput => netIdentity == null || netIdentity.isLocalPlayer;
 
         public void EndMatch() => enabled = false;
+
+        public void SetMenuInputBlocked(bool blocked)
+        {
+            if (menuInputBlocked == blocked) return;
+            menuInputBlocked = blocked;
+            if (blocked) DisableGameplay();
+            else if (isActiveAndEnabled && CanReadInput) EnableGameplay();
+        }
 
         public bool ConsumeJumpPressed() => Consume(ref jumpPressed);
         public bool ConsumePunchPressed() => Consume(ref punchPressed);
@@ -51,12 +61,12 @@ namespace SmallArena.Input
             ClearInput();
             NetworkPlayer.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
             NetworkPlayer.OnLocalPlayerDespawned += HandleLocalPlayerDespawned;
-            if (CanReadInput) EnableGameplay();
+            if (CanReadInput && !menuInputBlocked) EnableGameplay();
         }
 
         private void HandleLocalPlayerSpawned(NetworkPlayer player)
         {
-            if (player.gameObject == gameObject && CanReadInput) EnableGameplay();
+            if (player.gameObject == gameObject && CanReadInput && !menuInputBlocked) EnableGameplay();
         }
 
         private void HandleLocalPlayerDespawned(NetworkPlayer player)

@@ -382,7 +382,8 @@ namespace SmallArena.Tests.PlayMode
                 MovementTemplate = command;
             });
             var copy = segment.ToArray();
-            pending.Enqueue(() => OnServerDataReceived.Invoke(NativeClientId, new ArraySegment<byte>(copy), channelId));
+            // A disconnected transport drops buffered outgoing packets, like KCP.
+            pending.Enqueue(() => { if (client) OnServerDataReceived.Invoke(NativeClientId, new ArraySegment<byte>(copy), channelId); });
         }
         public void SendFromVirtual<T>(int id, T message, int channelId = Channels.Reliable) where T : struct, NetworkMessage
         {

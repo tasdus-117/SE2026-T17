@@ -58,6 +58,7 @@ internal static class ArenaLayoutVerifier
         var scene = Read(scenePath);
         var mainMenuPath = System.IO.Path.Combine(prefix, "Scenes/MainMenu.unity");
         var mainMenu = Read(mainMenuPath);
+        var inGameMenu = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/InGameMenu.prefab"));
         var names = new[] { "Player", "Bot", "WeaponPickup" };
         var prefabs = names.ToDictionary(name => name, name => Read(System.IO.Path.Combine(prefix,
             "Prefabs/" + (name == "WeaponPickup" ? "Combat/" : "Characters/") + name + ".prefab")));
@@ -226,7 +227,17 @@ internal static class ArenaLayoutVerifier
                 Check(geometryBoxes[northSouth].Overlaps(geometryBoxes[eastWest]), "Open corner seam.");
 
         var instances = scene.OfType("PrefabInstance").ToArray();
-        Check(instances.Length == 3, "Expected exactly three prefab instances.");
+        Check(instances.Length == 4, "Expected three gameplay prefabs and the independent in-game menu prefab.");
+        var inGameMenuGuid = ReadGuid(inGameMenu.Path + ".meta");
+        var menuInstance = instances.Single(item => Text(Map(Field(item.Data, "m_SourcePrefab")), "guid") == inGameMenuGuid);
+        Check(Id(Field(Map(Field(menuInstance.Data, "m_Modification")), "m_TransformParent")) == 0, "Menu must be independent of the offline match scope.");
+        var menuViewGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/UI/InGameMenuView.cs.meta"));
+        var menuView = inGameMenu.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == menuViewGuid);
+        foreach (var field in new[] { "pausePanel", "resultPanel" })
+            Check(Number(inGameMenu.Records[Id(Field(menuView.Data, field))].Data, "m_IsActive") == 0, "Menu panels must start inactive.");
+        foreach (var field in new[] { "resumeButton", "leaveButton", "resultReturnButton", "resultHeader" })
+            Check(inGameMenu.Records.ContainsKey(Id(Field(menuView.Data, field))), "Unwired in-game menu reference: " + field);
+        Check(Number(inGameMenu.Only("Canvas").Data, "m_SortingOrder") > 10, "Menu must draw above the offline HUD.");
         Check(!scene.OfType("GameObject").Where(item => !item.Stripped).Any(item => names.Contains(Text(item.Data, "m_Name"))), "Entities must be linked prefab instances, not loose duplicates.");
         Check(!scene.OfType("GameObject").Where(item => !item.Stripped).Any(item => new[] { expectedLayers["Player"], expectedLayers["Bot"], expectedLayers["Pickup"] }.Contains((int)Number(item.Data, "m_Layer"))), "Loose duplicate on an entity layer.");
         var spawns = new Dictionary<string, Vector3> { { "Player", new Vector3(0, 1, -4) }, { "Bot", new Vector3(0, 1, 4) }, { "WeaponPickup", new Vector3(-3, 0.3f, 0) } };
@@ -402,7 +413,7 @@ internal static class ArenaLayoutVerifier
             Spawns = spawns.ToDictionary(pair => pair.Key, pair => new[] { pair.Value.X, pair.Value.Y, pair.Value.Z }),
             VerificationMode = "Saved-file references and geometry only; Unity import and native physics require licensed PlayMode execution."
         }, new JsonSerializerOptions { WriteIndented = true }));
-        Console.WriteLine($"PASS: {assertions} saved-layout assertions; {parsed.Count} Unity YAML files; 3 linked prefab instances; 16x16 floor; 3m walls; supported, separate spawns.");
+        Console.WriteLine($"PASS: {assertions} saved-layout assertions; {parsed.Count} Unity YAML files; 3 linked gameplay prefabs plus in-game menu; 16x16 floor; 3m walls; supported, separate spawns.");
     }
 
     private static Box Bounds(Record transform, Record collider, Vector3 positionOverride)

@@ -71,6 +71,13 @@ namespace SmallArena.Networking
             else if (NetworkClient.active) StopClient();
             offlineScene = returnScene;
         }
+        public void LeaveMatch() => MatchSessionNavigation.ReturnToMainMenu();
+        internal void ClearRoomClientState()
+        {
+            CurrentRoom = default;
+            ConnectionStatus = "";
+            RoomChanged?.Invoke();
+        }
         public void RequestReady(bool ready)
         {
             if (roomEnabled && NetworkClient.isConnected) NetworkClient.Send(new LobbyReadyRequest { IsReady = ready });
@@ -112,6 +119,8 @@ namespace SmallArena.Networking
         }
         public override void OnClientDisconnect()
         {
+            if (!string.IsNullOrEmpty(offlineScene) && (SceneManager.GetActiveScene().name == "Arena_MVP" || networkSceneName.EndsWith("Arena_MVP.unity")))
+                MatchSessionNavigation.ReturnToMainMenu();
             if (roomEnabled && ConnectionStatus != "")
                 ConnectionStatus = "Unable to join. The room may be full, closed, or unavailable.";
             else if (roomEnabled) ConnectionStatus = "Disconnected from room.";
