@@ -20,6 +20,7 @@ namespace SmallArena.Tools
             if (font == null) throw new InvalidOperationException("TMP font missing.");
             var overhead = CanvasRoot("OpponentHealthBar", true);
             Bar(overhead.transform, font, true);
+            overhead.AddComponent<HealthBarBillboard>();
             var barAsset = PrefabUtility.SaveAsPrefabAsset(overhead, "Assets/_Project/Prefabs/UI/OpponentHealthBar.prefab");
             Object.DestroyImmediate(overhead);
             var player = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Characters/Player.prefab");
@@ -35,13 +36,17 @@ namespace SmallArena.Tools
             // A HUD click is UI, too. This panel intentionally consumes pointer clicks.
             panel.GetComponent<Image>().raycastTarget = true;
             var health = Bar(panel, font, false);
+            var damage = OfflineMatchSceneBuilder.Text("NetworkDamageText", panel, font, "Damage: 1 HP (Unarmed)", 22, Color.white,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -45), new Vector2(352, 32));
+            damage.alignment = TextAlignmentOptions.Center;
             var controls = OfflineMatchSceneBuilder.Text("NetworkControls", root.transform, font,
-                "WASD Move   SPACE Jump\nLEFT CLICK Punch   ESC Menu", 24, Color.white,
+                "WASD Move   SPACE Jump\nLMB Punch   E Collect   ESC Menu", 24, Color.white,
                 new Vector2(1, 1), new Vector2(1, 1), new Vector2(-32, -32), new Vector2(560, 90));
             controls.alignment = TextAlignmentOptions.TopRight;
             var hud = root.AddComponent<NetworkHealthHUD>();
             Bind(hud, "panel", panel.gameObject); Bind(hud, "healthView", health);
             Bind(hud, "controls", controls.gameObject);
+            Bind(hud, "damageText", damage);
             root.SetActive(true);
             PrefabUtility.SaveAsPrefabAssetAndConnect(root, "Assets/_Project/Prefabs/UI/NetworkHUD.prefab", InteractionMode.AutomatedAction);
             Bind(hud, "matchMenu", Object.FindAnyObjectByType<InGameMenuController>());
@@ -70,17 +75,17 @@ namespace SmallArena.Tools
             }
             return root;
         }
-        private static NetworkHealthBarView Bar(Transform parent, TMP_FontAsset font, bool world)
+        internal static NetworkHealthBarView Bar(Transform parent, TMP_FontAsset font, bool world)
         {
             var size = world ? new Vector2(200, 14) : new Vector2(352, 26);
-            var rect = OfflineMatchSceneBuilder.Rect("HealthBar", parent, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -14), size);
+            var rect = OfflineMatchSceneBuilder.Rect("HealthBar", parent, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, world ? -14 : -5), size);
             var background = rect.gameObject.AddComponent<Image>(); background.color = new Color(0.15f, 0.18f, 0.23f); background.raycastTarget = false;
             var fill = OfflineMatchSceneBuilder.Panel("Fill", rect, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero, new Color(0.2f, 0.86f, 0.48f));
             fill.anchorMin = Vector2.zero; fill.anchorMax = Vector2.one; fill.offsetMin = fill.offsetMax = Vector2.zero;
-            var slider = rect.gameObject.AddComponent<Slider>(); slider.fillRect = fill; slider.minValue = 0; slider.maxValue = 100; slider.value = 100; slider.wholeNumbers = true; slider.interactable = false;
+            var slider = rect.gameObject.AddComponent<Slider>(); slider.fillRect = fill; slider.minValue = 0; slider.maxValue = 10; slider.value = 10; slider.wholeNumbers = true; slider.interactable = false;
             slider.navigation = new Navigation { mode = Navigation.Mode.None };
-            var text = OfflineMatchSceneBuilder.Text("HealthText", parent, font, "HP: 100/100", world ? 22 : 30, Color.white,
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, world ? 15 : 27), new Vector2(world ? 220 : 352, 42));
+            var text = OfflineMatchSceneBuilder.Text("HealthText", parent, font, "HP: 10/10", world ? 22 : 30, Color.white,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, world ? 15 : 30), new Vector2(world ? 220 : 352, 42));
             text.alignment = TextAlignmentOptions.Center;
             var view = parent.gameObject.AddComponent<NetworkHealthBarView>();
             Bind(view, "healthBar", slider); Bind(view, "healthText", text);

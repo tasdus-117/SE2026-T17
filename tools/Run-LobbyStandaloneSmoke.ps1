@@ -48,7 +48,7 @@ try {
     $clientReport = Wait-Evidence 'client.json' $smokeClientProcess $true
     foreach ($report in @($hostReport, $clientReport)) {
         if (-not $report.success -or -not $report.openedFromMenu -or -not $report.noDebugHud -or
-            $report.scene -ne 'Arena_MVP' -or $report.roomMembers -ne 2 -or $report.visiblePlayers -ne 2 -or
+            $report.scene -ne 'Arena_MVP' -or $report.roomMembers -ne 2 -or $report.visiblePlayers -ne 2 -or $report.visibleLoot -ne 1 -or
             $report.localPlayer -eq 0 -or @($report.errors).Count -ne 0) {
             throw ('Standalone assertion failed for ' + $report.role + '; inspect ' + $caseDirectory)
         }

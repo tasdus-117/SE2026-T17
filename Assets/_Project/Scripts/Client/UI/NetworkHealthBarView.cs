@@ -1,4 +1,4 @@
-using SmallArena.Networking;
+using SmallArena.Domain;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,10 +9,10 @@ namespace SmallArena.Client.UI
     {
         [SerializeField] private Slider healthBar = null;
         [SerializeField] private TextMeshProUGUI healthText = null;
-        private NetworkHealth source;
+        private IHealthSource source;
         public Slider HealthBar => healthBar;
         public string HealthText => healthText.text;
-        public void Bind(NetworkHealth health)
+        public void Bind(IHealthSource health)
         {
             if (source != null) source.OnHealthChanged -= Changed;
             source = health;

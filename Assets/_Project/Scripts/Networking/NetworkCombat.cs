@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
+using System;
 
 namespace SmallArena.Networking
 {
@@ -9,14 +10,22 @@ namespace SmallArena.Networking
     public sealed class NetworkCombat : NetworkBehaviour
     {
         public const float Cooldown = 0.5f;
-        public const int UnarmedDamage = 10;
+        public const int UnarmedDamage = 1;
+        [SyncVar(hook = nameof(DamageChanged))] private int attackDamage = UnarmedDamage;
+        public int CurrentDamage => attackDamage;
+        public bool CanReceiveWeapon => isServer && health != null && health.CanAct && attackDamage == UnarmedDamage;
+        public event Action<int> OnDamageChanged;
         private static readonly Vector3 Offset = new Vector3(0, 1, 0.8f);
         private const float Radius = 0.6f;
         private double nextAttackTime;
         private NetworkHealth health;
         private readonly HashSet<NetworkHealth> damaged = new HashSet<NetworkHealth>();
         private void Awake() => health = GetComponent<NetworkHealth>();
-        public override void OnStartServer() => nextAttackTime = double.NegativeInfinity;
+        public override void OnStartServer() { nextAttackTime = double.NegativeInfinity; attackDamage = UnarmedDamage; }
+        public override void OnStartClient() => OnDamageChanged?.Invoke(attackDamage);
+        [Server]
+        internal void GrantWeapon() { if (CanReceiveWeapon) attackDamage = UnarmedDamage + 1; }
+        private void DamageChanged(int previous, int current) => OnDamageChanged?.Invoke(current);
 
         [Server]
         internal void PerformAttack(Vector3 aimDirection)
@@ -40,7 +49,7 @@ namespace SmallArena.Networking
                 var target = hit.GetComponentInParent<NetworkHealth>();
                 if (target == null || target == health || !target.isServer || !target.CanAct || !damaged.Add(target)) continue;
                 if (Physics.Linecast(transform.position + Vector3.up, hit.bounds.center, 1 << 6, QueryTriggerInteraction.Ignore)) continue;
-                target.TakeDamage(UnarmedDamage);
+                target.TakeDamage(attackDamage);
             }
         }
         private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);

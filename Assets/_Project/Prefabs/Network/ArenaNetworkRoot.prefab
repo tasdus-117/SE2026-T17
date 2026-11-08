@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5257527926744547996}
   - component: {fileID: 8859618863376171176}
   - component: {fileID: 2741305610565427396}
+  - component: {fileID: 4613399148293153172}
   m_Layer: 0
   m_Name: ArenaNetworkRoot
   m_TagString: Untagged
@@ -63,7 +64,8 @@ MonoBehaviour:
   playerPrefab: {fileID: 1001, guid: cf2ac3b249e940d4af247e7ec57e65f7, type: 3}
   autoCreatePlayer: 0
   playerSpawnMethod: 1
-  spawnPrefabs: []
+  spawnPrefabs:
+  - {fileID: 6031517200025167558, guid: b99e6718939041b48a0303e5a33110b5, type: 3}
   exceptionsDisconnect: 1
   snapshotSettings:
     bufferTimeMultiplier: 2
@@ -121,3 +123,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90e09da4da8940e0818f37504f4c9b1a, type: 3}
   m_Name:
   m_EditorClassIdentifier: SmallArena.Server::SmallArena.Server.Sessions.ServerLobbyController
+--- !u!114 &4613399148293153172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5069386533207898361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16fa90c6fbe845bca0b3b4557a97be8b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: SmallArena.Networking::SmallArena.Networking.ArenaLootSpawner
+  lootPrefab: {fileID: 6031517200025167558, guid: b99e6718939041b48a0303e5a33110b5, type: 3}

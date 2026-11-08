@@ -2,6 +2,7 @@ using Mirror;
 using SmallArena.Input;
 using SmallArena.Networking;
 using UnityEngine;
+using TMPro;
 
 namespace SmallArena.Client.UI
 {
@@ -11,7 +12,10 @@ namespace SmallArena.Client.UI
         [SerializeField] private NetworkHealthBarView healthView = null;
         [SerializeField] private InGameMenuController matchMenu = null;
         [SerializeField] private GameObject controls = null;
+        [SerializeField] private TextMeshProUGUI damageText = null;
         private NetworkHealth source;
+        private NetworkCombat combat;
+        public string DamageText => damageText != null ? damageText.text : "";
         public NetworkHealthBarView HealthView => healthView;
         public bool IsVisible => panel.activeSelf;
         private void Awake()
@@ -29,13 +33,20 @@ namespace SmallArena.Client.UI
         private void Bind(NetworkHealth health)
         {
             if (source != null) source.OnResultChanged -= ResultChanged;
+            if (combat != null) combat.OnDamageChanged -= DamageChanged;
             source = health;
+            combat = source != null ? source.GetComponent<NetworkCombat>() : null;
             panel.SetActive(source != null);
             if (controls != null) controls.SetActive(source != null);
             healthView.Bind(source);
             if (source == null) return;
             source.OnResultChanged += ResultChanged;
+            if (combat != null) { combat.OnDamageChanged += DamageChanged; DamageChanged(combat.CurrentDamage); }
             ResultChanged(source.Result);
+        }
+        private void DamageChanged(int damage)
+        {
+            if (damageText != null) damageText.text = $"Damage: {damage} HP ({(damage > 1 ? "Buffed" : "Unarmed")})";
         }
         private void ResultChanged(PlayerMatchResult result)
         {

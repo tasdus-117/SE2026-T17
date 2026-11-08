@@ -27,6 +27,17 @@ namespace SmallArena.Networking
             if (TryGetComponent<NetworkCombat>(out var combat)) combat.PerformAttack(aimDirection);
         }
 
+        public void RequestPickup(uint itemNetId)
+        {
+            if (isLocalPlayer && isClient && NetworkClient.ready) CmdRequestPickup(itemNetId);
+        }
+        [Command(requiresAuthority = true)]
+        private void CmdRequestPickup(uint itemNetId)
+        {
+            if (NetworkServer.spawned.TryGetValue(itemNetId, out var item)
+                && item != null && item.TryGetComponent<NetworkLootItem>(out var loot)) loot.TryCollectServer(this);
+        }
+
         public override void OnStartLocalPlayer()
         {
             if (localLifecycleStarted) return;

@@ -177,8 +177,8 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(NetworkManager.startPositions.Count, Is.EqualTo(4));
             transport.SendFromVirtual(2, new ReadyMessage());
             transport.SendFromVirtual(2, new AddPlayerMessage());
-            yield return Until(() => NetworkServer.spawned.Count == 2);
-            Assert.That(NetworkServer.spawned.Values.Select(identity => identity.transform.position).Distinct().Count(), Is.EqualTo(2));
+            yield return Until(() => NetworkServer.spawned.Values.Count(identity => identity.GetComponent<NetworkPlayer>() != null) == 2);
+            Assert.That(NetworkServer.spawned.Values.Where(identity => identity.GetComponent<NetworkPlayer>() != null).Select(identity => identity.transform.position).Distinct().Count(), Is.EqualTo(2));
             Assert.That(NetworkClient.localPlayer.GetComponent<NetworkPlayer>().isLocalPlayer, Is.True);
             var offline = SceneManager.GetActiveScene().GetRootGameObjects().Single(root => root.name == "Player");
             Assert.That(offline.activeSelf, Is.False);

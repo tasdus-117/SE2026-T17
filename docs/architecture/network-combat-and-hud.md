@@ -25,8 +25,8 @@ Nếu còn connection đã xác thực nhưng chưa có avatar, server bỏ requ
 người sống cuối khi một thành viên phòng còn đang tải. Disconnect trả slot và
 gỡ hàng rào; client phải nhấn một đòn mới, không có hàng đợi đòn bị bỏ.
 
-NetworkHealth có max/current mặc định 100; mỗi đòn unarmed 10 HP, nên vẫn mười
-đòn như Bot offline 10 HP/đòn 1 HP. Máu chỉ đổi trên instance server, clamp 0,
+NetworkHealth có max/current mặc định 10; mỗi đòn unarmed 1 HP, cùng chuẩn
+với Bot offline. Nhặt weapon tăng damage lên 2, không đổi HP. Máu chỉ đổi trên instance server, clamp 0,
 không nhận amount ≤ 0 hoặc sát thương sau kết quả cuối. OnDeath server phát một
 lần; last-survivor rule đánh dấu nạn nhân Defeat và người sống cuối Victory khi
 có ít nhất hai player đã spawn. Các kết quả được SyncVar xuống từng client;
@@ -69,7 +69,7 @@ local hoặc tiêu thụ nhầm intent mạng.
    không còn di chuyển/đánh. Return to Main Menu dọn phiên như luồng trước.
 7. Single Player: thử cả LMB và J, WASD/Space/E, buff 1→2, Victory/replay cũ.
 
-## Kết quả thực thi ngày 08/11/2026
+## Baseline trước khi thêm loot/collision ngày 08/11/2026
 
 Unity **6000.6.8f1**, Test Runner native trong bản sao
 `TestResults/TV11/ValidationProject`, không dừng Editor của người dùng.
@@ -109,5 +109,7 @@ Bằng chứng cục bộ được Git ignore:
 `Logs/NetworkCombat-EditMode.log`; báo cáo layout/compile trong
 `TestResults/ArenaLayout/`. Không cộng các lần chẩn đoán trước đó vào số ca đạt.
 
-Chưa triển khai lag compensation, projectile, pickup mạng, respawn hoặc điểm số;
-chúng không được suy ra là hoàn thành từ phạm vi melee/HP/HUD này.
+Loot mạng, chuẩn 10 HP/1 DMG và collision đã được bổ sung trong
+[báo cáo parity/loot/collision](../testing/loot-parity-and-collision.md).
+Chưa triển khai lag compensation, projectile, respawn hoặc điểm số;
+chúng không được suy ra là hoàn thành từ phạm vi hiện tại.

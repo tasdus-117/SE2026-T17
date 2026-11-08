@@ -17,10 +17,6 @@ namespace SmallArena.Client.Presentation
             bar = owner.GetComponent<NetworkHealthBarView>();
             bar.Bind(GetComponent<NetworkHealth>());
         }
-        private void LateUpdate()
-        {
-            if (bar != null && Camera.main != null) bar.transform.rotation = Camera.main.transform.rotation;
-        }
         public override void OnStartLocalPlayer() => OnStopClient();
         public override void OnStopClient()
         {

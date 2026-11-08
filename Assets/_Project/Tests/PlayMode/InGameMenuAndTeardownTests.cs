@@ -226,7 +226,7 @@ namespace SmallArena.Tests.PlayMode
             {
                 transport.SendFromVirtual(2, new ReadyMessage());
                 transport.SendFromVirtual(2, new AddPlayerMessage());
-                yield return Until(() => NetworkServer.spawned.Count == 2);
+                yield return Until(() => NetworkServer.spawned.Values.Count(identity => identity.GetComponent<NetworkPlayer>() != null) == 2);
             }
             FindMenu();
         }

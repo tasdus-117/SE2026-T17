@@ -14,6 +14,7 @@ namespace SmallArena.Tests.PlayMode
         {
             var player = Object.Instantiate(prefab, position, rotation);
             player.SetActive(false);
+            Object.DestroyImmediate(player.GetComponent<ServerPlayerSeparation>());
             Object.DestroyImmediate(player.GetComponent<OpponentHealthPresenter>());
             Object.DestroyImmediate(player.GetComponent<NetworkCombatInput>());
             Object.DestroyImmediate(player.GetComponent<NetworkCombat>());

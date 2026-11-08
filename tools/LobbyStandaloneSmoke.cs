@@ -26,6 +26,7 @@ namespace SmallArena.Client.Verification
             public bool noDebugHud;
             public int roomMembers;
             public int visiblePlayers;
+            public int visibleLoot;
             public uint localPlayer;
             public string[] errors;
         }
@@ -47,6 +48,8 @@ namespace SmallArena.Client.Verification
         private string directory;
         private bool opened;
         private ArenaNetworkManager manager;
+        private static int VisiblePlayers => NetworkClient.spawned.Values.Count(identity => identity != null && identity.GetComponent<NetworkPlayer>() != null);
+        private static int VisibleLoot => NetworkClient.spawned.Values.Count(identity => identity != null && identity.GetComponent<NetworkLootItem>() != null);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Launch()
@@ -99,9 +102,9 @@ namespace SmallArena.Client.Verification
                 if (!view.StartButton.interactable) { Finish(false); yield break; }
                 view.StartButton.onClick.Invoke();
             }
-            while ((SceneManager.GetActiveScene().name != "Arena_MVP" || NetworkClient.localPlayer == null || NetworkClient.spawned.Count != 2)
+            while ((SceneManager.GetActiveScene().name != "Arena_MVP" || NetworkClient.localPlayer == null || VisiblePlayers != 2 || VisibleLoot != 1)
                 && Time.realtimeSinceStartup < deadline) yield return null;
-            Finish(opened && manager.CurrentRoom.Phase == LobbyPhase.Playing && NetworkClient.spawned.Count == 2 && NetworkClient.localPlayer != null && errors.Count == 0);
+            Finish(opened && manager.CurrentRoom.Phase == LobbyPhase.Playing && VisiblePlayers == 2 && VisibleLoot == 1 && NetworkClient.localPlayer != null && errors.Count == 0);
             if (Argument("--menu-teardown") != null) yield return Teardown();
             yield return new WaitForSecondsRealtime(2);
             Application.Quit(errors.Count == 0 ? 0 : 1);
@@ -120,7 +123,8 @@ namespace SmallArena.Client.Verification
             else if (role == "host")
             {
                 while (!File.Exists(Path.Combine(directory, "client.menu.json")) && Time.realtimeSinceStartup < deadline) yield return null;
-                survived = NetworkServer.active && NetworkClient.activeHost && NetworkServer.connections.Count == 1 && NetworkServer.spawned.Count == 1;
+                survived = NetworkServer.active && NetworkClient.activeHost && NetworkServer.connections.Count == 1
+                    && NetworkServer.spawned.Values.Count(identity => identity != null && identity.GetComponent<NetworkPlayer>() != null) == 1;
                 menu.LeaveMatch();
             }
             // In the host-leave case the client does not click Leave: transport disconnect must navigate it.
@@ -148,7 +152,7 @@ namespace SmallArena.Client.Verification
                 role = role, unity = Application.unityVersion, scene = SceneManager.GetActiveScene().name,
                 success = success, openedFromMenu = opened, noDebugHud = FindAnyObjectByType<NetworkManagerHUD>() == null,
                 roomMembers = manager != null ? manager.CurrentRoom.Members?.Length ?? 0 : 0,
-                visiblePlayers = NetworkClient.spawned.Count, localPlayer = NetworkClient.localPlayer != null ? NetworkClient.localPlayer.netId : 0,
+                visiblePlayers = VisiblePlayers, visibleLoot = VisibleLoot, localPlayer = NetworkClient.localPlayer != null ? NetworkClient.localPlayer.netId : 0,
                 errors = errors.ToArray()
             }, true));
             if (!success) Application.Quit(1);

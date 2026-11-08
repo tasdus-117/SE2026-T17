@@ -61,6 +61,8 @@ internal static class ArenaLayoutVerifier
         var inGameMenu = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/InGameMenu.prefab"));
         var networkHud = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/NetworkHUD.prefab"));
         var overhead = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/OpponentHealthBar.prefab"));
+        Read(System.IO.Path.Combine(prefix, "Prefabs/Network/NetworkLootItem.prefab"));
+        Read(System.IO.Path.Combine(prefix, "Prefabs/Network/ArenaNetworkRoot.prefab"));
         var names = new[] { "Player", "Bot", "WeaponPickup" };
         var prefabs = names.ToDictionary(name => name, name => Read(System.IO.Path.Combine(prefix,
             "Prefabs/" + (name == "WeaponPickup" ? "Combat/" : "Characters/") + name + ".prefab")));
@@ -97,6 +99,9 @@ internal static class ArenaLayoutVerifier
         var layers = Sequence(Field(tagManager.Data, "layers")).Select(Scalar).ToArray();
         var expectedLayers = new Dictionary<string, int> { { "Environment", 6 }, { "Player", 7 }, { "Bot", 8 }, { "Pickup", 9 } };
         foreach (var pair in expectedLayers) Check(layers[pair.Value] == pair.Key, "Named layer slot mismatch: " + pair.Key);
+        var physics = Read(System.IO.Path.Combine(root, "ProjectSettings/DynamicsManager.asset")).Only("PhysicsManager");
+        var layerBytes = Convert.FromHexString(Text(Map(Field(physics.Data, "m_LayerCollisionMatrix")), "_data"));
+        Check((BitConverter.ToUInt32(layerBytes, 7 * 4) & (1u << 7)) != 0, "Player must collide with Player.");
 
         var allowedTypes = new HashSet<string> { "GameObject", "Transform", "MeshFilter", "MeshRenderer", "CharacterController", "CapsuleCollider", "BoxCollider", "Rigidbody", "MonoBehaviour" };
         foreach (var name in names)
@@ -108,7 +113,7 @@ internal static class ArenaLayoutVerifier
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
             expectedTypes.Add("MonoBehaviour");
-            var expectedCount = expectedTypes.Count + (name == "Player" ? 11 : 0);
+            var expectedCount = expectedTypes.Count + (name == "Player" ? 12 : 1);
             Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
             var layerName = name == "WeaponPickup" ? "Pickup" : name;
@@ -163,7 +168,8 @@ internal static class ArenaLayoutVerifier
         Near(Number(controller.Data, "m_Height"), 2); Near(Number(controller.Data, "m_Radius"), 0.5);
         Near(Number(controller.Data, "m_SlopeLimit"), 45); Near(Number(controller.Data, "m_StepOffset"), 0.3);
         Near(Number(controller.Data, "m_SkinWidth"), 0.08); Near(Number(controller.Data, "m_MinMoveDistance"), 0.001);
-        Check(Number(controller.Data, "m_IsTrigger") == 0 && Number(controller.Data, "m_Enabled") == 1, "Player collision must be solid and enabled.");
+        var triggerEnabled = controller.Data.Children.TryGetValue(new YamlScalarNode("m_IsTrigger"), out var triggerValue) && Scalar(triggerValue) != "0";
+        Check(!triggerEnabled && Number(controller.Data, "m_Enabled") == 1, "Player collision must be solid and enabled.");
         var bot = prefabs["Bot"];
         var healthGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Combat/Health.cs.meta"));
         var combatGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Combat/CombatController.cs.meta"));
@@ -266,7 +272,7 @@ internal static class ArenaLayoutVerifier
             Check(Id(Field(modification, "m_TransformParent")) == 0, "Entity must be a scene root.");
             var removed = Sequence(Field(modification, "m_RemovedComponents")).ToArray();
             if (name == "Player")
-                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017 }), "Offline player must remove all network simulation, health, combat and presentation components.");
+                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018 }), "Offline player must remove all network simulation, health, combat, separation and presentation components.");
             else Check(removed.Length == 0, "Unexpected removed prefab component.");
             foreach (var key in new[] { "m_RemovedGameObjects", "m_AddedGameObjects", "m_AddedComponents" })
                 Check(!Sequence(Field(modification, key)).Any(), "Unexpected structural prefab override.");

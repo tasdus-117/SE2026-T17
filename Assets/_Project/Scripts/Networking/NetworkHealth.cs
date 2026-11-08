@@ -1,6 +1,7 @@
 using System;
 using Mirror;
 using UnityEngine;
+using SmallArena.Domain;
 
 namespace SmallArena.Networking
 {
@@ -8,10 +9,10 @@ namespace SmallArena.Networking
 
     /// <summary>Server-owned hit points; clients observe SyncVar hooks only.</summary>
     [DisallowMultipleComponent]
-    public sealed class NetworkHealth : NetworkBehaviour
+    public sealed class NetworkHealth : NetworkBehaviour, IHealthSource
     {
-        [SyncVar, SerializeField] private int maxHealth = 100;
-        [SyncVar(hook = nameof(HealthChanged)), SerializeField] private int currentHealth = 100;
+        [SyncVar, SerializeField] private int maxHealth = 10;
+        [SyncVar(hook = nameof(HealthChanged)), SerializeField] private int currentHealth = 10;
         [SyncVar(hook = nameof(ResultChanged))] private PlayerMatchResult result;
         public int MaxHealth => maxHealth;
         public int CurrentHealth => currentHealth;
