@@ -137,3 +137,10 @@
 - Source rules mục1–13 không chỉnh gameplay; approval annotation và review/mapping updated. No context/prompt/assignment/runtime artifact staged. Exact paths và staged review được kiểm trước commit.
 
 - Staged check phát hiện2 Markdown hard-break trailing spaces có sẵn trong header luật mới track; đã đổi sang blank lines, giữ nguyên gameplay. Rerun staged whitespace sau correction trước commit.
+
+### Delivery verified 2026-11-08
+
+- git commit29147ace8f69bf29dff8ee0adccae530722f20e2 — docs(tv2): complete TV2-001 with approved game rules;14 exact Markdown paths. Staged/full whitespace PASS sau sửa2 header spaces; working clean sau commit. git push -u origin feature/TV2-001-scope-reconciliation-main thành công; escalated git ls-remote head khớp29147ac, main11849ad không đổi.
+- Created [PR #6](https://github.com/tasdus-117/SE2026-T17/pull/6), base main/head exact branch. Recheck get_pr_info: OPEN, merged=false, mergeable=true. compare_commits remote:18 Markdown files, ahead3/behind0, base/merge-base11849ad. Không merge/direct push protected refs.
+- PR comments trước request=[]; đăng summary và đúng một @codex review, tool returned comment id6724220207. Review requested, chưa có outcome để claim. fetch_commit_workflow_runs content commit trảworkflow_runs=[]; không CI PASS.
+- Handoff exact next giữ trong PROJECT_STATE/TASKS: maintainer review/merge rồi task002 từ fetched main có prerequisites, reconcile TV1 mismatch/TECH-001 gates. Final memory-only commit/push follow-up không tự ghi hash của nó; final reply/Git history cung cấp actual SHA.
