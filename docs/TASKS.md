@@ -1,3 +1,32 @@
+# Tasks — hiện hành 2026-11-08
+
+## TV2-001 — scope và actual decisions
+
+- Milestone M0; P0; owner TV2 / 23001901; collaborators TV1/TV3/nhóm.
+- Status: DONE cho deliverable tài liệu/đối chiếu luật. Integration: PENDING PR review/maintainer merge. [Closure boundary](DECISIONS.md#tv2-001--kết-quả-chốt-luật-2026-11-08) tách closure tài liệu khỏi integration sau khi owner xác nhận nhóm đã chốt.
+- Inputs: chỉ thị owner08/11 và luật v0.1 ngày06/11; main11849ad, nhánh feature/TV2-001-scope-reconciliation-main hiện hữu. Scope: actual decisions, SRS/contract/test expectations và readiness; không runtime/config/scenes/CI.
+- AC/deliverables: GD-01–08 outcome/source/date; GD-09 accepted baseline tách OPEN technical matrix; FR/AC/TC-201–209, CT-201–205 mapped; luật versioned/history giữ nguyên; không invent reviewer/test; checks thực tại WORK_LOG.
+- Verification: links/anchors/UTF-8/fences/traceability/DAG/history/scope/whitespace/Git ancestry ở WORK_LOG. Gameplay/Unity/build/network/CI NOT RUN. Commit/push/PR: PROJECT_STATE/Git history; không tự ghi hash commit chứa dòng này.
+
+## Chuẩn bị task tiếp theo
+
+| Task | Status / readiness | Exact next / gate còn lại |
+| --- | --- | --- |
+| TV2-002 | TODO; baseline đủ draft, chưa implementation | Sau merge001: fetch main chứa prerequisite, dedicated feature/TV2-002-character-state-config; inspect/reuse Domain/Health/TV1 lifecycle; schema Alive/Dead/Pending, connection orthogonal, match states; config rules-v0.1 + units/validity/clock/life invariants; test AC-202/205/206/207 |
+| TV2-003 | TODO; cần schema draft002 | V5/τ0.25/analog/finite/state vectors; TV1 motor/camera basis TV3/jump confirmation; timeout exact-boundary comparator |
+| TV2-004 | TODO; cần limits draft003 | CT examples/types/identity/order/replay/rates, camera/muzzle/layers, TV1+TV3 review; policy camera/aim đã chốt |
+| TV2-005–009 | TODO; draft dependencies giữ ở DAG dưới | Numeric baseline/GD accepted; gun→raycast→death→respawn/match; approved interfaces/geometry/runtime vẫn cần |
+| TV2-010–013 | TODO; usable-draft dependencies giữ dưới | Expected TESTING mới; execution đợi code/runner/build/physics/multi-process/auth phù hợp; designed tests không PASS |
+| TECH-001 / GD-09 technical | TODO / OPEN, TV1 chủ trì | Exact compatible Editor/Mirror/transport/server OS/modules/license/build route/budgets/lịch; không suy approved từ luật |
+
+Workflow: latest fetched origin/main có prerequisites→dedicated task branch→PR main. Không merge/direct push protected/source refs; task phụ thuộc chờ prerequisite merged, ngoại lệ stacking phải ghi dependency. DAG13 nodes/24 edges dưới tiếp tục là draft dependencies; các trạng thái/GD cũ được phần này supersede. Không implement tasks002–013 trong TV2-001.
+
+Prerequisite TV1: feature/tv1-m2-lobby-room hiện8d71e62 có commit melee/10HP/1DMG, khác luật raycast100HP/25DMG đã chốt. Code đồng đội chưa vào main; không sửa/import trong TV2-001. TV2-002/004 đối chiếu TV1 trước reuse/integration. TV1 M1 tại5062c50 báo Editor6000.6.8f1, PlayMode214/216 (2 vendor skips), group212/212, EditMode34/34; vẫn harness in-engine (1 native client+1 virtual), chưa hai OS clients/KCP/reconnect. Report chưa TV2 rerun, không tự nâng main/toolchain.
+
+---
+
+> HỒ SƠ ĐẾN 2026-11-05 — giữ để truy vết. Các trạng thái PROPOSED/UNDECIDED/BLOCKED và next action bên dưới là snapshot lịch sử; phần cập nhật 2026-11-08 ở trên có ưu tiên. Workflow và DAG còn áp dụng theo giới hạn ở phần hiện hành.
+
 > TV2 PROPOSAL / source archive, selectively adapted from 61aebf38ce40f9ad131405c202d7b82729ecbbcf; không thay tài liệu dùng chung của main. Workflow TV2 hiện hành (owner 2026-11-05 realign): baseline latest fetched origin/main có prerequisites; feature/<TASK-ID>-<description>, PR vào main; long23001901 chỉ giữ lịch sử. Các nhánh độc lập là siblings, task phụ thuộc thường chờ prerequisite merged; stacking ngoại lệ phải ghi dependency. Không merge/direct push main, không sửa nhánh nguồn. Quyết định này chỉ workflow owner, không phê duyệt gameplay nhóm.
 
 # Nhiệm vụ và trạng thái thực

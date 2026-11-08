@@ -1,3 +1,15 @@
+# Lộ trình TV2 — handoff 2026-11-08
+
+TV2-001 hoàn tất đối chiếu/ghi luật theo [xác nhận owner](DECISIONS.md#tv2-001--kết-quả-chốt-luật-2026-11-08); [luật v0.1](Small_Arena_Luat_Game_De_Xuat_v0.1.md) thay proposal gameplay cũ. M0–M6 chưa được coi PASS; GD-09 technical/budgets/lịch do TECH-001 giữ.
+
+Sau PR review/maintainer merge: fetch main chứa TV2-001, feature/TV2-002-character-state-config từ main đó; inspect/reuse current Domain/Health/TV1 prerequisites, schema/state/config rules-v0.1, transitions/validity. Sau schema draft: TV2-003 limits→TV2-004 contract; TV2-010 thiết kế vectors theo TASKS. Tasks002–013 vẫn TODO; không tạo nhánh tương lai khi prerequisite chưa merged.
+
+DAG draft13 nodes/24 edges và ownership trong TASKS giữ nguyên. Execution cần interfaces/runtime/toolchain/config evidence thực và scope task được giao; approval luật giải quyết gameplay policy, không tự thay gates kỹ thuật.
+
+---
+
+> HỒ SƠ ĐẾN 2026-11-05 — giữ để truy vết. Các trạng thái PROPOSED/UNDECIDED/BLOCKED và next action bên dưới là snapshot lịch sử; phần cập nhật 2026-11-08 ở trên có ưu tiên. Workflow và DAG còn áp dụng theo giới hạn ở phần hiện hành.
+
 > TV2 PROPOSAL / source archive, selectively adapted from 61aebf38ce40f9ad131405c202d7b82729ecbbcf; không thay tài liệu dùng chung của main. Workflow TV2 hiện hành (owner 2026-11-05 realign): baseline latest fetched origin/main có prerequisites; feature/<TASK-ID>-<description>, PR vào main; long23001901 chỉ giữ lịch sử. Các nhánh độc lập là siblings, task phụ thuộc thường chờ prerequisite merged; stacking ngoại lệ phải ghi dependency. Không merge/direct push main, không sửa nhánh nguồn. Quyết định này chỉ workflow owner, không phê duyệt gameplay nhóm.
 
 # Lộ trình nhóm M0–M6 và phối hợp TV2

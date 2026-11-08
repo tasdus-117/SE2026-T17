@@ -28,8 +28,8 @@ Xem [báo cáo kiểm toán/di trú](docs/architecture/main-migration-audit.md) 
 
 Quy ước: tên file C# và lớp dùng PascalCase; một lớp chính trong một file. Không dùng thư mục chung tên `Managers` hoặc `Utils` để chứa mọi thứ. Thêm thư mục theo nhu cầu thật.
 
-## TV2-001 — proposal đang chờ review
+## TV2-001 — luật đã chốt, chờ tích hợp tài liệu
 
-[TV2 scope/SRS](Long_document/srs.md), [decision agenda](docs/DECISIONS.md), [tasks/dependencies](docs/TASKS.md), [roadmap](docs/ROADMAP.md) và [handoff](docs/PROJECT_STATE.md) được port chọn lọc từ nhánh TV2 cũ lên baseline main. Đây là đề xuất rules/contract/tests, chưa phê duyệt raycast/respawn/score hoặc chứng nhận gameplay online. Tài liệu kiến trúc/giao thức/kiểm thử dùng chung phía trên tiếp tục là nguồn project hiện hữu.
+[TV2 scope/SRS](Long_document/srs.md), [decision agenda](docs/DECISIONS.md), [tasks/dependencies](docs/TASKS.md), [roadmap](docs/ROADMAP.md) và [handoff](docs/PROJECT_STATE.md) được port chọn lọc từ nhánh TV2 cũ lên baseline main. [Luật v0.1](docs/Small_Arena_Luat_Game_De_Xuat_v0.1.md) đã được owner xác nhận nhóm chốt ngày 08/11/2026; [GD outcomes](docs/DECISIONS.md#tv2-001--kết-quả-chốt-luật-2026-11-08) và SRS v0.5 ghi actual decisions. TV2-001 hoàn tất tài liệu; wire/API, toolchain và gameplay implementation/tests còn theo gate từng task, PR chưa đồng nghĩa merged. Tài liệu kiến trúc/giao thức/kiểm thử dùng chung phía trên tiếp tục là nguồn project hiện hữu.
 
 Workflow owner TV2: independent feature/<TASK-ID>-<description> từ latest fetched origin/main chứa prerequisites, PR vào main; long23001901 giữ lịch sử. Các task phụ thuộc chờ prerequisite merged trừ stacking được ghi rõ; không automatic merge. Ngữ cảnh agent cá nhân tiếp tục chỉ lưu cục bộ.

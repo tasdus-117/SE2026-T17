@@ -33,4 +33,4 @@ Lưu kết quả chạy vào `TestResults/` hoặc `reports/` và đính kèm CI
 
 ## Ca thử đề xuất TV2
 
-[TC-201–209 và evidence levels](../TESTING.md) hỗ trợ combat rule/integration design. Chúng đều Planned/NOT RUN bởi TV2; kết quả offline của nhóm vẫn nằm trong migration-results, không chứng minh multi-process raycast/respawn.
+[TC-201–209 và evidence levels](../TESTING.md) đã có expected/boundary vectors theo [luật v0.1 đã chốt](../Small_Arena_Luat_Game_De_Xuat_v0.1.md), dùng cho combat rule/integration design. Chúng đều Planned/NOT RUN bởi TV2; kết quả offline của nhóm vẫn nằm trong migration-results, không chứng minh multi-process raycast/respawn.

@@ -1,3 +1,21 @@
+# Contract TV2 — cập nhật theo luật v0.1, 2026-11-08
+
+[Luật đã chốt](Small_Arena_Luat_Game_De_Xuat_v0.1.md), [SRS](../Long_document/srs.md), [GD outcomes](DECISIONS.md#tv2-001--kết-quả-chốt-luật-2026-11-08) thay lựa chọn gameplay còn mở trong snapshot dưới. [Shared protocol](protocol/protocol.md) sở hữu wire/API. CT là logical requirements; TV2-004 với TV1/TV3 chốt fields/types/rate/replay window/life identity/stable ordering trước code.
+
+| CT | Nghĩa gameplay cho contract tiếp theo | Còn cần chốt kỹ thuật |
+| --- | --- | --- |
+| CT-201 | Finite move, normalize>1/giữ analog<1, V5/τ0.25; invalid không refresh; Alive+Playing+connected, protection được move, disconnect clear input | TV3 camera-relative→world basis; TV1 sequence/reset/rate, jump nền review riêng |
+| CT-202 | Actor từ ownership; match/life hiện hành; aim ngang finite nonzero, origin server-only; Alive+Playing+connected+unprotected+cooldown≥0.5s; miss tiêu cooldown, reject không tiêu; không backlog shots | Shot dedup identity/limits; muzzle/layers/inside-collider; zero mouse-plane aim |
+| CT-203 | Một effect/target/shot, death/credit một/life; HP[0,100], D25, kill+1; environment không credit; sequential receive order, chết trước lượt thì không bắn | Stable secondary order, event/revision/dedup delivery |
+| CT-204 | HP/life/score/deaths, timers/protection/cooldown/match result/config revision; reconnect current snapshot, không reset; stale life không tác động | Units/types/clock/snapshot revision TV1, HUD/crosshair/feedback TV3 |
+| CT-205 | 2–4 all ready+loaded tự start; roster lock; deadline180s trước gameplay; respawn3s/safe≥5m/retry0.5s/P1s; grace15s giữ eligibility, offline không spawn; leave/expiry <2 eligible abort | TV1 proof/revoke/session events; TV3 spawn geometry; connId không phải proof |
+
+Thứ tự luật §10: t≥T terminal trước gameplay; t<T movement/environment → shots tuần tự/apply ngay → respawn/protection → replication. Eligibility protection dùng server time: đúng mốc hết P được bắn nếu mọi gate khác đạt. Không client timestamp authority/lag compensation; không fire trong Waiting/initialization/Dead/Pending/Finished/Aborted. Đây chưa là approved serialization/RPC/channel.
+
+---
+
+> HỒ SƠ ĐẾN 2026-11-05 — giữ để truy vết. Các trạng thái PROPOSED/UNDECIDED/BLOCKED và next action bên dưới là snapshot lịch sử; phần cập nhật 2026-11-08 ở trên có ưu tiên. Workflow và DAG còn áp dụng theo giới hạn ở phần hiện hành.
+
 > TV2 PROPOSAL / source archive, selectively adapted from 61aebf38ce40f9ad131405c202d7b82729ecbbcf; không thay tài liệu dùng chung của main. Workflow TV2 hiện hành (owner 2026-11-05 realign): baseline latest fetched origin/main có prerequisites; feature/<TASK-ID>-<description>, PR vào main; long23001901 chỉ giữ lịch sử. Các nhánh độc lập là siblings, task phụ thuộc thường chờ prerequisite merged; stacking ngoại lệ phải ghi dependency. Không merge/direct push main, không sửa nhánh nguồn. Quyết định này chỉ workflow owner, không phê duyệt gameplay nhóm.
 
 # Hợp đồng logic cho movement và combat TV2

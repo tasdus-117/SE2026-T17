@@ -1,3 +1,30 @@
+# Kiểm thử TV2 — cập nhật 2026-11-08
+
+## Baseline v0.1 — expected đã chốt
+
+[Luật v0.1](Small_Arena_Luat_Game_De_Xuat_v0.1.md) được owner xác nhận nhóm chốt. **Gameplay TC-201–209 đều NOT RUN**. Checks tài liệu TV2-001 tại WORK_LOG không chứng minh code/physics/network. Biên số dùng server fake clock và config rules-v0.1; mọi precondition khác đạt trừ gate đang kiểm.
+
+| TC / FR / AC | Fixture / input độc lập | Expected theo luật | Task execution |
+| --- | --- | --- | --- |
+| TC-201 / FR-201 / AC-201 | 1 ready; 2 all ready+loaded; 2 có1 chưa loaded; đổi roster; capacity4/fifth; mid-join | Chỉ ≥2 all ready+loaded start; đổi roster reset Ready; 4 admitted/5th reject; Playing chỉ genuine resume | TV1 lobby, TV2-009/011 |
+| TC-202 / FR-202 / AC-202 | (0,0), (0.3,0.4), (1,1), NaN/Infinity; valid input t0 rồi invalid spam | Speed0/2.5/≤5m/s; nonfinite reject không refresh; quá t0+0.25s intent0; Dead/offline/terminal không nhận move | TV2-003/010, TV1 motor |
+| TC-203 / FR-203 / AC-203 | Ngoài protection, bắn relative time0/0.49/0.50; valid miss; invalid aim lúc cooldown đã hết | Accept/reject/accept; miss cập nhật lastAccepted; reject không đổi nó; invalid config chặn start; không client clock/damage truth | TV2-005/010 |
+| TC-204 / FR-204 / AC-204 | Ray server: wall trước target; target30m/>30m; protected target trước B; dead/self/trigger; multi-collider | Wall chặn;30 inclusive/>30 miss; protected chắn, B không damage; dead/self/irrelevant trigger không chắn; tối đa1 target/effect | TV2-006/010/011; physics fixture riêng |
+| TC-205 / FR-205 / AC-205 | H100, 4 accepted hits D25 ngoài protection cách≥0.5s; overkill; duplicate; old-life callback | HP75→50→25→0, death1/kill1; overkill clamp0; duplicate/stale không effect/credit; không heal lúc sống | TV2-007/010 |
+| TC-206 / FR-206 / AC-206 | Death t0, now2.99/3/3.01; unsafe tất cả; distance4.99/5; equal score; collision; offline; held-fire cũ | Không sớm/đúng hạn nếu safe+connected; unsafe Pending/retry0.5s; 5m inclusive, max nearest+stable index/reserve tuần tự; offline chưa spawn; HP100, giữ score/deaths/cooldown, clear held-fire | TV2-008/010/011 |
+| TC-206 / FR-206 / AC-206 | Spawn ts, fire/damage ts+0.99/ts+1; cooldown cũ còn hạn; Pending>5s | Trước P cấm fire/damage; đúng P cho nếu gate/cooldown đạt; không xóa cooldown; >5s UI đang tìm spawn, không ép spawn; terminal hủy retry | TV2-008/010/011 |
+| TC-207 / FR-207 / AC-207 | A/B25HP, A request trước B cùng step; environment sau hit; duplicate kill | A kill+1, B reject vì Dead; environment không last-damager credit; deaths chỉ quan sát, không trừ điểm | TV2-007/009/010 |
+| TC-207 / FR-207 / AC-207 | t179.99/180/180.01; top tie/all0; leave/expiry còn1; grace còn hạn; post-terminal callback | Chỉ predeadline gameplay; đúng180 terminal trước shot/respawn; tie Draw; <2 eligible do leave/expiry Aborted; grace eligible; terminal frozen kể cả grace hết sau đó | TV2-009/010/011 |
+| TC-208 / FR-208 / AC-208 | Disconnect td; proof tại td+14.99/15/15.01; bad proof/old conn; offline chết+hếtΔ | Chỉ trước15 restore; reject bad proof/old conn; offline vulnerable/input clear/clocks chạy/respawn Pending; resume safe spawn, không reset timer/HP/score | TV1 session, TV2-012 |
+| TC-208 / FR-208 / AC-208 | Leave chủ động; expiry; grace lúc deadline; server mất | Leave không grace/kill, expiry xóa avatar không credit; grace còn hạn dự kết quả; server mất Aborted, không phục hồi/winner client | TV2-009/012 |
+| TC-209 / FR-209 / AC-209 | Future run server+≥2 clients; capacity4/reject5 riêng; impairment sau TECH-001 | Hai views khớp authoritative logs; source/build/config/topology/actual evidence; chưa budget không verdict performance | TV2-011/012/013 |
+
+TV2-002 chốt validity/state transitions, TV2-004 cụ thể hóa contracts, TV2-010 chuyển vectors thành tests khi runner/code sẵn. Timeout đúng τ cần TV1/TV2 chốt comparator trong TV2-003 (luật nói “quá hạn”). Pure rules không thay physics/multi-process evidence. Report TV1 cũ vẫn reported evidence, không TV2 rerun.
+
+---
+
+> HỒ SƠ ĐẾN 2026-11-05 — giữ để truy vết. Các trạng thái PROPOSED/UNDECIDED/BLOCKED và next action bên dưới là snapshot lịch sử; phần cập nhật 2026-11-08 ở trên có ưu tiên. Workflow và DAG còn áp dụng theo giới hạn ở phần hiện hành.
+
 > TV2 PROPOSAL / source archive, selectively adapted from 61aebf38ce40f9ad131405c202d7b82729ecbbcf; không thay tài liệu dùng chung của main. Workflow TV2 hiện hành (owner 2026-11-05 realign): baseline latest fetched origin/main có prerequisites; feature/<TASK-ID>-<description>, PR vào main; long23001901 chỉ giữ lịch sử. Các nhánh độc lập là siblings, task phụ thuộc thường chờ prerequisite merged; stacking ngoại lệ phải ghi dependency. Không merge/direct push main, không sửa nhánh nguồn. Quyết định này chỉ workflow owner, không phê duyệt gameplay nhóm.
 
 # Kiểm thử TV2 và bằng chứng phối hợp

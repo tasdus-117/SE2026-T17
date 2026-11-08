@@ -1,3 +1,27 @@
+# Small Arena — SRS v0.5, baseline luật đã chốt
+
+Cập nhật 2026-11-08 (Asia/Bangkok). [Luật v0.1](../docs/Small_Arena_Luat_Game_De_Xuat_v0.1.md) là nguồn gameplay chuẩn theo xác nhận owner nhóm đã chốt; [GD outcomes](../docs/DECISIONS.md#tv2-001--kết-quả-chốt-luật-2026-11-08) ghi nguồn/giới hạn. Phần v0.4/v0.3/v0.2 dưới đây là lịch sử, gồm matrix theo SHA. Duyệt luật không đồng nghĩa implementation DONE. FR/AC/TC-201–209 giữ nghĩa và được cụ thể hóa; ID cũ không tái sử dụng.
+
+| Requirement | Acceptance theo baseline v0.1 | Trace |
+| --- | --- | --- |
+| FR-201 | AC-201: server riêng, Windows clients, capacity4; 2–4 tất cả ready+loaded mới tự start; đổi roster reset Ready; không mid-join; reject người thứ5 | §1/2/5; TC-201; TV1, TV2-004/009/011 |
+| FR-202 | AC-202: V=5m/s; finite axes, analog≤1 giữ nguyên, >1 normalize; invalid không refresh τ=0.25s; Alive+Playing+connected mới nhận input; protection vẫn move | §3/4/6; TC-202; TV2-002/003; jump nền cần TV1/TV3 xác nhận |
+| FR-203 | AC-203: H=100HP, D=25HP, C=0.5s, R=30m; ammo vô hạn/no reload; đúng cooldown được bắn; valid miss tiêu C, reject không tiêu C | §3/7; TC-203; TV2-005 |
+| FR-204 | AC-204: server muzzle + aim ngang finite nonzero; một ray/accepted shot, nearest blocker; R inclusive; self/irrelevant triggers bỏ, dead không chắn, protected chắn không damage; không client hit truth/lag compensation | §4/7/10; TC-204; TV2-004/006 |
+| FR-205 | AC-205: HP clamp [0,100], không heal sống; một death/life; dead không move/fire/chắn; stale effect không đổi life mới | §8; TC-205; TV2-007 |
+| FR-206 | AC-206: Δ=3s, distance≥5m ngang+floor/collision; max nearest distance, stable tie, reservation tuần tự; unsafe Pending/retry0.5s; P=1s cấm damage/fire; HP đầy, giữ score/deaths/cooldown, clear held-fire | §9; TC-206; TV2-008 |
+| FR-207 | AC-207: +1 valid lethal opponent kill, environment/leave không credit; T=180s; deadline trước gameplay; server receive order, no mutual-kill batch; highest eligible wins/top tie Draw; <2 eligible do leave/expiry hoặc server mất → Aborted; terminal một lần | §8/10/11/12; TC-207; TV2-009 |
+| FR-208 | AC-208: G=15s, resume t<G với proof phiên, revoke old connection; offline vulnerable, input clear, clocks chạy, offline không respawn; không reset HP/score/timers; grace còn hạn eligible lúc chốt, terminal không tính lại | §12; TC-208; TV1 auth/session, TV2-004/008/009/012 |
+| FR-209 | AC-209: run có source/build/config/toolchain/topology/expected/actual/log/defect; ≥2 client processes cho combat, 4 riêng capacity; không nhận reported evidence thành rerun | §14; TC-209; TV2-010–013 |
+
+Config thiết kế rules-v0.1: H=100HP, D=25HP, C=0.5s, R=30m, V=5m/s, τ=0.25s, T=180s, Δ=3s, S=5m, retry=0.5s, P=1s, G=15s, kill=+1. Không đổi giữa trận; invalid/nonfinite/out-of-domain reject trước start. TV2-002 chốt miền validity/schema; không tự invent limits chưa có trong luật.
+
+Scope loại trừ: melee/pickup/E drop/2x, elimination/last-survivor, account/database, headshot/assist/knockback, score limit/sudden death. Jump không tự nâng thành mandatory. UI tối thiểu theo luật §13. GD-01–08 accepted; GD-09 baseline accepted, technical matrix/budgets/lịch OPEN. Wire/API/types và fixture geometry review trong task tương ứng. Gameplay TC-201–209 NOT RUN.
+
+---
+
+> HỒ SƠ ĐẾN 2026-11-05 — giữ để truy vết. Các trạng thái PROPOSED/UNDECIDED/BLOCKED và next action bên dưới là snapshot lịch sử; phần cập nhật 2026-11-08 ở trên có ưu tiên. Workflow và DAG còn áp dụng theo giới hạn ở phần hiện hành.
+
 > TV2 PROPOSAL / source archive, selectively adapted from 61aebf38ce40f9ad131405c202d7b82729ecbbcf; không thay tài liệu dùng chung của main. Workflow TV2 hiện hành (owner 2026-11-05 realign): baseline latest fetched origin/main có prerequisites; feature/<TASK-ID>-<description>, PR vào main; long23001901 chỉ giữ lịch sử. Các nhánh độc lập là siblings, task phụ thuộc thường chờ prerequisite merged; stacking ngoại lệ phải ghi dependency. Không merge/direct push main, không sửa nhánh nguồn. Quyết định này chỉ workflow owner, không phê duyệt gameplay nhóm.
 
 # Small Arena — SRS và đối chiếu kế hoạch TV2

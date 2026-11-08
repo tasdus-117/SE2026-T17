@@ -1,3 +1,17 @@
+# Kiến trúc TV2 — trạng thái 2026-11-08
+
+[Luật v0.1](Small_Arena_Luat_Game_De_Xuat_v0.1.md) và [GD outcomes](DECISIONS.md#tv2-001--kết-quả-chốt-luật-2026-11-08) chốt server riêng/raycast/respawn/score qua owner. Shared authority/layout và inventory bên dưới giữ nghĩa theo SHA; proposal gameplay cũ không còn chặn scope.
+
+Latest fetched main vẫn11849ad. TV1 movement feature đã advance N=4a7568f→5062c50 và có feature/tv1-m2-lobby-room; thay ref không có nghĩa code đã vào main. TV2-002 phải inspect current main và exact prerequisite commit, reuse/reconcile Domain/Health/TV1 lifecycle; không tự nhập teammate code hay coi offline combat thành online rules.
+
+GD-09 kỹ thuật OPEN: exact toolchain/transport/server OS/modules/license/build, rates/budgets/lịch do TV1 TECH-001. TV3 xác nhận jump/camera basis/muzzle/layers/spawn geometry; TV2-004 review wire/life/order. Không sửa Unity/runtime/config/scenes/prefabs/CI trong task này. [Next tasks/gates](TASKS.md).
+
+Prerequisite TV1: feature/tv1-m2-lobby-room hiện8d71e62 có commit melee/10HP/1DMG, khác luật raycast100HP/25DMG đã chốt. Code đồng đội chưa vào main; không sửa/import trong TV2-001. TV2-002/004 đối chiếu TV1 trước reuse/integration. TV1 M1 tại5062c50 báo Editor6000.6.8f1, PlayMode214/216 (2 vendor skips), group212/212, EditMode34/34; vẫn harness in-engine (1 native client+1 virtual), chưa hai OS clients/KCP/reconnect. Report chưa TV2 rerun, không tự nâng main/toolchain.
+
+---
+
+> HỒ SƠ ĐẾN 2026-11-05 — giữ để truy vết. Các trạng thái PROPOSED/UNDECIDED/BLOCKED và next action bên dưới là snapshot lịch sử; phần cập nhật 2026-11-08 ở trên có ưu tiên. Workflow và DAG còn áp dụng theo giới hạn ở phần hiện hành.
+
 > TV2 PROPOSAL / source archive, selectively adapted from 61aebf38ce40f9ad131405c202d7b82729ecbbcf; không thay tài liệu dùng chung của main. Workflow TV2 hiện hành (owner 2026-11-05 realign): baseline latest fetched origin/main có prerequisites; feature/<TASK-ID>-<description>, PR vào main; long23001901 chỉ giữ lịch sử. Các nhánh độc lập là siblings, task phụ thuộc thường chờ prerequisite merged; stacking ngoại lệ phải ghi dependency. Không merge/direct push main, không sửa nhánh nguồn. Quyết định này chỉ workflow owner, không phê duyệt gameplay nhóm.
 
 # Kiến trúc phối hợp TV1–TV2–TV3 — hướng đề xuất

@@ -1,4 +1,28 @@
-> TV2 PROPOSAL / source archive, selectively adapted from 61aebf38ce40f9ad131405c202d7b82729ecbbcf; không thay tài liệu dùng chung của main. Workflow TV2 hiện hành (owner 2026-11-05 realign): baseline latest fetched origin/main có prerequisites; feature/<TASK-ID>-<description>, PR vào main; long23001901 chỉ giữ lịch sử. Các nhánh độc lập là siblings, task phụ thuộc thường chờ prerequisite merged; stacking ngoại lệ phải ghi dependency. Không merge/direct push main, không sửa nhánh nguồn. Quyết định này chỉ workflow owner, không phê duyệt gameplay nhóm.
+# Decisions — hiện hành 2026-11-08
+
+## TV2-001 — kết quả chốt luật 2026-11-08
+
+- Evidence: owner TV2 / 23001901 chỉ thị “nhóm đã chốt luật game”, trỏ [luật v0.1](Small_Arena_Luat_Game_De_Xuat_v0.1.md), yêu cầu hoàn thành TV2-001, test, commit, push, PR. Ghi nhận nhóm qua owner ngày 2026-11-08 (Asia/Bangkok); ngày họp và chữ ký riêng TV1/TV3 không được cung cấp.
+- Status: ACCEPTED gameplay baseline v0.1, supersedes proposal-only/all-GD-UNDECIDED ngày 05/11. Config ID cho thiết kế tiếp theo: `rules-v0.1`; thay tuning phải version cho trận mới. Không suy wire/API/toolchain đã duyệt hoặc code đã pass.
+
+| GD | Actual decision từ luật v0.1 | Outcome / phần còn lại |
+| --- | --- | --- |
+| GD-01 | §3/6: H=100HP, D=25HP, C=0.5s, R=30m, V=5m/s, τ=0.25s; giữ analog dưới1, normalize quá1, reject nonfinite; config cố định mỗi trận | ACCEPTED; schema/validity TV2-002, movement TV2-003 |
+| GD-02 | §2/7: một súng raycast, ammo vô hạn, không reload | ACCEPTED; TV2-005 |
+| GD-03 | §4/7: camera cao cố định, WASD theo camera, mouse aim ngang qua muzzle server; nearest blocker; self/irrelevant trigger bỏ, dead không chắn, protected chắn nhưng không damage | ACCEPTED luật; jump vẫn theo điều kiện TV1/TV3 xác nhận ở §4; TV2-004 chốt camera basis/types/layers/inside-collider |
+| GD-04 | §9: Δ=3s, S=5m ngang, retry0.5s, P=1s; max nearest distance, hòa theo index; unsafe giữ Pending, >5s báo chờ; HP đầy, giữ score/deaths/cooldown, xóa held-fire | ACCEPTED; geometry/floor/collision TV3/TV1, TV2-008 |
+| GD-05 | §8/10: +1 lethal hit duy nhất/life; environment không credit, không trừ điểm; kills/deaths; server receive order, áp dụng ngay, không mutual-kill batch | ACCEPTED; stable tie-order/life identity TV2-004/007/009 |
+| GD-06 | §10/11: T=180s, chỉ timer; top-score tie Draw kể cả all0, deaths không phá hòa; deadline trước gameplay; không eligible thì Aborted; terminal không xét lại | ACCEPTED; TV2-009 |
+| GD-07 | §5: 2–4 all ready+loaded, server tự start; roster đổi reset Ready; khóa roster/unique spawn trước Playing; không mid-join; demo4/reject5; không bắt buộc room code | ACCEPTED; TV1 lobby, TV2 lifecycle bridge đối chiếu implementation |
+| GD-08 | §12: G=15s từ phát hiện disconnect; offline vulnerable, xóa input, clocks chạy, offline không respawn; proof đúng phiên, revoke connection cũ, resume t<G; leave/expiry không kill; <2 eligible Aborted; grace còn hạn dự kết quả; server mất không phục hồi | ACCEPTED luật; auth/session adapter TV1 và TV2-012 vẫn là prerequisite thực |
+| GD-09 | §1/15: server riêng, Windows clients, raycast/respawn/kill-score thay melee/elimination/host+3; reuse project chung main | ACCEPTED baseline; OPEN exact Editor/Mirror compatibility, transport, server OS/modules/license/build route, network/load budgets, lịch M0–M6 — TV1 TECH-001 |
+
+- Closure: TV2-001 DONE cho đối chiếu scope, actual decisions, mapping và handoff tài liệu đã kiểm. Human gameplay decision được owner xác nhận. Theo yêu cầu hoàn thành task tài liệu, tách closure tài liệu khỏi PR review/integration còn pending đến maintainer; không claim merged. GD-09 kỹ thuật được chuyển TECH-001, không bỏ gate runtime của tasks sau.
+- Workflow giữ [WF-TV2-MAIN](#wf-tv2-main--supersede-personal-integration-workflow). Latest fetched main 11849ad vẫn là ancestor nhánh task hiện hữu; tiếp tục đúng nhánh, không tạo lại/stack task sau. Owner cấp lại commit/push/PR; cancellation 05/11 là lịch sử, không retry old-target PR.
+
+---
+
+> HỒ SƠ ĐẾN 2026-11-05: các trạng thái PROPOSED/UNDECIDED/BLOCKED dưới đây là snapshot lịch sử. Kết quả 2026-11-08 phía trên có ưu tiên. Workflow WF-TV2-MAIN vẫn áp dụng.
 
 # Decisions
 

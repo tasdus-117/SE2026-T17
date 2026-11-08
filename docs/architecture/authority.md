@@ -38,4 +38,4 @@ Host có cả client và server trong một tiến trình. Không giả định 
 
 ## Review gameplay TV2
 
-[Ma trận TV2-001](../../Long_document/srs.md) và [agenda GD-01–09](../DECISIONS.md) tách implementation offline với raycast/respawn/score đề xuất. Chưa có team approval; authority/dependency hiện hữu ở tài liệu này không bị thay bởi personal proposal.
+[Luật v0.1](../Small_Arena_Luat_Game_De_Xuat_v0.1.md), [SRS v0.5](../../Long_document/srs.md) và [GD outcomes](../DECISIONS.md#tv2-001--kết-quả-chốt-luật-2026-11-08) ghi gameplay nhóm đã chốt qua owner ngày08/11: server riêng, raycast/respawn/kill-score, grace15s. Supersedes câu hỏi raycast/projectile, topology và grace ở danh sách phía trên về luật. Auth proof, exact toolchain/transport/build, budgets vẫn OPEN; authority/assembly direction giữ nguyên. Offline combat không chứng minh online acceptance.

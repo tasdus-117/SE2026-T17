@@ -121,3 +121,19 @@
 - GitHub compare_commits main...exact new head: ahead 1/behind 0, base/merge-base 11849ad, actual remote full file list đúng 17 Markdown paths, no unrelated files. PR create NEW head/base main được gọi với detailed prepared body; tool trả “user cancelled MCP tool call”. Recheck exact-head search issues=[]; không quan sát PR được tạo. Theo realign prompt không retry mới cancelled mutation. Không có PR URL, PR summary comment, @codex review request, external output/findings hoặc approval để claim. No merge. Old-target PR không retry.
 - Prepared PR body saved local TEMP/TV2-001-main-PR.md để action reviewable; không commit temp artifact. Memory state/task/log và local context updated đúng result. Checker mới PASS 17 files/96 local links/26 fragments, GD/mappings/DAG/history/allowlist/main ancestry/production unchanged. git diff --check origin/main...HEAD và staged check PASS. Unity/gameplay/build/multi-process/network/CI NOT RUN; GD-01–09 UNDECIDED, TV2-001 BLOCKED ở human review/integration.
 - Next exact action: nếu owner tiếp tục sau NEW cancellation, recheck existing exact-head PR và tạo/update một PR main, summary và một @codex review nếu chưa request, observe actual result; không redo port/create branch hoặc old-target PR. Sau authorized maintainer review/merge, future task từ updated main chứa prerequisites; không tạo TV2-002 branch trong migration. Final delivery-memory commit/push recorded ngoài commit để tránh self-reference.
+
+## 2026-11-08 — TV2-001 luật đã chốt và chuẩn bị delivery
+
+- Owner xác nhận nhóm chốt luật v0.1, yêu cầu hoàn thành/test/commit/push/PR. Approval qua owner, không invent reviewer/date; GD01–08 accepted, GD09 baseline accepted/technical OPEN chuyển TECH-001. Đóng deliverable docs, PR/integration pending riêng theo DECISIONS.
+- Read PROJECT_CONTEXT/STATE/TASKS/WF-TV2-MAIN, luật đầy đủ, SRS/PROTOCOL/TESTING/ARCHITECTURE/ROADMAP và shared docs. git fetch origin thành công sau escalation cho Git worktree admin ngoài writable root. Latest main11849ad, starting HEAD4a8348b, main ancestor/ahead2/behind0; no operations, context ignored; source refs/worktrees/assignment preserved.
+- Luật untracked SHA25618DEE632AC4E926E18B5D3BFBFFF4F96C74E155108A407EA0FE6D65424225D23; giữ gameplay§1–13 nguyên văn, annotate approved provenance/current review. SRSv0.5/GD outcomes/CT mapping/TC vectors/current readiness/shared links/state cập nhật; snapshots giữ nguyên với historical notice.
+- Read-only TV1 history: M1 advance5062c50, M2 lobby8d71e62 có melee10HP/1DMG khác approved raycast100HP/25DMG. Reconciliation gate TV2-002/004. Report6000.6.8f1/group212/212/EditMode34/34 là teammate-reported, harness native+virtual, không TV2 rerun/multi-process certification.
+- GitHub exact-head search all states: issues=[] trước create. Owner cấp tiếp tục mới sau cancellation05/11; không old-target retry. Checks/delivery thực bổ sung sau khi chạy.
+
+### Verification thực 2026-11-08
+
+- Node inline checker PASS: full PR scope18 Markdown files,119 local links/36 fragments; UTF-8 strict/fences;9 FR-AC-TC mappings/5 CT/9 GD;13-node24-edge DAG acyclic;7 historical suffixes nguyên (6 whole-file suffixes + DECISIONS body), WORK_LOG append-only. Main ancestor PASS; Assets/Packages/ProjectSettings/.github/tools unchanged so với origin/main.
+- git diff --check PASS trước staging; manual review approval provenance/technical OPEN/TC boundary preconditions và reconciliation TV1. Không có gameplay/runtime test được chạy cho docs-only diff.
+- Source rules mục1–13 không chỉnh gameplay; approval annotation và review/mapping updated. No context/prompt/assignment/runtime artifact staged. Exact paths và staged review được kiểm trước commit.
+
+- Staged check phát hiện2 Markdown hard-break trailing spaces có sẵn trong header luật mới track; đã đổi sang blank lines, giữ nguyên gameplay. Rerun staged whitespace sau correction trước commit.

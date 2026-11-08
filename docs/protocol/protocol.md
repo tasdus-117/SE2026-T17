@@ -20,4 +20,4 @@ Không coi Player ID là bằng chứng sở hữu phiên. Không commit token t
 
 ## Đề xuất CT từ TV2
 
-[CT-201–205 và gap analysis](../PROTOCOL.md) là bản nháp TV2 cần TV1/TV3 review; không phải wire/API đã được duyệt. Tài liệu này tiếp tục là shared protocol source, chỉ cập nhật contract thực qua review rõ ràng.
+[CT-201–205 và gap analysis](../PROTOCOL.md) đã cập nhật theo [luật v0.1 đã chốt](../Small_Arena_Luat_Game_De_Xuat_v0.1.md); gameplay policy được owner xác nhận08/11, fields/types/wire/API vẫn cần TV1/TV3 review trong TV2-004. Tài liệu này tiếp tục là shared protocol source, chỉ cập nhật contract thực qua review rõ ràng.
