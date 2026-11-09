@@ -1,8 +1,12 @@
 using System;
+using Mirror;
+using SmallArena.Networking;
 using SmallArena.Domain;
 using SmallArena.Protocol;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 namespace SmallArena.Input
 {
@@ -20,15 +24,47 @@ namespace SmallArena.Input
         private InputAction interact;
         private bool jumpPressed;
         private bool punchPressed;
+        private bool mousePunchPressed;
+        private Mouse punchMouse;
+        private readonly List<RaycastResult> uiHits = new List<RaycastResult>();
         private bool interactPressed;
+        private NetworkIdentity netIdentity;
+        private bool menuInputBlocked;
+        public bool IsMenuInputBlocked => menuInputBlocked;
 
         public Vector2 MoveInput { get; private set; }
-        public bool IsInputReady => isActiveAndEnabled && ownedActions != null;
+        public bool IsInputReady => isActiveAndEnabled && CanReadInput && ownedActions != null;
+        private bool CanReadInput => netIdentity == null || netIdentity.isLocalPlayer;
 
         public void EndMatch() => enabled = false;
 
+        public void SetMenuInputBlocked(bool blocked)
+        {
+            if (menuInputBlocked == blocked) return;
+            menuInputBlocked = blocked;
+            if (blocked) DisableGameplay();
+            else if (isActiveAndEnabled && CanReadInput) EnableGameplay();
+        }
+
         public bool ConsumeJumpPressed() => Consume(ref jumpPressed);
-        public bool ConsumePunchPressed() => Consume(ref punchPressed);
+        public bool ConsumePunchPressed()
+        {
+            var keyboard = Consume(ref punchPressed);
+            var mouse = Consume(ref mousePunchPressed);
+            return keyboard || mouse && !PointerOverUI();
+        }
+        private bool PointerOverUI()
+        {
+            var system = EventSystem.current;
+            if (system == null) return false;
+            // Run after input callbacks; querying UI there uses stale state and emits Input System warnings.
+            if (system.IsPointerOverGameObject()) return true;
+            var pointer = punchMouse ?? Mouse.current;
+            if (pointer == null) return false;
+            uiHits.Clear();
+            system.RaycastAll(new PointerEventData(system) { position = pointer.position.ReadValue() }, uiHits);
+            return uiHits.Count != 0;
+        }
         public bool ConsumeInteractPressed() => Consume(ref interactPressed);
 
         /// <summary>Optional composition seam; call while inactive, before the first enable.</summary>
@@ -40,9 +76,29 @@ namespace SmallArena.Input
             inputActions = actions;
         }
 
+        private void Awake() => netIdentity = GetComponent<NetworkIdentity>();
+
         private void OnEnable()
         {
             ClearInput();
+            NetworkPlayer.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
+            NetworkPlayer.OnLocalPlayerDespawned += HandleLocalPlayerDespawned;
+            if (CanReadInput && !menuInputBlocked) EnableGameplay();
+        }
+
+        private void HandleLocalPlayerSpawned(NetworkPlayer player)
+        {
+            if (player.gameObject == gameObject && CanReadInput && !menuInputBlocked) EnableGameplay();
+        }
+
+        private void HandleLocalPlayerDespawned(NetworkPlayer player)
+        {
+            if (player.gameObject == gameObject) DisableGameplay();
+        }
+
+        private void EnableGameplay()
+        {
+            if (gameplay != null && gameplay.enabled) return;
             if (!EnsureActions())
             {
                 enabled = false;
@@ -58,6 +114,13 @@ namespace SmallArena.Input
         }
 
         private void OnDisable()
+        {
+            NetworkPlayer.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
+            NetworkPlayer.OnLocalPlayerDespawned -= HandleLocalPlayerDespawned;
+            DisableGameplay();
+        }
+
+        private void DisableGameplay()
         {
             if (move != null) { move.performed -= OnMove; move.canceled -= OnMove; }
             if (jump != null) jump.performed -= OnJump;
@@ -123,7 +186,9 @@ namespace SmallArena.Input
 
         private void OnPunch(InputAction.CallbackContext context)
         {
-            if (context.ReadValueAsButton()) punchPressed = true;
+            if (!context.ReadValueAsButton()) return;
+            if (context.control.device is Mouse pointer) { mousePunchPressed = true; punchMouse = pointer; }
+            else punchPressed = true;
         }
 
         private void OnInteract(InputAction.CallbackContext context)
@@ -136,6 +201,8 @@ namespace SmallArena.Input
             MoveInput = Vector2.zero;
             jumpPressed = false;
             punchPressed = false;
+            mousePunchPressed = false;
+            punchMouse = null;
             interactPressed = false;
         }
 

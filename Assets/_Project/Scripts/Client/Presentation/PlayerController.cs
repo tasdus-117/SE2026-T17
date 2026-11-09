@@ -1,3 +1,5 @@
+using Mirror;
+using SmallArena.Networking;
 using SmallArena.Input;
 using SmallArena.Domain;
 using SmallArena.Protocol;
@@ -18,6 +20,8 @@ namespace SmallArena.Client
         [SerializeField] private float groundedGravity = -2.0f;
 
         private float verticalVelocity;
+        private NetworkIdentity netIdentity;
+        private NetworkMovement networkMovement;
 
         public bool IsMovementReady => isActiveAndEnabled && characterController != null
             && characterController.enabled && inputHandler != null && inputHandler.IsInputReady;
@@ -32,12 +36,20 @@ namespace SmallArena.Client
 
         private void BindComponents()
         {
+            netIdentity = GetComponent<NetworkIdentity>();
+            networkMovement = GetComponent<NetworkMovement>();
             if (characterController == null) characterController = GetComponent<CharacterController>();
             if (inputHandler == null) inputHandler = GetComponent<PlayerInputHandler>();
         }
 
         private void Update()
         {
+            if (netIdentity != null)
+            {
+                if (netIdentity.isLocalPlayer && networkMovement != null)
+                    networkMovement.SubmitInput(inputHandler.MoveInput, inputHandler.ConsumeJumpPressed());
+                return;
+            }
             // Heading never follows movement or camera rotation.
             transform.rotation = Quaternion.identity;
             var moveInput = Vector2.ClampMagnitude(inputHandler.MoveInput, 1f);

@@ -27,7 +27,10 @@ namespace SmallArena.Client.Presentation
             if (target != null)
             {
                 var collider = target.GetComponent<Collider>();
-                var bounds = collider != null ? collider.bounds : new Bounds(target.position, Vector3.zero);
+                // Network replicas disable CharacterController; disabled collider bounds are empty at the origin.
+                var renderer = target.GetComponentInChildren<Renderer>();
+                var bounds = collider != null && collider.enabled ? collider.bounds
+                    : renderer != null ? renderer.bounds : new Bounds(target.position, Vector3.zero);
                 CheckLine(bounds.center);
                 CheckLine(bounds.center + Vector3.up * bounds.extents.y * 0.9f);
                 CheckLine(bounds.center - Vector3.up * bounds.extents.y * 0.9f);

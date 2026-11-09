@@ -43,7 +43,7 @@ namespace SmallArena.Tests.PlayMode
         [TestCase("Environment", "Player", true)]
         [TestCase("Environment", "Bot", true)]
         [TestCase("Environment", "Pickup", false)]
-        [TestCase("Player", "Player", false)]
+        [TestCase("Player", "Player", true)]
         [TestCase("Player", "Bot", true)]
         [TestCase("Player", "Pickup", true)]
         [TestCase("Bot", "Bot", false)]
