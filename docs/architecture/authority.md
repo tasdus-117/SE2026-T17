@@ -4,9 +4,18 @@
 
 Bảy asmdef hiện tại: Shared.Domain, Shared.Protocol, Networking, Server, Client, EditMode.Tests và PlayMode.Tests (tiền tố SmallArena.). Domain/Protocol độc lập engine; Protocol dùng Domain; Networking dùng Shared/Mirror; Server và Client dùng Shared/Networking, không tham chiếu nhau. Trạng thái offline do MatchStateMachine trong Domain quản lý; adapter Server nhận input/readiness/lệnh kết thúc qua interface Shared.
 
-Mẫu offline không chứng minh authority trên mạng. PlayerController cục bộ dùng để kiểm chứng hành vi; TV1.1 cần tích hợp ownership, spawn và đường gửi/xác thực input, không tin giá trị client tự khai báo. Xem [báo cáo di trú](main-migration-audit.md) và [ngữ cảnh hiện hành](../../PROJECT_CONTEXT.md).
+Mẫu offline không chứng minh authority trên mạng. [TV1.1](tv1.1-network-lifecycle.md) có server-owned spawn và gate local owner. [TV1.2](tv1.2-server-movement.md) chuyển di chuyển mạng sang Command ý định → validation → FixedUpdate/CharacterController trên server → NetworkTransformReliable ServerToClient. Client không gửi pose, speed hoặc delta được tin cậy; nhánh PlayerController offline vẫn giữ riêng. [TV1.3](../testing/tv1.3-results.md) đã kiểm chứng native client và connection ảo trong PlayMode, gồm Command giả quyền và cleanup disconnect; chưa chứng nhận nhiều tiến trình độc lập. Xem [báo cáo di trú](main-migration-audit.md) và ngữ cảnh cục bộ `PROJECT_CONTEXT.md`.
+
+Trong [M2 hosted lobby](m2-lobby-rooms.md), Server/Sessions giữ thành viên/readiness/host và khóa pha Waiting → Loading → Playing. Networking chỉ bridge lifecycle/message/scene, UI chỉ gửi yêu cầu Ready/Start và đọc snapshot. Request không chứa ID tự khai hoặc quyền host. NetworkServer giới hạn bốn connection, server gate không spawn avatar trong lobby. Domain match/combat mạng không được thay thế bằng pha lobby này.
 
 ## Luồng xử lý
+
+[Combat/HUD mạng](network-combat-and-hud.md) bổ sung Command owner → melee server
+→ SyncVar HP/kết quả → HUD/overhead client. NetworkPlayer giữ bridge mỏng;
+NetworkCombat, NetworkHealth và NetworkMatchRules thuộc Networking theo phạm vi
+tích hợp hiện tại, không thêm Gameplay.asmdef thứ tám. UI không gọi TakeDamage;
+luồng offline được giữ riêng. Xem tài liệu liên kết để biết tuning, guard tải
+scene và kết quả regression thực tế.
 
 Input client → hợp đồng Protocol → adapter Mirror → kiểm tra server → mô phỏng/combat → trạng thái server → replication → client hiển thị.
 

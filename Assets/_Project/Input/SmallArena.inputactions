@@ -111,6 +111,17 @@
                                       },
                                       {
                                           "name":  "",
+                                          "id":  "dd5fd351-aabe-46d3-a2b0-2b17df4b10b6",
+                                          "path":  "<Mouse>/leftButton",
+                                          "interactions":  "",
+                                          "processors":  "",
+                                          "groups":  "",
+                                          "action":  "Punch",
+                                          "isComposite":  false,
+                                          "isPartOfComposite":  false
+                                      },
+                                      {
+                                          "name":  "",
                                           "id":  "55c15b58-3d5d-41e4-8783-82781b6ce104",
                                           "path":  "\u003cKeyboard\u003e/j",
                                           "interactions":  "",

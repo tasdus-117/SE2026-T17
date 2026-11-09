@@ -18,6 +18,7 @@ namespace SmallArena.Client.UI
         [SerializeField] private TextMeshProUGUI victoryText = null;
         [SerializeField] private Button playAgainButton = null;
         [SerializeField] private Button exitToMenuButton = null;
+        [SerializeField] private Slider botHpBar = null;
 
         private IMatchStateSource matchSource;
         private IHealthSource healthSource;
@@ -68,6 +69,7 @@ namespace SmallArena.Client.UI
         private void HandleHealthChanged(int current, int maximum)
         {
             if (botHpText != null) botHpText.text = $"Bot HP: {current} / {maximum}";
+            if (botHpBar != null) { botHpBar.maxValue = maximum; botHpBar.SetValueWithoutNotify(current); }
         }
 
         private void HandleDamageChanged(int damage)

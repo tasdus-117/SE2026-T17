@@ -74,7 +74,7 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(canvas.GetComponent<GraphicRaycaster>().enabled, Is.True);
             Assert.That(canvas.GetComponentsInChildren<Button>().Length, Is.EqualTo(4));
             Assert.That(ButtonNamed("SinglePlayerButton").interactable, Is.True);
-            Assert.That(ButtonNamed("MultiplayerButton").interactable, Is.False);
+            Assert.That(ButtonNamed("MultiplayerButton").interactable, Is.True);
             Assert.That(ButtonNamed("TutorialButton").interactable, Is.False);
             Assert.That(ButtonNamed("ExitButton").interactable, Is.True);
             Assert.That(ButtonNamed("ExitButton").onClick.GetPersistentMethodName(0), Is.EqualTo("OnExitClicked"));
@@ -190,12 +190,12 @@ namespace SmallArena.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator FutureMenuOptions_LogTheirStatusWithoutChangingScene()
+        public IEnumerator MultiplayerOpensConnectionPanel_WhileTutorialRemainsComingSoon()
         {
             yield return LoadMainMenu();
             var controller = Object.FindAnyObjectByType<MainMenuController>();
-            LogAssert.Expect(LogType.Log, "[TV1] Multiplayer will connect via Bootstrap scene.");
             controller.OnMultiplayerClicked();
+            Assert.That(controller.GetComponent<LobbyRoomView>().ConnectionVisible, Is.True);
             LogAssert.Expect(LogType.Log, "Tutorial Coming Soon");
             controller.OnTutorialClicked();
             yield return null;

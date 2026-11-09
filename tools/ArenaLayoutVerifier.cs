@@ -58,6 +58,11 @@ internal static class ArenaLayoutVerifier
         var scene = Read(scenePath);
         var mainMenuPath = System.IO.Path.Combine(prefix, "Scenes/MainMenu.unity");
         var mainMenu = Read(mainMenuPath);
+        var inGameMenu = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/InGameMenu.prefab"));
+        var networkHud = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/NetworkHUD.prefab"));
+        var overhead = Read(System.IO.Path.Combine(prefix, "Prefabs/UI/OpponentHealthBar.prefab"));
+        Read(System.IO.Path.Combine(prefix, "Prefabs/Network/NetworkLootItem.prefab"));
+        Read(System.IO.Path.Combine(prefix, "Prefabs/Network/ArenaNetworkRoot.prefab"));
         var names = new[] { "Player", "Bot", "WeaponPickup" };
         var prefabs = names.ToDictionary(name => name, name => Read(System.IO.Path.Combine(prefix,
             "Prefabs/" + (name == "WeaponPickup" ? "Combat/" : "Characters/") + name + ".prefab")));
@@ -72,9 +77,12 @@ internal static class ArenaLayoutVerifier
             "com.unity.render-pipelines.universal/Runtime/UniversalAdditionalLightData.cs.meta",
             "com.unity.render-pipelines.universal/Editor/AssetVersion.cs.meta",
             "com.unity.ugui/Runtime/TMP/TextMeshProUGUI.cs.meta",
+            "com.unity.ugui/Runtime/TMP/TMP_InputField.cs.meta",
+            "com.unity.ugui/Runtime/UGUI/UI/Core/RectMask2D.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Layout/CanvasScaler.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/Button.cs.meta",
+            "com.unity.ugui/Runtime/UGUI/UI/Core/Slider.cs.meta",
             "com.unity.ugui/Runtime/UGUI/UI/Core/GraphicRaycaster.cs.meta",
             "com.unity.ugui/Runtime/UGUI/EventSystem/EventSystem.cs.meta",
             "com.unity.render-pipelines.core/Runtime/Volume/Volume.cs.meta"
@@ -91,6 +99,9 @@ internal static class ArenaLayoutVerifier
         var layers = Sequence(Field(tagManager.Data, "layers")).Select(Scalar).ToArray();
         var expectedLayers = new Dictionary<string, int> { { "Environment", 6 }, { "Player", 7 }, { "Bot", 8 }, { "Pickup", 9 } };
         foreach (var pair in expectedLayers) Check(layers[pair.Value] == pair.Key, "Named layer slot mismatch: " + pair.Key);
+        var physics = Read(System.IO.Path.Combine(root, "ProjectSettings/DynamicsManager.asset")).Only("PhysicsManager");
+        var layerBytes = Convert.FromHexString(Text(Map(Field(physics.Data, "m_LayerCollisionMatrix")), "_data"));
+        Check((BitConverter.ToUInt32(layerBytes, 7 * 4) & (1u << 7)) != 0, "Player must collide with Player.");
 
         var allowedTypes = new HashSet<string> { "GameObject", "Transform", "MeshFilter", "MeshRenderer", "CharacterController", "CapsuleCollider", "BoxCollider", "Rigidbody", "MonoBehaviour" };
         foreach (var name in names)
@@ -102,7 +113,7 @@ internal static class ArenaLayoutVerifier
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
             expectedTypes.Add("MonoBehaviour");
-            var expectedCount = expectedTypes.Count + (name == "Player" ? 2 : 0);
+            var expectedCount = expectedTypes.Count + (name == "Player" ? 12 : 1);
             Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
             var layerName = name == "WeaponPickup" ? "Pickup" : name;
@@ -124,6 +135,25 @@ internal static class ArenaLayoutVerifier
             Check(prefab.OfType("MeshRenderer").Count() == 1 && prefab.OfType("MeshFilter").Count() == 1, "Primitive render components missing.");
         }
         var player = prefabs["Player"];
+        var identityGuid = ReadGuid(System.IO.Path.Combine(root, "Assets/Mirror/Core/NetworkIdentity.cs.meta"));
+        var networkPlayerGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/NetworkPlayer.cs.meta"));
+        var networkIdentity = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == identityGuid);
+        Check(Number(networkIdentity.Data, "sceneId") == 0 && Number(networkIdentity.Data, "_assetId") != 0, "Network player prefab must have an asset ID and no scene ID.");
+        Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == networkPlayerGuid) == 1, "NetworkPlayer bridge missing.");
+        foreach (var script in new[] { "Networking/NetworkHealth", "Networking/NetworkCombat", "Client/Input/NetworkCombatInput", "Client/Presentation/OpponentHealthPresenter" })
+            Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == ReadGuid(System.IO.Path.Combine(prefix, "Scripts/" + script + ".cs.meta"))) == 1, "Network combat component missing: " + script);
+        Check(Number(overhead.Only("Canvas").Data, "m_RenderMode") == 2, "Opponent health must use a world-space canvas.");
+        Check(Number(networkHud.Only("Canvas").Data, "m_SortingOrder") == 20, "Network HUD must remain below the pause menu.");
+        var networkMovementGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/NetworkMovement.cs.meta"));
+        var simulationGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Simulation/ServerPlayerMovement.cs.meta"));
+        var transformGuid = ReadGuid(System.IO.Path.Combine(root, "Assets/Mirror/Components/NetworkTransform/NetworkTransformReliable.cs.meta"));
+        Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == networkMovementGuid) == 1, "Network movement command bridge missing.");
+        Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == simulationGuid) == 1, "Server movement simulation missing.");
+        var replication = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == transformGuid);
+        Check(Number(replication.Data, "syncDirection") == 0 && Number(replication.Data, "syncMode") == 0, "Transform must synchronize ServerToClient to all observers, including owner.");
+        Check(Id(Field(replication.Data, "target")) == player.Only("Transform").Id && Number(replication.Data, "coordinateSpace") == 1, "Replication must target the official world transform.");
+        Check(Number(replication.Data, "syncPosition") == 1 && Number(replication.Data, "syncRotation") == 1 && Number(replication.Data, "syncScale") == 0, "Replication position/rotation configuration mismatch.");
+        Check(Number(replication.Data, "interpolatePosition") == 1 && Number(replication.Data, "interpolateRotation") == 1, "Client transform interpolation must remain enabled.");
         var controller = player.Only("CharacterController");
         var inputGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Input/PlayerInputHandler.cs.meta"));
         var movementGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Presentation/PlayerController.cs.meta"));
@@ -138,7 +168,8 @@ internal static class ArenaLayoutVerifier
         Near(Number(controller.Data, "m_Height"), 2); Near(Number(controller.Data, "m_Radius"), 0.5);
         Near(Number(controller.Data, "m_SlopeLimit"), 45); Near(Number(controller.Data, "m_StepOffset"), 0.3);
         Near(Number(controller.Data, "m_SkinWidth"), 0.08); Near(Number(controller.Data, "m_MinMoveDistance"), 0.001);
-        Check(Number(controller.Data, "m_IsTrigger") == 0 && Number(controller.Data, "m_Enabled") == 1, "Player collision must be solid and enabled.");
+        var triggerEnabled = controller.Data.Children.TryGetValue(new YamlScalarNode("m_IsTrigger"), out var triggerValue) && Scalar(triggerValue) != "0";
+        Check(!triggerEnabled && Number(controller.Data, "m_Enabled") == 1, "Player collision must be solid and enabled.");
         var bot = prefabs["Bot"];
         var healthGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Combat/Health.cs.meta"));
         var combatGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Combat/CombatController.cs.meta"));
@@ -209,7 +240,17 @@ internal static class ArenaLayoutVerifier
                 Check(geometryBoxes[northSouth].Overlaps(geometryBoxes[eastWest]), "Open corner seam.");
 
         var instances = scene.OfType("PrefabInstance").ToArray();
-        Check(instances.Length == 3, "Expected exactly three prefab instances.");
+        Check(instances.Length == 5, "Expected three gameplay prefabs, in-game menu and network HUD.");
+        var inGameMenuGuid = ReadGuid(inGameMenu.Path + ".meta");
+        var menuInstance = instances.Single(item => Text(Map(Field(item.Data, "m_SourcePrefab")), "guid") == inGameMenuGuid);
+        Check(Id(Field(Map(Field(menuInstance.Data, "m_Modification")), "m_TransformParent")) == 0, "Menu must be independent of the offline match scope.");
+        var menuViewGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/UI/InGameMenuView.cs.meta"));
+        var menuView = inGameMenu.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == menuViewGuid);
+        foreach (var field in new[] { "pausePanel", "resultPanel" })
+            Check(Number(inGameMenu.Records[Id(Field(menuView.Data, field))].Data, "m_IsActive") == 0, "Menu panels must start inactive.");
+        foreach (var field in new[] { "resumeButton", "leaveButton", "resultReturnButton", "resultHeader" })
+            Check(inGameMenu.Records.ContainsKey(Id(Field(menuView.Data, field))), "Unwired in-game menu reference: " + field);
+        Check(Number(inGameMenu.Only("Canvas").Data, "m_SortingOrder") > 10, "Menu must draw above the offline HUD.");
         Check(!scene.OfType("GameObject").Where(item => !item.Stripped).Any(item => names.Contains(Text(item.Data, "m_Name"))), "Entities must be linked prefab instances, not loose duplicates.");
         Check(!scene.OfType("GameObject").Where(item => !item.Stripped).Any(item => new[] { expectedLayers["Player"], expectedLayers["Bot"], expectedLayers["Pickup"] }.Contains((int)Number(item.Data, "m_Layer"))), "Loose duplicate on an entity layer.");
         var spawns = new Dictionary<string, Vector3> { { "Player", new Vector3(0, 1, -4) }, { "Bot", new Vector3(0, 1, 4) }, { "WeaponPickup", new Vector3(-3, 0.3f, 0) } };
@@ -229,7 +270,11 @@ internal static class ArenaLayoutVerifier
             Check(Id(Field(instance.Data, "m_SourcePrefab")) == 100100000, "Invalid source prefab asset reference.");
             var modification = Map(Field(instance.Data, "m_Modification"));
             Check(Id(Field(modification, "m_TransformParent")) == 0, "Entity must be a scene root.");
-            foreach (var key in new[] { "m_RemovedComponents", "m_RemovedGameObjects", "m_AddedGameObjects", "m_AddedComponents" })
+            var removed = Sequence(Field(modification, "m_RemovedComponents")).ToArray();
+            if (name == "Player")
+                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018 }), "Offline player must remove all network simulation, health, combat, separation and presentation components.");
+            else Check(removed.Length == 0, "Unexpected removed prefab component.");
+            foreach (var key in new[] { "m_RemovedGameObjects", "m_AddedGameObjects", "m_AddedComponents" })
                 Check(!Sequence(Field(modification, key)).Any(), "Unexpected structural prefab override.");
             var changes = Sequence(Field(modification, "m_Modifications")).Select(Map).ToArray();
             Check(changes.Length == 3, "Only XYZ spawn overrides are allowed.");
@@ -334,7 +379,16 @@ internal static class ArenaLayoutVerifier
         }
         Check(sceneBehaviours.Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == inputModuleGuid) == 1,
             "Arena needs one Input System UI module for after-match mouse input.");
+        var startGuid = ReadGuid(System.IO.Path.Combine(root, "Assets/Mirror/Core/NetworkStartPosition.cs.meta"));
+        var scopeGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Simulation/OfflineMatchScope.cs.meta"));
+        var markers = sceneBehaviours.Where(item => Text(Map(Field(item.Data, "m_Script")), "guid") == startGuid).ToArray();
+        Check(markers.Length == 4, "Expected four network spawn markers.");
+        var markerPositions = markers.Select(item => Vector(scene.Component(scene.Records[Id(Field(item.Data, "m_GameObject"))], "Transform").Data, "m_LocalPosition")).ToArray();
+        Check(markerPositions.Distinct().Count() == 4 && markerPositions.All(position => Math.Abs(position.X) == 6 && position.Y == 1 && Math.Abs(position.Z) == 6), "Network spawns must be distinct, supported and clear of arena walls.");
+        var scope = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == scopeGuid);
+        Check(Sequence(Field(scope.Data, "offlineRoots")).Select(Id).ToHashSet().SetEquals(new[] { entityObjects["Player"], entityObjects["Bot"], entityObjects["WeaponPickup"], managerObject.Id, Id(Field(ui.Data, "m_GameObject")) }), "Offline scope must disable only offline actors, coordinator and HUD.");
         Check(sceneBehaviours.All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))
+            || Text(Map(Field(item.Data, "m_Script")), "guid") == startGuid || item.Id == scope.Id
             || item.Id == manager.Id || item.Id == follow.Id || item.Id == occlusion.Id || item.Id == readiness.Id || item.Id == ui.Id), "Unexpected scene gameplay script.");
         var build = Read(System.IO.Path.Combine(root, "ProjectSettings/EditorBuildSettings.asset")).Only("EditorBuildSettings");
         var buildScenes = Sequence(Field(build.Data, "m_Scenes")).Select(Map).ToArray();
@@ -351,13 +405,14 @@ internal static class ArenaLayoutVerifier
         {
             var owner = mainMenu.Named(buttonName);
             var button = mainMenu.OfType("MonoBehaviour").Single(item => Id(Field(item.Data, "m_GameObject")) == owner.Id && Text(Map(Field(item.Data, "m_Script")), "guid") == buttonGuid);
-            var enabled = buttonName == "SinglePlayerButton" || buttonName == "ExitButton";
+            var enabled = buttonName != "TutorialButton";
             Check(Number(button.Data, "m_Interactable") == (enabled ? 1 : 0), "Menu option interactability mismatch.");
             if (enabled)
             {
                 var calls = Sequence(Field(Map(Field(Map(Field(button.Data, "m_OnClick")), "m_PersistentCalls")), "m_Calls")).Select(Map).ToArray();
                 Check(calls.Length == 1 && Id(Field(calls[0], "m_Target")) == menuController.Id, "Menu button callback target is incorrect.");
-                Check(Text(calls[0], "m_MethodName") == (buttonName == "SinglePlayerButton" ? "OnSinglePlayerClicked" : "OnExitClicked"), "Menu button callback method is incorrect.");
+                var method = buttonName == "SinglePlayerButton" ? "OnSinglePlayerClicked" : buttonName == "MultiplayerButton" ? "OnMultiplayerClicked" : "OnExitClicked";
+                Check(Text(calls[0], "m_MethodName") == method, "Menu button callback method is incorrect.");
             }
         }
         Check(mainMenu.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == inputModuleGuid) == 1,
@@ -371,7 +426,7 @@ internal static class ArenaLayoutVerifier
             Spawns = spawns.ToDictionary(pair => pair.Key, pair => new[] { pair.Value.X, pair.Value.Y, pair.Value.Z }),
             VerificationMode = "Saved-file references and geometry only; Unity import and native physics require licensed PlayMode execution."
         }, new JsonSerializerOptions { WriteIndented = true }));
-        Console.WriteLine($"PASS: {assertions} saved-layout assertions; {parsed.Count} Unity YAML files; 3 linked prefab instances; 16x16 floor; 3m walls; supported, separate spawns.");
+        Console.WriteLine($"PASS: {assertions} saved-layout assertions; {parsed.Count} Unity YAML files; 3 linked gameplay prefabs plus in-game menu; 16x16 floor; 3m walls; supported, separate spawns.");
     }
 
     private static Box Bounds(Record transform, Record collider, Vector3 positionOverride)

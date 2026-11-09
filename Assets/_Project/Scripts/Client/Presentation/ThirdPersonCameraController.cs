@@ -1,3 +1,5 @@
+using Mirror;
+using SmallArena.Networking;
 using UnityEngine;
 
 namespace SmallArena.Client.Presentation
@@ -18,17 +20,48 @@ namespace SmallArena.Client.Presentation
 
         public void SetTarget(Transform newTarget)
         {
+            if (newTarget != null && newTarget.TryGetComponent<NetworkIdentity>(out var identity)
+                && !identity.isLocalPlayer) newTarget = null;
             target = newTarget;
             currentVelocity = Vector3.zero;
         }
 
         private void Awake() => ApplyFixedRotation();
 
-        private void OnEnable() => currentVelocity = Vector3.zero;
+        private void OnEnable()
+        {
+            currentVelocity = Vector3.zero;
+            NetworkPlayer.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
+            NetworkPlayer.OnLocalPlayerDespawned += HandleLocalPlayerDespawned;
+            // The scene camera can enable after the local-player spawn callback.
+            if (NetworkClient.localPlayer != null) SetTarget(NetworkClient.localPlayer.transform);
+        }
+
+        private void OnDisable()
+        {
+            NetworkPlayer.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
+            NetworkPlayer.OnLocalPlayerDespawned -= HandleLocalPlayerDespawned;
+            currentVelocity = Vector3.zero;
+        }
+
+        private void HandleLocalPlayerSpawned(NetworkPlayer player)
+        {
+            if (player.IsLocalControllable) SetTarget(player.transform);
+        }
+
+        private void HandleLocalPlayerDespawned(NetworkPlayer player)
+        {
+            if (target == player.transform) SetTarget(null);
+        }
 
         private void LateUpdate()
         {
             if (target == null) return;
+            if (target.TryGetComponent<NetworkIdentity>(out var identity) && !identity.isLocalPlayer)
+            {
+                SetTarget(null);
+                return;
+            }
 
             var desiredPosition = target.position + followOffset;
             transform.position = Vector3.SmoothDamp(transform.position, desiredPosition,

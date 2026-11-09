@@ -175,8 +175,19 @@ namespace SmallArena.Tests.PlayMode
                 allowed.Add(typeof(SmallArena.Client.PlayerController));
                 allowed.Add(typeof(SmallArena.Player.CombatController));
             }
-            if (name == "Bot") allowed.Add(typeof(SmallArena.Server.Combat.Health));
-            if (name == "WeaponPickup") allowed.Add(typeof(SmallArena.Pickups.WeaponPickup));
+            if (name == "Bot")
+            {
+                allowed.Add(typeof(SmallArena.Server.Combat.Health));
+                allowed.Add(typeof(SmallArena.Client.UI.OfflineHealthPresenter));
+                allowed.AddRange(new[] { typeof(RectTransform), typeof(Canvas), typeof(CanvasRenderer),
+                    typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Slider), typeof(TMPro.TextMeshProUGUI),
+                    typeof(SmallArena.Client.UI.NetworkHealthBarView), typeof(SmallArena.Client.UI.HealthBarBillboard) });
+            }
+            if (name == "WeaponPickup")
+            {
+                allowed.Add(typeof(SmallArena.Pickups.WeaponPickup));
+                allowed.Add(typeof(SmallArena.Client.Presentation.PickupVisual));
+            }
             foreach (var component in Entity(name).GetComponentsInChildren<Component>(true))
             {
                 Assert.That(component, Is.Not.Null);
