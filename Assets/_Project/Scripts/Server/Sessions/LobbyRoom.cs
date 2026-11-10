@@ -7,19 +7,21 @@ namespace SmallArena.Server.Sessions
     /// <summary>Server-owned membership/readiness rules. Connection IDs come from Mirror, never client payloads.</summary>
     public sealed class LobbyRoom
     {
-        public const int Capacity = 4;
+        public const int Capacity = LobbyLimits.Capacity;
         private readonly Dictionary<int, LobbyMember> members = new Dictionary<int, LobbyMember>();
         public LobbyPhase Phase { get; private set; } = LobbyPhase.Offline;
         public int Count => members.Count;
+        public bool CanStart => Phase == LobbyPhase.Waiting && Count >= 2 && AllReady;
         public bool AllReady => Count > 0 && members.Values.All(member => member.IsReady);
-        public LobbyMember[] Members => members.Values.OrderBy(member => member.ConnectionId).ToArray();
+        public LobbyMember[] Members => members.Values.OrderBy(member => member.SlotIndex).ToArray();
 
         public void Open() { members.Clear(); Phase = LobbyPhase.Waiting; }
         public void Close() { members.Clear(); Phase = LobbyPhase.Offline; }
         public bool TryJoin(int id, bool isHost)
         {
             if (Phase != LobbyPhase.Waiting || members.ContainsKey(id) || Count >= Capacity) return false;
-            members.Add(id, new LobbyMember { ConnectionId = id, IsHost = isHost });
+            var slot = Enumerable.Range(0, Capacity).First(index => !members.Values.Any(member => member.SlotIndex == index));
+            members.Add(id, new LobbyMember { ConnectionId = id, SlotIndex = slot, IsHost = isHost });
             return true;
         }
         public bool Remove(int id) => members.Remove(id);
@@ -32,7 +34,7 @@ namespace SmallArena.Server.Sessions
         }
         public bool TryStart(int requester)
         {
-            if (Phase != LobbyPhase.Waiting || !AllReady || !members.TryGetValue(requester, out var member) || !member.IsHost) return false;
+            if (!CanStart || !members.TryGetValue(requester, out var member) || !member.IsHost) return false;
             Phase = LobbyPhase.Loading;
             return true;
         }

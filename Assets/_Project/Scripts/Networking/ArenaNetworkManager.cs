@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
 using Mirror;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,6 +16,10 @@ namespace SmallArena.Networking
         [SerializeField] private bool roomEnabled = false;
         public bool RoomEnabled => roomEnabled;
         public LobbySnapshot CurrentRoom { get; private set; }
+        private readonly HashSet<NetworkConnectionToClient> rejectedConnections = new HashSet<NetworkConnectionToClient>();
+        private string rejectionReason;
+        public string RejectionReason => rejectionReason;
+        public event Action<string> RoomRejected;
         public string ConnectionStatus { get; private set; } = "";
         public event Action RoomChanged;
         public event Action ServerStarted;
@@ -61,10 +67,12 @@ namespace SmallArena.Networking
             onlineScene = "";
             offlineScene = "Assets/_Project/Scenes/MainMenu.unity";
             CurrentRoom = default;
+            rejectionReason = null;
         }
         public void LeaveRoom()
         {
             ConnectionStatus = "";
+            rejectionReason = null;
             var returnScene = offlineScene;
             if (SceneManager.GetActiveScene().name == "MainMenu") offlineScene = "";
             if (NetworkServer.active && NetworkClient.activeHost) StopHost();
@@ -96,11 +104,25 @@ namespace SmallArena.Networking
         }
         public override void OnStartServer()
         {
+            // One transient denial connection allows a full-room reason through Mirror
+            // before disconnect. It never joins the roster or becomes authenticated.
+            if (roomEnabled)
+            {
+                NetworkServer.maxConnections = LobbyLimits.Capacity + 1;
+                NetworkServer.RegisterHandler<LobbyRejectionAcknowledged>((connection, _) =>
+                {
+                    if (rejectedConnections.Contains(connection)) connection.Disconnect();
+                }, false);
+            }
             base.OnStartServer();
             ServerStarted?.Invoke();
         }
         public override void OnStartClient()
         {
+            rejectionReason = null;
+            rejectionReason = null;
+            rejectionReason = null;
+            rejectionReason = null;
             if (roomEnabled)
             {
                 NetworkClient.RegisterHandler<LobbySnapshot>(snapshot =>
@@ -111,17 +133,29 @@ namespace SmallArena.Networking
                 });
                 NetworkClient.RegisterHandler<LobbyRejection>(message =>
                 {
-                    ConnectionStatus = message.Reason;
+                    NetworkClient.Send(new LobbyRejectionAcknowledged());
+                    rejectionReason = message.Reason;
+                    ConnectionStatus = "Cannot join: " + message.Reason;
+                    RoomRejected?.Invoke(message.Reason);
                     RoomChanged?.Invoke();
-                });
+                }, false);
             }
             base.OnStartClient();
+        }
+        public override void OnClientConnect()
+        {
+            // Lobby messages do not need scene readiness. Wait until admission and the arena load
+            // before Ready/AddPlayer; a rejected client must not send gameplay messages.
+            if (roomEnabled && string.IsNullOrEmpty(onlineScene)) return;
+            base.OnClientConnect();
         }
         public override void OnClientDisconnect()
         {
             if (!string.IsNullOrEmpty(offlineScene) && (SceneManager.GetActiveScene().name == "Arena_MVP" || networkSceneName.EndsWith("Arena_MVP.unity")))
                 MatchSessionNavigation.ReturnToMainMenu();
-            if (roomEnabled && ConnectionStatus != "")
+            if (roomEnabled && !string.IsNullOrEmpty(rejectionReason))
+                ConnectionStatus = "Cannot join: " + rejectionReason;
+            else if (roomEnabled && ConnectionStatus != "")
                 ConnectionStatus = "Unable to join. The room may be full, closed, or unavailable.";
             else if (roomEnabled) ConnectionStatus = "Disconnected from room.";
             base.OnClientDisconnect();
@@ -166,9 +200,29 @@ namespace SmallArena.Networking
 
         public override void OnServerConnect(NetworkConnectionToClient conn)
         {
+            if (roomEnabled && NetworkServer.connections.Values.Count(connection => connection.isAuthenticated) > LobbyLimits.Capacity)
+            {
+                RejectRoomConnection(conn, LobbyLimits.FullReason);
+                return;
+            }
             base.OnServerConnect(conn);
             ServerConnected?.Invoke(conn);
             Debug.Log($"[TV1] Client connected: {conn.connectionId}");
+        }
+
+        public void RejectRoomConnection(NetworkConnectionToClient connection, string reason)
+        {
+            if (!NetworkServer.active || connection == null || !rejectedConnections.Add(connection)) return;
+            connection.isAuthenticated = false;
+            connection.Send(new LobbyRejection { Reason = reason });
+            StartCoroutine(DisconnectRejected(connection));
+        }
+        private IEnumerator DisconnectRejected(NetworkConnectionToClient connection)
+        {
+            // Normal clients acknowledge receipt before disconnect. Bound non-responsive peers.
+            yield return new WaitForSecondsRealtime(5f);
+            if (NetworkServer.active && NetworkServer.connections.TryGetValue(connection.connectionId, out var current)
+                && ReferenceEquals(current, connection)) connection.Disconnect();
         }
 
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
@@ -231,6 +285,7 @@ namespace SmallArena.Networking
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
             if (conn == null) return;
+            rejectedConnections.Remove(conn);
             reservedSpawns.TryGetValue(conn, out var released);
             try
             {
@@ -248,6 +303,7 @@ namespace SmallArena.Networking
 
         public override void OnStopServer()
         {
+            rejectedConnections.Clear();
             reservedSpawns.Clear();
             releasedSpawns.Clear();
             ServerStopped?.Invoke();

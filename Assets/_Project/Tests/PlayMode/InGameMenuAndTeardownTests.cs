@@ -212,7 +212,6 @@ namespace SmallArena.Tests.PlayMode
             var lobby = Object.FindAnyObjectByType<LobbyRoomView>();
             lobby.HostButton.onClick.Invoke();
             yield return Until(() => manager.CurrentRoom.Members?.Length == 1);
-            if (guest)
             {
                 transport.ConnectVirtual(2);
                 yield return Until(() => manager.CurrentRoom.Members.Length == 2);
@@ -227,6 +226,11 @@ namespace SmallArena.Tests.PlayMode
                 transport.SendFromVirtual(2, new ReadyMessage());
                 transport.SendFromVirtual(2, new AddPlayerMessage());
                 yield return Until(() => NetworkServer.spawned.Values.Count(identity => identity.GetComponent<NetworkPlayer>() != null) == 2);
+            }
+            if (!guest)
+            {
+                transport.DisconnectVirtual(2);
+                yield return Until(() => NetworkServer.connections.Count == 1);
             }
             FindMenu();
         }

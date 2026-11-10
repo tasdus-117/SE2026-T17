@@ -26,7 +26,8 @@ namespace SmallArena.Client.UI
             view.ReadyButton.onClick.AddListener(Ready);
             view.StartButton.onClick.AddListener(StartMatch);
             view.LeaveButton.onClick.AddListener(Leave);
-            if (manager != null) manager.RoomChanged += Refresh;
+            if (view.DismissErrorButton != null) view.DismissErrorButton.onClick.AddListener(view.DismissError);
+            if (manager != null) { manager.RoomChanged += Refresh; manager.RoomRejected += Rejected; }
         }
         private void OnDisable()
         {
@@ -36,7 +37,8 @@ namespace SmallArena.Client.UI
             view.ReadyButton.onClick.RemoveListener(Ready);
             view.StartButton.onClick.RemoveListener(StartMatch);
             view.LeaveButton.onClick.RemoveListener(Leave);
-            if (manager != null) manager.RoomChanged -= Refresh;
+            if (view.DismissErrorButton != null) view.DismissErrorButton.onClick.RemoveListener(view.DismissError);
+            if (manager != null) { manager.RoomChanged -= Refresh; manager.RoomRejected -= Rejected; }
         }
         private void ReleaseIdleManager()
         {
@@ -58,8 +60,9 @@ namespace SmallArena.Client.UI
             SceneNavigation.ShowMenuCursor();
             Refresh();
         }
-        private void Host() { if (manager != null) manager.HostRoom(); Refresh(); }
-        private void Join() { if (manager != null) manager.JoinRoom(view.Address.text); Refresh(); }
+        private void Rejected(string reason) { view.ShowError(reason); Refresh(); }
+        private void Host() { view.DismissError(); if (manager != null) manager.HostRoom(); Refresh(); }
+        private void Join() { view.DismissError(); if (manager != null) manager.JoinRoom(view.Address.text); Refresh(); }
         private void Back()
         {
             visible = false;
