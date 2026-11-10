@@ -10,6 +10,8 @@ namespace SmallArena.Client
     {
         public event Action<bool> FullscreenRequested;
         public bool LastRequestedFullscreen { get; private set; }
+        public Vector2Int LastRequestedResolution { get; private set; }
+        public FullScreenMode LastRequestedMode { get; private set; }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
         {
@@ -31,7 +33,12 @@ namespace SmallArena.Client
         {
             // Screen applies asynchronously; retain the last request so fast presses also alternate.
             LastRequestedFullscreen = !LastRequestedFullscreen;
-            Screen.fullScreen = LastRequestedFullscreen;
+            var nativeWidth = Mathf.Max(1, Display.main.systemWidth);
+            var nativeHeight = Mathf.Max(1, Display.main.systemHeight);
+            LastRequestedResolution = LastRequestedFullscreen ? new Vector2Int(nativeWidth, nativeHeight)
+                : new Vector2Int(Mathf.Max(1, nativeWidth / 2), Mathf.Max(1, nativeHeight / 2));
+            LastRequestedMode = LastRequestedFullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
+            Screen.SetResolution(LastRequestedResolution.x, LastRequestedResolution.y, LastRequestedMode);
             FullscreenRequested?.Invoke(LastRequestedFullscreen);
         }
     }

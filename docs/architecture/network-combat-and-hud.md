@@ -14,8 +14,8 @@ NetworkCombat kiểm tra server → NetworkHealth.TakeDamage → SyncVar HP/kế
 hook client → HUD, overhead và modal kết quả.
 
 Client không gửi damage, mục tiêu, vị trí hitbox, cooldown hay thời gian mô phỏng.
-Server dùng đồng hồ riêng, cooldown 0,5 giây, sphere offset (0;1;0,8), bán kính
-0,6, chỉ Layer 7 Player; bỏ self, trigger, mục tiêu đã kết thúc, collider trùng
+Server dùng đồng hồ riêng, cooldown 1,0 giây, sphere offset (0;0,25;0,5) theo tâm CharacterController, bán kính
+1,2, cone 140 độ, giới hạn tâm XZ 1,8 m, Layer 7 Player và Layer 8 Bot; bỏ self, trigger, mục tiêu đã kết thúc, collider trùng
 và hit xuyên Environment Layer 6. Aim phải hữu hạn, chuẩn hóa và hướng +Z như
 invariant D-01; không dùng aim để mở rộng range hoặc đổi góc đánh. Không thêm
 projectile vì mẫu single-player hiện có là melee.
@@ -58,11 +58,11 @@ local hoặc tiêu thụ nhầm intent mạng.
 ## Kiểm tra hai người
 
 1. Hai bản chạy từ MainMenu: Host Room và Join IP, cả hai Ready; host Start.
-2. Kiểm tra local HUD HP: 100/100, đối thủ có thanh overhead, không thấy HUD Bot.
+2. Kiểm tra local HUD HP: 10/10, đối thủ có thanh overhead, không thấy HUD Bot.
 3. Dùng WASD để đứng cách nhau khoảng 1 m. Người đánh đứng về phía -Z của nạn
-   nhân, vì hướng đánh vẫn cố định +Z. LMB làm HP đối thủ giảm 10 trên cả HUD
+   nhân, vì hướng đánh vẫn cố định +Z. LMB làm HP đối thủ giảm 1 trên cả HUD
    của nạn nhân và overhead của người đánh; người đánh không mất HP do self-hit.
-4. Click nhanh hơn 0,5 giây hoặc giữ LMB: không tăng tốc đánh. Ra ngoài 2 m hoặc
+4. Click nhanh hơn 1,0 giây hoặc giữ LMB: không tăng tốc đánh. Ra ngoài 2 m hoặc
    đứng cách nhau bởi tường: không trừ HP. Đổi vị trí để người kia thử đánh.
 5. Escape, click Resume/Leave hoặc click panel HP: không có đòn đánh lọt qua UI.
 6. Đánh đủ mười đòn hợp lệ: nạn nhân thấy DEFEAT, người sống cuối thấy VICTORY;
@@ -113,3 +113,5 @@ Loot mạng, chuẩn 10 HP/1 DMG và collision đã được bổ sung trong
 [báo cáo parity/loot/collision](../testing/loot-parity-and-collision.md).
 Chưa triển khai lag compensation, projectile, respawn hoặc điểm số;
 chúng không được suy ra là hoàn thành từ phạm vi hiện tại.
+
+Tuning melee/F11 và kết quả mới: [melee-reliability-and-display.md](../testing/melee-reliability-and-display.md).

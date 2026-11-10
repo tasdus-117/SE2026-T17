@@ -11,6 +11,7 @@ namespace SmallArena.Client
         private NetworkPlayer player;
         private NetworkHealth health;
         private PlayerInputHandler input;
+        private double nextAttackRequestTime;
         private void Awake()
         {
             player = GetComponent<NetworkPlayer>();
@@ -22,7 +23,12 @@ namespace SmallArena.Client
             if (player == null || !player.isLocalPlayer || !NetworkClient.ready || input == null) return;
             // Both reliable Commands preserve E-before-attack ordering, matching the offline loop.
             if (input.ConsumeInteractPressed() && health != null && health.CanAct) RequestNearbyLoot();
-            if (input.ConsumePunchPressed() && health != null && health.CanAct) player.RequestAttack(Vector3.forward);
+            // Consume early clicks without queuing them. This is traffic control, never hit authority.
+            if (input.ConsumePunchPressed() && health != null && health.CanAct && Time.unscaledTimeAsDouble >= nextAttackRequestTime)
+            {
+                nextAttackRequestTime = Time.unscaledTimeAsDouble + NetworkCombat.Cooldown;
+                player.RequestAttack(Vector3.forward);
+            }
         }
         private void RequestNearbyLoot()
         {
