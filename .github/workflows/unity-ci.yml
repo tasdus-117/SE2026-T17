@@ -47,6 +47,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Enable domain reload for Unity tests
+        run: |
+          settings=ProjectSettings/EditorSettings.asset
+          # Scene-loading tests swap Input System runtimes and need a fresh domain.
+          sed -i 's/^  m_EnterPlayModeOptionsEnabled: [01]$/  m_EnterPlayModeOptionsEnabled: 0/' "$settings"
+          grep -qx '  m_EnterPlayModeOptionsEnabled: 0' "$settings"
       - name: Run Unity tests
         id: tests
         uses: game-ci/unity-test-runner@fa6ced25861c16ef56187828c43f76d00df43a23 # v4.3.2
