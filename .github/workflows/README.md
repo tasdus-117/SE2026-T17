@@ -3,7 +3,7 @@
 Workflow [Unity CI](unity-ci.yml) chạy khi mở hoặc cập nhật PR vào `main` và khi
 `main` nhận commit mới. Trên PR, GitHub Actions kiểm tra bản merge thử với
 `main`. Job **Git diff** phát hiện lỗi khoảng trắng và dấu xung đột Git mới.
-Job **Unity EditMode and PlayMode** chạy trên runner Linux do GitHub quản lý,
+Job **Unity EditMode and PlayMode** chạy trên runner Windows do GitHub quản lý,
 dùng đúng phiên bản Editor trong [ProjectVersion.txt](../../ProjectSettings/ProjectVersion.txt).
 
 ## Thiết lập giấy phép một lần
