@@ -105,11 +105,11 @@ namespace SmallArena.Tests.PlayMode
         }
 
         [Test]
-        public void Environment_HasOnlyFloorAndFourWalls_WithOverlappingCorners()
+        public void Environment_HasFloorFourWallsAndTwoCoverBlocks_WithOverlappingWallCorners()
         {
             var geometry = Entity("ArenaGeometry");
             var boxes = geometry.GetComponentsInChildren<BoxCollider>();
-            Assert.That(boxes.Length, Is.EqualTo(5));
+            Assert.That(boxes.Length, Is.EqualTo(7));
             Assert.That(geometry.GetComponentsInChildren<Transform>().All(item => item.gameObject.layer == Layer("Environment")), Is.True);
             Assert.That(geometry.GetComponentsInChildren<Rigidbody>(), Is.Empty);
             foreach (var northSouth in new[] { "WallNorth", "WallSouth" })
@@ -119,6 +119,24 @@ namespace SmallArena.Tests.PlayMode
                     Assert.That(BoundsOf(northSouth).Intersects(BoundsOf(eastWest)), Is.True, northSouth + " / " + eastWest);
                 }
             }
+        }
+
+        [TestCase("CoverNorthWest", -4f, 2.5f)]
+        [TestCase("CoverSouthEast", 4f, -2.5f)]
+        public void Cover_IsSolidAndBlocksSight_WithoutClosingTheCentralLane(string name, float x, float z)
+        {
+            var cover = Entity(name);
+            var collider = cover.GetComponent<BoxCollider>();
+            Assert.That(collider.enabled && !collider.isTrigger, Is.True);
+            Assert.That(cover.GetComponent<MeshRenderer>().enabled, Is.True);
+            Near(collider.bounds.min.y, BoundsOf("Floor").max.y);
+
+            var environment = LayerMask.GetMask("Environment");
+            Assert.That(Physics.Linecast(new Vector3(x, 1, z - 2), new Vector3(x, 1, z + 2),
+                out var hit, environment, QueryTriggerInteraction.Ignore), Is.True);
+            Assert.That(hit.collider, Is.SameAs(collider));
+            Assert.That(Physics.CheckBox(new Vector3(0, 1, 0), new Vector3(1, 0.9f, 7),
+                Quaternion.identity, environment, QueryTriggerInteraction.Ignore), Is.False);
         }
 
         [Test]
@@ -214,15 +232,26 @@ namespace SmallArena.Tests.PlayMode
         }
 
         [Test]
-        public void Spawns_DoNotOverlapEachOtherOrWalls()
+        public void Spawns_DoNotOverlapEachOtherOrArenaGeometry()
         {
             var names = new[] { "Player", "Bot", "WeaponPickup" };
+            var barriers = Entity("ArenaGeometry").GetComponentsInChildren<BoxCollider>()
+                .Where(collider => collider.gameObject.name != "Floor").ToArray();
             for (var first = 0; first < names.Length; first++)
             {
                 for (var second = first + 1; second < names.Length; second++)
                     Assert.That(BoundsOf(names[first]).Intersects(BoundsOf(names[second])), Is.False);
-                foreach (var wall in new[] { "WallNorth", "WallSouth", "WallEast", "WallWest" })
-                    Assert.That(BoundsOf(names[first]).Intersects(BoundsOf(wall)), Is.False);
+                foreach (var barrier in barriers)
+                    Assert.That(BoundsOf(names[first]).Intersects(barrier.bounds), Is.False, barrier.name);
+            }
+
+            var playerBounds = BoundsOf("Player");
+            var playerOffset = playerBounds.center - Entity("Player").transform.position;
+            foreach (var marker in Objects().Where(item => item.GetComponent<Mirror.NetworkStartPosition>() != null))
+            {
+                var spawnBounds = new Bounds(marker.transform.position + playerOffset, playerBounds.size);
+                foreach (var barrier in barriers)
+                    Assert.That(spawnBounds.Intersects(barrier.bounds), Is.False, marker.name + " / " + barrier.name);
             }
         }
 
