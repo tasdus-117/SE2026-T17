@@ -65,6 +65,8 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(Query(room, host: false).Select(m => m.ConnectionId), Is.EqualTo(new[] { 2, 7, 9 }));
             Assert.That(Query(room, ready: true, host: true), Is.Empty);
             Assert.That(Query(room, ready: false, host: true).Select(m => m.ConnectionId), Is.EqualTo(new[] { 0 }));
+            Assert.That(Query(room, ready: false, host: true, pageSize: 1).Select(m => m.ConnectionId), Is.EqualTo(new[] { 0 }));
+            Assert.That(Query(room, ready: true, page: 1, pageSize: 2).Select(m => m.ConnectionId), Is.EqualTo(new[] { 9 }));
         }
 
         [TestCase(0)]

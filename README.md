@@ -20,6 +20,8 @@ Xem [báo cáo kiểm toán/di trú](docs/architecture/main-migration-audit.md) 
 
 ## Tài liệu
 
+- [Lobby member search](docs/testing/lobby-member-search.md): API server bổ sung, quy tắc lọc/phân trang, kiểm thử tương thích và harness tải có thể chạy lại.
+
 - `docs/architecture/structure.md`: giải thích từng thư mục và ví dụ file tương lai.
 - `docs/architecture/authority.md`: quyền quyết định và hướng phụ thuộc.
 - `docs/protocol/protocol.md`: khung tài liệu giao thức.

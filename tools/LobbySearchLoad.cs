@@ -64,8 +64,14 @@ internal static class LobbySearchLoad
             if (!ready.Wait(TimeSpan.FromSeconds(30))) throw new TimeoutException("200 workers did not reach gate; no load result.");
             Volatile.Write(ref releasedAt, Stopwatch.GetTimestamp());
             release.Set();
-            // Wait for every worker; timeout classification uses the measured per-request latency.
-            Task.WaitAll(tasks);
+            if (!Task.WaitAll(tasks, TimeSpan.FromSeconds(30)))
+            {
+                File.WriteAllLines(Path.Combine(args[0], "latency.csv"), csv);
+                File.WriteAllText(Path.Combine(args[0], "load-summary.txt"),
+                    $"INCOMPLETE run={run}; completed={tasks.Count(t => t.IsCompleted)}; deadlineSeconds=30; pass=False");
+                // LongRunning workers may still be running; never label this population successful.
+                Environment.Exit(1);
+            }
             foreach (var task in tasks)
             {
                 var value = task.Result;
@@ -80,7 +86,7 @@ internal static class LobbySearchLoad
         samples.Sort();
         var p95 = samples[(int)Math.Ceiling(.95 * samples.Count) - 1];
         summaries.Add($"samples={samples.Count}; success={samples.Count-errors}; errors={errors}; over5Seconds={timeouts}; nearestRankP95Seconds={p95.ToString("R", CultureInfo.InvariantCulture)}; pass={errors == 0 && timeouts == 0 && p95 <= 5}");
-        summaries.Add("Boundary: release timestamp through query plus ID oracle (includes scheduling delay). Warmup=1000; 3 populations x 200 LongRunning tasks. No sockets, clients, UI, mutation concurrency or room-cap increase. Data: 4 members/room, 3 equal-ready ties; four request mixes equally represented, no random seed.");
+        summaries.Add("Boundary: release timestamp through query plus ID oracle (includes scheduling delay). Warmup=1000; 3 populations x 200 LongRunning tasks. Gate/completion deadlines=30s. over5Seconds is a latency-budget violation, not cancellation. No sockets, clients, UI, mutation concurrency or room-cap increase. Data: 4 members/room, 3 equal-ready ties; four request mixes equally represented, no random seed.");
         File.WriteAllLines(Path.Combine(args[0], "latency.csv"), csv);
         File.WriteAllLines(Path.Combine(args[0], "load-summary.txt"), summaries);
         foreach (var line in summaries) Console.WriteLine(line);

@@ -52,9 +52,12 @@ $info = [ordered]@{ utc = $start; sha = $sha; patchSha256 = $patchId; command = 
 $info | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $output 'run.json')
 if ($code -ne 0) { exit $code }
 if ($Load) {
+    $loadStart = [DateTime]::UtcNow.ToString('o')
     Compile 'LobbySearchLoad' @((Join-Path $root 'tools/LobbySearchLoad.cs')) 'exe' @('/reference:' + (Join-Path $output 'SmallArena.EditMode.Tests.dll'))
     [IO.File]::WriteAllText((Join-Path $output 'LobbySearchLoad.runtimeconfig.json'), $runtime, $utf8)
     & $dotnet (Join-Path $output 'LobbySearchLoad.dll') $output
-    exit $LASTEXITCODE
+    $loadCode = $LASTEXITCODE
+    [ordered]@{ utc = $loadStart; sha = $sha; command = $command; exitCode = $loadCode; harnessSha256 = (Get-FileHash -LiteralPath 'tools/LobbySearchLoad.cs' -Algorithm SHA256).Hash; runtime = $info.runtime; processors = [Environment]::ProcessorCount; os = [Environment]::OSVersion.VersionString; summary = @(Get-Content (Join-Path $output 'load-summary.txt')) } | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $output 'load-run.json')
+    exit $loadCode
 }
 exit 0
