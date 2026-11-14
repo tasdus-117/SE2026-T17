@@ -1,0 +1,34 @@
+﻿{
+    "label":  "combined",
+    "editor":  "C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Unity.exe",
+    "arguments":  [
+                      "-batchmode",
+                      "-nographics",
+                      "-projectPath",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\"",
+                      "-runTests",
+                      "-testPlatform",
+                      "PlayMode",
+                      "-testFilter",
+                      "SmallArena.Tests.PlayMode.LobbyRoomManagementTests;SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests",
+                      "-testResults",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\baseline\\combined.xml\"",
+                      "-logFile",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\baseline\\combined.log\""
+                  ],
+    "startedUtc":  "2026-11-14T09:54:19.0736923Z",
+    "endedUtc":  "2026-11-14T09:55:37.0151331Z",
+    "sourceSha":  "d939568aae110668df5f0114541e4498593b6108",
+    "exitCode":  0,
+    "xml":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\baseline\\combined.xml",
+    "log":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\baseline\\combined.log",
+    "result":  "Passed",
+    "cases":  19,
+    "suites":  [
+                   "SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests",
+                   "SmallArena.Tests.PlayMode.LobbyRoomManagementTests"
+               ],
+    "failures":  [
+
+                 ]
+}

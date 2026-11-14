@@ -1,0 +1,39 @@
+{
+  "reviewer": "Nguyễn Chí Hoàng Tú",
+  "removed": [
+    "T17",
+    "T18"
+  ],
+  "remaining_case_ids": [
+    "T01",
+    "T02",
+    "T03",
+    "T04",
+    "T05",
+    "T06",
+    "T07",
+    "T08",
+    "T09",
+    "T10",
+    "T11",
+    "T12",
+    "T13",
+    "T14",
+    "T15",
+    "T16"
+  ],
+  "count": 16,
+  "negative_ids": [
+    "T06",
+    "T07"
+  ],
+  "failure_id": "T05",
+  "retry_boundary_ids": [
+    "T02",
+    "T03"
+  ],
+  "pairwise_required": 32,
+  "pairwise_covered": 32,
+  "matrix_rows": 12,
+  "matrix_unchanged": true
+}

@@ -1,0 +1,234 @@
+[
+  {
+    "path": "C:\\Users\\tasdus_117\\Downloads\\Lecture_06_AI_Assisted_Software_Development_and_Vibe_Coding_v3.pptx",
+    "sha256": "87c5d74c4eeb31d2b06da3047966134aa34d5a71ee0107a65a6f0e1bcca4a178",
+    "slides": [
+      {
+        "part": "ppt/slides/slide1.xml",
+        "text": "SOFTWARE ENGINEERING 2026 | AI-assisted Software | Development & Vibe Coding | Lecture 06 · From code generation to controlled engineering | SPECIFY | PLAN | GENERATE | VERIFY | OWN | AI creates options. Engineers create confidence. | Software Engineering 2026 · VNU | 01"
+      },
+      {
+        "part": "ppt/slides/slide2.xml",
+        "text": "LECTURE 06 | Learning outcomes | Software Engineering 2026 · VNU | 02 | 01 | Phân biệt | Vibe coding, AI-assisted development và software engineering. | 02 | Thiết kế | Một vòng lặp spec, plan, generate, verify có thể lặp lại. | 03 | Kiểm soát | Context, thay đổi mã nguồn, dependencies, tests và security. | 04 | Cộng tác | Dùng AI trong GitHub mà vẫn giữ ownership và traceability."
+      },
+      {
+        "part": "ppt/slides/slide3.xml",
+        "text": "LECTURE 06 | Architecture và code quality tạo đường ray cho AI | Software Engineering 2026 · VNU | 03 | 1 | REQUIREMENTS | AI cần biết kết quả mong đợi. | 2 | ARCHITECTURE | AI cần biết ranh giới hệ thống. | 3 | CODE QUALITY | AI cần biết tiêu chuẩn thay đổi. | 4 | VERIFICATION | AI cần bằng chứng trước khi merge. | Thiếu đường ray, code sinh nhanh sẽ biến thành technical debt."
+      },
+      {
+        "part": "ppt/slides/slide4.xml",
+        "text": "LECTURE 06 | Điểm nghẽn đã chuyển từ viết code sang đánh giá code | Software Engineering 2026 · VNU | 04 | TRƯỚC ĐÂY | Ý tưởng |  | Thiết kế thủ công |  | Viết code |  | Kiểm thử | VỚI CODING AGENT | Ý tưởng + context |  | Sinh nhiều phương án |  | Review và xác minh |  | Tích hợp có kiểm soát | Code production | Decision quality"
+      },
+      {
+        "part": "ppt/slides/slide5.xml",
+        "text": "LECTURE 06 | Ba cách làm việc thường bị gọi chung là “vibe coding” | Software Engineering 2026 · VNU | 05 | VIBE CODING | Mô tả ý muốn bằng ngôn ngữ tự nhiên, chạy thử, quan sát và tiếp tục yêu cầu AI sửa. |  | Phù hợp: prototype, spike, khám phá ý tưởng. | AI-ASSISTED DEVELOPMENT | Kỹ sư giữ quyền quyết định. AI hỗ trợ phân tích, viết mã, test, tài liệu và review. |  | Phù hợp: feature có scope rõ. | AGENTIC ENGINEERING | Agent thực hiện nhiều bước với tools và repository. Con người thiết lập guardrails, checkpoints và điều kiện dừng. |  | Phù hợp: task lặp lại, đo được."
+      },
+      {
+        "part": "ppt/slides/slide6.xml",
+        "text": "LECTURE 06 | Quyền tự chủ của AI tăng dần theo phạm vi thay đổi | Software Engineering 2026 · VNU | 06 | L0 | Explain | Giải thích code | L1 | Suggest | Đề xuất đoạn mã | L2 | Edit | Sửa nhiều file | L3 | Execute | Chạy test và tools | L4 | Deliver | Tạo PR hoàn chỉnh | Quyền tự chủ tăng thì context, tests, permissions và review gate cũng phải tăng."
+      },
+      {
+        "part": "ppt/slides/slide7.xml",
+        "text": "LECTURE 06 | AI tạo lợi thế lớn khi nhiệm vụ có feedback nhanh | Software Engineering 2026 · VNU | 07 | BOILERPLATE | Khởi tạo cấu trúc, DTO, routes, fixtures. | EXPLORATION | So sánh API, thư viện và phương án thiết kế. | LOCAL CHANGE | Refactor nhỏ với test và phạm vi rõ. | TEST SUPPORT | Sinh case, dữ liệu biên và test scaffold. | EXPLANATION | Tóm tắt module và lần theo call path. | DOCUMENTATION | README, migration notes, API examples."
+      },
+      {
+        "part": "ppt/slides/slide8.xml",
+        "text": "LECTURE 06 | AI dễ thất bại khi “đúng” phụ thuộc vào context ẩn | Software Engineering 2026 · VNU | 08 | 01 | Mục tiêu mơ hồ | AI tối ưu cho điều bạn viết, không phải điều bạn định nói. | 02 | Invariant ẩn | Business rules nằm trong dữ liệu, logs hoặc kiến thức của một thành viên. | 03 | Thay đổi diện rộng | Một sửa đổi hợp lý cục bộ có thể phá hành vi ở nơi khác. | 04 | Feedback yếu | Không có test, telemetry hoặc reviewer hiểu hệ thống."
+      },
+      {
+        "part": "ppt/slides/slide9.xml",
+        "text": "LECTURE 06 | Vòng lặp kỹ thuật: Spec, Plan, Generate, Verify, Integrate | Software Engineering 2026 · VNU | 09 | 1 | SPEC | Kết quả, constraints, acceptance criteria | 2 | PLAN | Files, interfaces, risks, test strategy | 3 | GENERATE | Thay đổi nhỏ, có thể review | 4 | VERIFY | Test, inspect diff, challenge assumptions | 5 | INTEGRATE | PR, review, traceability, deploy gate | Mỗi vòng lặp nên tạo ra một diff nhỏ và một bằng chứng mới."
+      },
+      {
+        "part": "ppt/slides/slide10.xml",
+        "text": "LECTURE 06 | Prompt tốt hoạt động như một mini specification | Software Engineering 2026 · VNU | 10 | PROMPT MƠ HỒ | “Thêm đăng nhập Google và làm cho hệ thống an toàn.” |  | Thiếu: | • phạm vi | • luồng người dùng | • failure behavior | • acceptance criteria | MINI SPEC | Goal: Google login cho web app. | Scope: backend callback + UI button. | Constraints: giữ password login. | Acceptance: user mới được tạo; user cũ được link; lỗi OAuth không tạo account. | Evidence: unit + integration tests."
+      },
+      {
+        "part": "ppt/slides/slide11.xml",
+        "text": "LECTURE 06 | Context engineering quyết định AI nhìn thấy hệ thống nào | Software Engineering 2026 · VNU | 11 | WORKING CONTEXT | Mục tiêu + code liên quan + rules + feedback | Repository map | Architecture decisions | Tests & fixtures | Logs & runtime"
+      },
+      {
+        "part": "ppt/slides/slide12.xml",
+        "text": "LECTURE 06 | Repository cần một “hợp đồng làm việc” cho cả người và AI | Software Engineering 2026 · VNU | 12 | REPOSITORY-LEVEL | PROJECT RULES |  | • Kiến trúc và boundaries | • Coding conventions | • Commands build/test/lint | • Definition of done | • Các vùng không được sửa | TASK-LEVEL | TASK CONTEXT |  | • Issue hoặc user story | • Files liên quan | • Acceptance criteria | • Known risks | • Expected evidence | Stable | Changes per issue"
+      },
+      {
+        "part": "ppt/slides/slide13.xml",
+        "text": "LECTURE 06 | Task nhỏ giúp AI tạo diff mà con người còn hiểu được | Software Engineering 2026 · VNU | 13 | “Xây toàn bộ chức năng đặt lịch, sửa database, thêm UI và deploy.” | A | Define contract | API + acceptance criteria | B | Data change | migration + rollback | C | Backend slice | service + tests | D | Frontend slice | UI + error states | E | Integration | E2E + observability"
+      },
+      {
+        "part": "ppt/slides/slide14.xml",
+        "text": "LECTURE 06 | Một agent loop an toàn luôn có checkpoint của con người | Software Engineering 2026 · VNU | 14 | READ | Hiểu issue và repo | PROPOSE | Nêu plan và rủi ro | CHANGE | Tạo diff giới hạn | CHECK | Chạy test và inspect | REPORT | Tóm tắt bằng chứng | Human checkpoints: duyệt plan · duyệt diff · quyết định merge"
+      },
+      {
+        "part": "ppt/slides/slide15.xml",
+        "text": "LECTURE 06 | Demo: thay đổi rule đặt lịch mà không phá hệ thống | Software Engineering 2026 · VNU | 15 | CHANGE REQUEST | Một sinh viên chỉ được giữ tối đa 2 lịch hẹn đang hoạt động. | Q1 | “Đang hoạt động” gồm trạng thái nào? | Q2 | Giới hạn kiểm tra ở UI, API hay database? | Q3 | Hai request đồng thời xử lý ra sao? | Q4 | Thông báo lỗi và test evidence là gì?"
+      },
+      {
+        "part": "ppt/slides/slide16.xml",
+        "text": "LECTURE 06 | Các failure mode lặp lại trong AI-generated code | Software Engineering 2026 · VNU | 16 | Plausible but wrong | Code trông hợp lý nhưng hiểu sai domain rule. | Patch stacking | Sửa symptom nhiều lần, kiến trúc ngày càng rối. | Silent scope growth | Agent sửa thêm file hoặc đổi behavior ngoài yêu cầu. | Test theater | Test pass vì chỉ kiểm tra implementation vừa được sinh. | Dependency drift | Thêm package không cần thiết hoặc không phù hợp. | False confidence | Tóm tắt khẳng định mạnh hơn bằng chứng thực tế."
+      },
+      {
+        "part": "ppt/slides/slide17.xml",
+        "text": "LECTURE 06 | Review diff theo bốn lớp thay vì đọc từ trên xuống | Software Engineering 2026 · VNU | 17 | 1 · SCOPE | Có file hoặc behavior nào ngoài yêu cầu? | 2 · DESIGN | Boundary, data flow và abstraction có hợp lý? | 3 · CORRECTNESS | Edge cases, state, concurrency và failure path? | 4 · EVIDENCE | Test nào chứng minh thay đổi? Test có thể thất bại không?"
+      },
+      {
+        "part": "ppt/slides/slide18.xml",
+        "text": "LECTURE 06 | Verification cần nhiều nguồn bằng chứng độc lập | Software Engineering 2026 · VNU | 18 | STATIC | type check | lint | security scan | AUTOMATED TESTS | unit | integration | E2E | RUNTIME | logs | metrics | manual scenario | REVIEW | diff inspection | domain challenge | rollback check | Một nguồn bằng chứng có thể sai. Nhiều nguồn độc lập làm sai lầm khó che giấu hơn."
+      },
+      {
+        "part": "ppt/slides/slide19.xml",
+        "text": "LECTURE 06 | AI không được quyết định trust boundary thay cho nhóm | Software Engineering 2026 · VNU | 19 | UNTRUSTED | Prompt input | User input | External pages | Third-party packages | ENGINEERING GATE | Validate inputs | Limit permissions | Protect secrets | Review dependencies | TRUSTED OUTPUT | Reviewed diff | Verified behavior | Auditable decision | Rollback path"
+      },
+      {
+        "part": "ppt/slides/slide20.xml",
+        "text": "LECTURE 06 | Một package mới là một quyết định kiến trúc nhỏ | Software Engineering 2026 · VNU | 20 | NEED | Có thể dùng code hiện có hoặc standard library? | FIT | License, size, platform và maintenance phù hợp? | RISK | Vulnerability, transitive dependencies, install scripts? | EXIT | Có thể thay hoặc gỡ package mà không phá hệ thống?"
+      },
+      {
+        "part": "ppt/slides/slide21.xml",
+        "text": "LECTURE 06 | GitHub biến hoạt động với AI thành bằng chứng kỹ thuật | Software Engineering 2026 · VNU | 21 | ISSUE | Yêu cầu | Acceptance criteria | Owner | BRANCH | Task scope | Small commits | No shared branch | PULL REQUEST | Diff summary | Test evidence | AI disclosure | REVIEW | Questions | Requested changes | Approval | Commit count không đo chất lượng. Evidence và ownership giúp đánh giá cá nhân."
+      },
+      {
+        "part": "ppt/slides/slide22.xml",
+        "text": "LECTURE 06 | Một thay đổi tốt để lại chuỗi truy vết có thể kiểm tra | Software Engineering 2026 · VNU | 22 | Requirement | Issue | Commit | Test | Pull request | Release note | Câu hỏi vấn đáp: Hãy chỉ ra requirement này đi qua code và test nào."
+      },
+      {
+        "part": "ppt/slides/slide23.xml",
+        "text": "LECTURE 06 | Protocol đề xuất cho nhóm dự án 3–5 người | Software Engineering 2026 · VNU | 23 | BEFORE | Issue rõ + owner + acceptance criteria | Không giao một prompt chung cho cả nhóm | DURING | Branch riêng + commit nhỏ + ghi quyết định | Không để agent tự sửa main | BEFORE PR | Chạy test + tự review diff + disclose AI | Không dùng “AI nói đã pass” làm bằng chứng | REVIEW | Một thành viên khác challenge assumptions | Không approve chỉ vì app chạy | MERGE | CI pass + reviewer hiểu thay đổi | Không merge khi chưa có rollback path"
+      },
+      {
+        "part": "ppt/slides/slide24.xml",
+        "text": "LECTURE 06 | Bài tập trên lớp: biến một prompt thành engineering task | Software Engineering 2026 · VNU | 24 | “Thêm tính năng cho phép bác sĩ đổi lịch hẹn và gửi thông báo cho sinh viên.” | 1 · Clarify | Viết 5 câu hỏi làm rõ. | 2 · Specify | Tạo 3 acceptance criteria. | 3 · Decompose | Chia thành 3–5 task nhỏ. | 4 · Verify | Chọn test evidence cho mỗi task. | 8 phút làm nhóm · 2 phút chia sẻ"
+      },
+      {
+        "part": "ppt/slides/slide25.xml",
+        "text": "LECTURE 06 | Debrief: engineering quality nằm trong câu hỏi và bằng chứng | Software Engineering 2026 · VNU | 25 | SCOPE | Task nào có thể merge độc lập? | ASSUMPTION | Rule nào vẫn chưa được xác nhận? | FAILURE | Điều gì xảy ra khi gửi thông báo thất bại? | EVIDENCE | Test nào sẽ thất bại nếu implementation sai?"
+      },
+      {
+        "part": "ppt/slides/slide26.xml",
+        "text": "LECTURE 06 | Áp dụng vào project: từ vibe code sang engineered change | Software Engineering 2026 · VNU | 26 | ISSUE | Một change request có acceptance criteria | PLAN | Files dự kiến, risks và test strategy | PULL REQUEST | Diff giới hạn + AI assistance disclosure | EVIDENCE | Test output + reviewer comments + decision | Mục tiêu: chứng minh nhóm kiểm soát được thay đổi, không chỉ tạo ra feature."
+      },
+      {
+        "part": "ppt/slides/slide27.xml",
+        "text": "LECTURE 06 · TAKEAWAYS | AI tăng tốc độ tạo thay đổi. | Engineering kiểm soát hậu quả của thay đổi. | 1 | Context trước prompt | 2 | Diff nhỏ trước feature lớn | 3 | Evidence trước confidence | 4 | Ownership trước merge | Exit ticket: Nêu một guardrail nhóm bạn sẽ áp dụng cho coding agent từ tuần này. | Software Engineering 2026 · VNU | 27"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\tasdus_117\\Downloads\\Lecture_07_Software_Testing_and_Quality_Engineering.pptx",
+    "sha256": "a2cbd5b09d15d68ea31d25315b7ce1085ea7c1cf675c648fb49517e4052be083",
+    "slides": [
+      {
+        "part": "ppt/slides/slide1.xml",
+        "text": "SOFTWARE ENGINEERING 2026 | Software Testing & | Quality Engineering | Lecture 07 · Building evidence that software behaves as intended | REQUIREMENT | TEST | EVIDENCE | DECISION | A passing test is evidence. It is never the whole argument. | Software Engineering 2026 · VNU | 01"
+      },
+      {
+        "part": "ppt/slides/slide2.xml",
+        "text": "LECTURE 07 | Learning outcomes | Software Engineering 2026 · VNU | 02 | 01 | Phân loại | Unit, integration, API, E2E và kiểm thử phi chức năng. | 02 | Thiết kế | Test cases từ partitions, boundaries, states và risks. | 03 | Đánh giá | Coverage, regression suite, flaky tests và test quality. | 04 | Kiểm soát | AI-generated tests bằng review, deliberate bugs và mutation testing."
+      },
+      {
+        "part": "ppt/slides/slide3.xml",
+        "text": "LECTURE 07 | Verification biến AI-generated code thành thay đổi có thể tin cậy | Software Engineering 2026 · VNU | 03 | 1 | SPEC | Điều gì phải đúng? | 2 | CHANGE | Code đã thay đổi gì? | 3 | TEST | Bằng chứng nào hỗ trợ? | 4 | REVIEW | Bằng chứng có đáng tin? | Code chạy được mới chỉ trả lời một kịch bản đã thử."
+      },
+      {
+        "part": "ppt/slides/slide4.xml",
+        "text": "LECTURE 07 | Software quality gồm nhiều thuộc tính có thể xung đột | Software Engineering 2026 · VNU | 04 | FUNCTIONAL | Đúng chức năng và business rules | RELIABILITY | Ổn định trước lỗi và tải | SECURITY | Bảo vệ dữ liệu và quyền truy cập | USABILITY | Người dùng hoàn thành công việc | PERFORMANCE | Đáp ứng trong giới hạn tài nguyên | MAINTAINABILITY | Thay đổi mà không tạo rủi ro lớn"
+      },
+      {
+        "part": "ppt/slides/slide5.xml",
+        "text": "LECTURE 07 | Verification và validation trả lời hai câu hỏi khác nhau | Software Engineering 2026 · VNU | 05 | VERIFICATION | Are we building the product right? |  | Kiểm tra implementation so với specification, contracts và design decisions. |  | Ví dụ: API trả đúng status và schema. | VALIDATION | Are we building the right product? |  | Kiểm tra sản phẩm có giải quyết nhu cầu thật của stakeholder. |  | Ví dụ: quy trình đặt lịch phù hợp cách phòng khám vận hành."
+      },
+      {
+        "part": "ppt/slides/slide6.xml",
+        "text": "LECTURE 07 | Testing tìm lỗi trong những kịch bản được quan sát | Software Engineering 2026 · VNU | 06 | TEST PASS | Kịch bản đã chạy không phát hiện khác biệt so với expected result. | CONFIDENCE | Tăng khi test đại diện cho risks và có khả năng phát hiện lỗi thật. | Không có test suite hữu hạn nào chứng minh hệ thống hoàn toàn không có lỗi."
+      },
+      {
+        "part": "ppt/slides/slide7.xml",
+        "text": "LECTURE 07 | Ưu tiên kiểm thử theo risk thay vì số lượng test cases | Software Engineering 2026 · VNU | 07 | LOW IMPACT | LOW LIKELIHOOD | Smoke checks | HIGH IMPACT | LOW LIKELIHOOD | Recovery + security | LOW IMPACT | HIGH LIKELIHOOD | Automation + regression | HIGH IMPACT | HIGH LIKELIHOOD | Deep tests + monitoring | Risk = likelihood × impact"
+      },
+      {
+        "part": "ppt/slides/slide8.xml",
+        "text": "LECTURE 07 | Test portfolio cân bằng tốc độ, phạm vi và độ tin cậy | Software Engineering 2026 · VNU | 08 | E2E | Ít · chậm · luồng quan trọng | INTEGRATION / API | Vừa · boundaries · contracts | UNIT | Nhiều · nhanh · logic cục bộ | STATIC CHECKS | Luôn chạy · type · lint · scan"
+      },
+      {
+        "part": "ppt/slides/slide9.xml",
+        "text": "LECTURE 07 | Unit test bảo vệ business logic nhỏ và ổn định | Software Engineering 2026 · VNU | 09 | GOOD FIT | Pure functions | Domain rules | State transitions | Error mapping | DESIGN SIGNAL | Test khó viết thường chỉ ra coupling cao, side effects ẩn hoặc boundary chưa rõ. | COMMON TRAP | Mock mọi dependency rồi kiểm tra implementation details. Test vẫn pass khi behavior đã sai."
+      },
+      {
+        "part": "ppt/slides/slide10.xml",
+        "text": "LECTURE 07 | Integration test kiểm tra các boundary nơi assumptions gặp nhau | Software Engineering 2026 · VNU | 10 | APP ↔ DATABASE | schema, transactions, constraints | SERVICE ↔ SERVICE | timeouts, retries, error mapping | APP ↔ QUEUE | delivery, duplicates, ordering | APP ↔ FILE / CLOUD | permissions, formats, failure | Integration tests thường bắt lỗi mà mocks che giấu."
+      },
+      {
+        "part": "ppt/slides/slide11.xml",
+        "text": "LECTURE 07 | API tests bảo vệ contract mà nhiều thành phần cùng phụ thuộc | Software Engineering 2026 · VNU | 11 | REQUEST | method, path, auth, schema | RESPONSE | status, headers, body, errors | COMPATIBILITY | optional fields, defaults, versioning | NEGATIVE PATH | invalid input, forbidden access, timeout"
+      },
+      {
+        "part": "ppt/slides/slide12.xml",
+        "text": "LECTURE 07 | E2E tests dành cho ít luồng nghiệp vụ có giá trị cao | Software Engineering 2026 · VNU | 12 | LOGIN | SEARCH SLOT | BOOK | CONFIRM | VALUE | Chứng minh critical journey hoạt động qua nhiều lớp. | COST | Chậm, nhạy với môi trường và khó xác định root cause."
+      },
+      {
+        "part": "ppt/slides/slide13.xml",
+        "text": "LECTURE 07 | Equivalence partitioning giảm số test mà vẫn giữ đại diện | Software Engineering 2026 · VNU | 13 | Rule: số lịch đang hoạt động phải nằm trong khoảng 0–2. | INVALID | < 0 | VALID | 0, 1, 2 | INVALID | > 2 | Chọn ít nhất một đại diện cho mỗi partition có risk đáng kể."
+      },
+      {
+        "part": "ppt/slides/slide14.xml",
+        "text": "LECTURE 07 | Boundary value analysis tập trung nơi lỗi off-by-one dễ xuất hiện | Software Engineering 2026 · VNU | 14 | -1 | just below | 0 | lower bound | 1 | inside | 2 | upper bound | 3 | just above | Test các giá trị ngay dưới, tại và ngay trên boundary."
+      },
+      {
+        "part": "ppt/slides/slide15.xml",
+        "text": "LECTURE 07 | State transition testing kiểm tra cả trạng thái và đường chuyển | Software Engineering 2026 · VNU | 15 | PENDING | CONFIRMED | CANCELLED | COMPLETED | NO-SHOW | Tests cần bao gồm transition hợp lệ và transition bị từ chối."
+      },
+      {
+        "part": "ppt/slides/slide16.xml",
+        "text": "LECTURE 07 | Combinatorial testing chọn tương tác quan trọng giữa nhiều biến | Software Engineering 2026 · VNU | 16 | ROLE | student · doctor · admin | STATUS | pending · confirmed · cancelled | CHANNEL | web · mobile | NETWORK | normal · timeout | Full combination: 3 × 3 × 2 × 2 = 36 cases | Pairwise hoặc risk-based selection giảm cases, nhưng phải giữ các tổ hợp nguy hiểm."
+      },
+      {
+        "part": "ppt/slides/slide17.xml",
+        "text": "LECTURE 07 | Một test tốt có setup rõ, hành động nhỏ và assertion có ý nghĩa | Software Engineering 2026 · VNU | 17 | ARRANGE | Tạo dữ liệu và dependencies cần thiết | ACT | Thực hiện đúng một behavior chính | ASSERT | Kiểm tra outcome quan sát được | CLEANUP | Khôi phục isolation nếu cần | Tên test nên mô tả condition và expected behavior."
+      },
+      {
+        "part": "ppt/slides/slide18.xml",
+        "text": "LECTURE 07 | Coverage đo phần code đã chạy, không đo phần behavior đã hiểu | Software Engineering 2026 · VNU | 18 | LINE COVERAGE | Dòng nào đã chạy? |  | Hữu ích để tìm vùng chưa được kiểm tra. |  | Không cho biết assertion có mạnh hay không. | BRANCH COVERAGE | Nhánh true/false nào đã chạy? |  | Tốt hơn cho logic điều kiện. |  | Vẫn có thể bỏ sót combinations và states. | RISK COVERAGE | Risk quan trọng nào có bằng chứng? |  | Cần traceability từ requirement đến test. |  | Không biểu diễn bằng một tỷ lệ duy nhất."
+      },
+      {
+        "part": "ppt/slides/slide19.xml",
+        "text": "LECTURE 07 | Regression suite bảo vệ behavior cũ khi hệ thống tiếp tục thay đổi | Software Engineering 2026 · VNU | 19 | BUG FOUND | Tái hiện lỗi | TEST FAILS | Chứng minh test bắt lỗi | FIX | Thay đổi nhỏ | TEST PASSES | Ngăn lỗi quay lại | Mỗi production bug cần để lại một regression test khi có thể."
+      },
+      {
+        "part": "ppt/slides/slide20.xml",
+        "text": "LECTURE 07 | Test doubles cô lập dependencies nhưng có thể che giấu tích hợp sai | Software Engineering 2026 · VNU | 20 | STUB | Trả dữ liệu được cấu hình | FAKE | Implementation đơn giản nhưng hoạt động | MOCK | Kiểm tra interaction đã định | REAL | Dependency thật trong môi trường test | Dùng double ở boundary ổn định. Dùng dependency thật để xác minh contract quan trọng."
+      },
+      {
+        "part": "ppt/slides/slide21.xml",
+        "text": "LECTURE 07 | Flaky tests làm đội ngũ mất niềm tin vào toàn bộ pipeline | Software Engineering 2026 · VNU | 21 | TIME | clock, timezone, sleep | ORDER | shared state, test sequence | NETWORK | timeouts, external service | CONCURRENCY | race, async completion | DATA | randomness, reused fixtures | Retry chỉ che triệu chứng. Nhóm cần owner, root cause và deadline sửa."
+      },
+      {
+        "part": "ppt/slides/slide22.xml",
+        "text": "LECTURE 07 | AI-generated tests thường lặp lại assumptions của implementation | Software Engineering 2026 · VNU | 22 | HAPPY PATH BIAS | Sinh test cho behavior dễ thấy | IMPLEMENTATION COUPLING | Assert cấu trúc hiện tại thay vì contract | WEAK ASSERTIONS | Chỉ kiểm tra status hoặc non-null | FALSE FIXTURES | Dữ liệu không giống production constraints | MISSING ORACLE | Expected result cũng do AI tự suy đoán | DUPLICATION | Nhiều tests nhưng cùng một logic"
+      },
+      {
+        "part": "ppt/slides/slide23.xml",
+        "text": "LECTURE 07 | Who tests the tests? Lỗi cố ý giúp kiểm tra sức mạnh của test suite | Software Engineering 2026 · VNU | 23 | 1 | BASELINE | All tests pass | 2 | MUTATE | Đổi > thành >= hoặc bỏ validation | 3 | RUN | Ít nhất một test phải fail | 4 | REPAIR | Bổ sung test nếu mutation sống sót | Mutation sống sót cho thấy một behavior chưa được test đủ mạnh."
+      },
+      {
+        "part": "ppt/slides/slide24.xml",
+        "text": "LECTURE 07 | Quality engineering mở rộng ngoài functional correctness | Software Engineering 2026 · VNU | 24 | SECURITY | authorization · injection · secrets | PERFORMANCE | latency · throughput · resource | RELIABILITY | retry · recovery · idempotency | ACCESSIBILITY | keyboard · contrast · screen reader | COMPATIBILITY | browser · device · API version | OBSERVABILITY | logs · metrics · traceability"
+      },
+      {
+        "part": "ppt/slides/slide25.xml",
+        "text": "LECTURE 07 | CI quality gate cung cấp feedback nhanh trước khi merge | Software Engineering 2026 · VNU | 25 | FAST | format · lint · type | UNIT | logic cục bộ | INTEGRATION | database · API | SECURITY | dependency · secret scan | E2E | critical journeys | Merge blocked khi required gate thất bại"
+      },
+      {
+        "part": "ppt/slides/slide26.xml",
+        "text": "LECTURE 07 | Demo: hai sinh viên đặt cùng một slot gần như đồng thời | Software Engineering 2026 · VNU | 26 | EXPECTED INVARIANT | Một appointment slot chỉ có tối đa một booking được xác nhận. | UNIT | Service từ chối slot đã booked | INTEGRATION | Hai transaction tranh cùng row | API | Một request success, một request conflict | E2E | UI hiển thị slot đã hết"
+      },
+      {
+        "part": "ppt/slides/slide27.xml",
+        "text": "LECTURE 07 | Bài tập trên lớp: thiết kế test strategy cho change request | Software Engineering 2026 · VNU | 27 | “Cho phép bác sĩ reschedule lịch hẹn và gửi thông báo cho sinh viên.” | 1 · RISKS | Liệt kê 4 failure modes | 2 · LEVELS | Chọn unit, integration, API, E2E | 3 · CASES | Partitions, boundaries hoặc states | 4 · TEST THE TEST | Tạo một deliberate bug | 8 phút làm nhóm · 2 phút chia sẻ"
+      },
+      {
+        "part": "ppt/slides/slide28.xml",
+        "text": "LECTURE 07 · TAKEAWAYS | Test quality đến từ khả năng phát hiện lỗi, | không đến từ số lượng test cases. | 1 | Test theo risk | 2 | Chọn đúng test level | 3 | Coverage cần context | 4 | Test suite cũng phải được test | Exit ticket: Nêu một test hiện còn thiếu trong project và risk mà test đó bảo vệ. | Software Engineering 2026 · VNU | 28"
+      }
+    ]
+  }
+]

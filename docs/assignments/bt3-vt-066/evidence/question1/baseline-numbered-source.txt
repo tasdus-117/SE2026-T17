@@ -1,0 +1,2818 @@
+Baseline: d939568aae110668df5f0114541e4498593b6108
+
+FILE Assets/_Project/Scripts/Client/UI/LobbyRoomController.cs
+1: using System.Linq;
+2: using Mirror;
+3: using SmallArena.Networking;
+4: using UnityEngine;
+5: using UnityEngine.SceneManagement;
+6: 
+7: namespace SmallArena.Client.UI
+8: {
+9:     [RequireComponent(typeof(LobbyRoomView))]
+10:     public sealed class LobbyRoomController : MonoBehaviour
+11:     {
+12:         [SerializeField] private ArenaNetworkManager manager = null;
+13:         private LobbyRoomView view;
+14:         private bool visible;
+15:         private bool wasConnecting;
+16: 
+17:         private void OnEnable()
+18:         {
+19:             view = GetComponent<LobbyRoomView>();
+20:             if (NetworkManager.singleton is ArenaNetworkManager existing && existing != null
+21:                 && (existing.gameObject.scene.name == "DontDestroyOnLoad" || existing.gameObject.scene == gameObject.scene)) manager = existing;
+22:             ReleaseIdleManager();
+23:             view.HostButton.onClick.AddListener(Host);
+24:             view.JoinButton.onClick.AddListener(Join);
+25:             view.BackButton.onClick.AddListener(Back);
+26:             view.ReadyButton.onClick.AddListener(Ready);
+27:             view.StartButton.onClick.AddListener(StartMatch);
+28:             view.LeaveButton.onClick.AddListener(Leave);
+29:             if (view.DismissErrorButton != null) view.DismissErrorButton.onClick.AddListener(view.DismissError);
+30:             if (manager != null) { manager.RoomChanged += Refresh; manager.RoomRejected += Rejected; }
+31:         }
+32:         private void OnDisable()
+33:         {
+34:             view.HostButton.onClick.RemoveListener(Host);
+35:             view.JoinButton.onClick.RemoveListener(Join);
+36:             view.BackButton.onClick.RemoveListener(Back);
+37:             view.ReadyButton.onClick.RemoveListener(Ready);
+38:             view.StartButton.onClick.RemoveListener(StartMatch);
+39:             view.LeaveButton.onClick.RemoveListener(Leave);
+40:             if (view.DismissErrorButton != null) view.DismissErrorButton.onClick.RemoveListener(view.DismissError);
+41:             if (manager != null) { manager.RoomChanged -= Refresh; manager.RoomRejected -= Rejected; }
+42:         }
+43:         private void ReleaseIdleManager()
+44:         {
+45:             // Idle roots belong to the menu scene. Only active sessions persist across arena loads.
+46:             if (manager == null || NetworkClient.active || NetworkServer.active || NetworkClient.connection != null) return;
+47:             manager.dontDestroyOnLoad = false;
+48:             if (manager.gameObject.scene != gameObject.scene) SceneManager.MoveGameObjectToScene(manager.gameObject, gameObject.scene);
+49:         }
+50:         private void Update()
+51:         {
+52:             ReleaseIdleManager();
+53:             // Mirror finishes its connection-state change after the disconnect callback returns.
+54:             // Refresh once when that transition completes, not every frame.
+55:             if (visible && manager != null && wasConnecting != (NetworkClient.active && manager.CurrentRoom.Phase == LobbyPhase.Offline)) Refresh();
+56:         }
+57:         public void ShowConnectionPanel()
+58:         {
+59:             visible = true;
+60:             SceneNavigation.ShowMenuCursor();
+61:             Refresh();
+62:         }
+63:         private void Rejected(string reason) { view.ShowError(reason); Refresh(); }
+64:         private void Host() { view.DismissError(); if (manager != null) manager.HostRoom(); Refresh(); }
+65:         private void Join() { view.DismissError(); if (manager != null) manager.JoinRoom(view.Address.text); Refresh(); }
+66:         private void Back()
+67:         {
+68:             visible = false;
+69:             if (manager != null) manager.LeaveRoom();
+70:             view.ShowMenu();
+71:         }
+72:         private void Leave() { if (manager != null) manager.LeaveRoom(); Refresh(); }
+73:         private void Ready()
+74:         {
+75:             if (manager == null) return;
+76:             var local = (manager.CurrentRoom.Members ?? new LobbyMember[0]).FirstOrDefault(member => member.ConnectionId == manager.CurrentRoom.LocalConnectionId);
+77:             manager.RequestReady(!local.IsReady);
+78:         }
+79:         private void StartMatch() { if (manager != null) manager.RequestRoomStart(); }
+80:         private void Refresh()
+81:         {
+82:             if (!visible || manager == null) return;
+83:             ReleaseIdleManager();
+84:             SceneNavigation.ShowMenuCursor();
+85:             wasConnecting = NetworkClient.active && manager.CurrentRoom.Phase == LobbyPhase.Offline;
+86:             view.Render(manager.CurrentRoom, wasConnecting, manager.ConnectionStatus);
+87:         }
+88:     }
+89: }
+
+FILE Assets/_Project/Scripts/Client/UI/LobbyRoomView.cs
+1: using System.Linq;
+2: using SmallArena.Networking;
+3: using TMPro;
+4: using UnityEngine;
+5: using UnityEngine.UI;
+6: 
+7: namespace SmallArena.Client.UI
+8: {
+9:     /// <summary>Serialized presentation only. Membership and readiness come from server snapshots.</summary>
+10:     public sealed class LobbyRoomView : MonoBehaviour
+11:     {
+12:         [SerializeField] private GameObject menuCard = null;
+13:         [SerializeField] private GameObject connectionPanel = null;
+14:         [SerializeField] private GameObject roomPanel = null;
+15:         [SerializeField] private TMP_InputField address = null;
+16:         [SerializeField] private Button hostButton = null;
+17:         [SerializeField] private Button joinButton = null;
+18:         [SerializeField] private Button backButton = null;
+19:         [SerializeField] private Button readyButton = null;
+20:         [SerializeField] private Button startButton = null;
+21:         [SerializeField] private Button leaveButton = null;
+22:         [SerializeField] private TextMeshProUGUI statusText = null;
+23:         [SerializeField] private TextMeshProUGUI membersText = null;
+24:         [SerializeField] private TextMeshProUGUI readyLabel = null;
+25:         [SerializeField] private TextMeshProUGUI[] slotNames = new TextMeshProUGUI[4];
+26:         [SerializeField] private TextMeshProUGUI[] slotStatuses = new TextMeshProUGUI[4];
+27:         [SerializeField] private GameObject errorPanel = null;
+28:         [SerializeField] private TextMeshProUGUI errorText = null;
+29:         [SerializeField] private Button dismissErrorButton = null;
+30:         public Button DismissErrorButton => dismissErrorButton;
+31:         public bool ErrorVisible => errorPanel != null && errorPanel.activeSelf;
+32:         public string ErrorMessage => errorText != null ? errorText.text : "";
+33:         public string SlotName(int index) => slotNames[index].text;
+34:         public string SlotStatus(int index) => slotStatuses[index].text;
+35:         public void ShowError(string reason)
+36:         {
+37:             if (errorText != null) errorText.text = "Cannot join: " + reason;
+38:             if (errorPanel != null) errorPanel.SetActive(true);
+39:         }
+40:         public void DismissError() { if (errorPanel != null) errorPanel.SetActive(false); }
+41:         public TMP_InputField Address => address;
+42:         public Button HostButton => hostButton;
+43:         public Button JoinButton => joinButton;
+44:         public Button BackButton => backButton;
+45:         public Button ReadyButton => readyButton;
+46:         public Button StartButton => startButton;
+47:         public Button LeaveButton => leaveButton;
+48:         public bool ConnectionVisible => connectionPanel.activeSelf;
+49:         public bool RoomVisible => roomPanel.activeSelf;
+50: 
+51:         public void ShowMenu()
+52:         {
+53:             DismissError();
+54:             menuCard.SetActive(true);
+55:             connectionPanel.SetActive(false);
+56:             roomPanel.SetActive(false);
+57:         }
+58:         public void Render(LobbySnapshot snapshot, bool connecting, string status)
+59:         {
+60:             var inRoom = snapshot.Phase != LobbyPhase.Offline;
+61:             menuCard.SetActive(false);
+62:             connectionPanel.SetActive(!inRoom);
+63:             roomPanel.SetActive(inRoom);
+64:             hostButton.interactable = joinButton.interactable = !connecting;
+65:             address.interactable = !connecting;
+66:             statusText.text = status;
+67:             var members = snapshot.Members ?? new LobbyMember[0];
+68:             membersText.text = $"ROOM  {members.Length} / 4";
+69:             for (var index = 0; index < LobbyLimits.Capacity; index++)
+70:             {
+71:                 var occupied = members.Any(member => member.SlotIndex == index);
+72:                 var member = members.FirstOrDefault(item => item.SlotIndex == index);
+73:                 if (index < slotNames.Length && slotNames[index] != null)
+74:                     slotNames[index].text = occupied
+75:                         ? $"{index + 1}. Player {member.ConnectionId + 1}{(member.IsHost ? " (Host)" : "")}{(member.ConnectionId == snapshot.LocalConnectionId ? " (You)" : "")}"
+76:                         : $"{index + 1}. Empty slot";
+77:                 if (index < slotStatuses.Length && slotStatuses[index] != null)
+78:                 {
+79:                     slotStatuses[index].text = !occupied ? "Waiting..." : member.IsReady ? "READY" : "Not Ready";
+80:                     slotStatuses[index].color = !occupied ? Color.gray : member.IsReady
+81:                         ? new Color(0.3f, 0.9f, 0.45f) : new Color(1f, 0.6f, 0.25f);
+82:                 }
+83:             }
+84:             var local = members.FirstOrDefault(member => member.ConnectionId == snapshot.LocalConnectionId);
+85:             readyLabel.text = local.IsReady ? "Not Ready" : "Ready";
+86:             readyButton.interactable = snapshot.Phase == LobbyPhase.Waiting;
+87:             startButton.gameObject.SetActive(local.IsHost);
+88:             startButton.interactable = local.IsHost && snapshot.CanStart;
+89:             leaveButton.interactable = snapshot.Phase == LobbyPhase.Waiting;
+90:             if (snapshot.Phase == LobbyPhase.Loading) membersText.text += "\n\nLoading arena...";
+91:         }
+92:     }
+93: }
+
+FILE Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs
+1: using System;
+2: using System.Collections.Generic;
+3: using System.Collections;
+4: using System.Linq;
+5: using Mirror;
+6: using UnityEngine;
+7: using UnityEngine.SceneManagement;
+8: 
+9: namespace SmallArena.Networking
+10: {
+11:     /// <summary>Server-owned connection, spawn reservation and teardown lifecycle.</summary>
+12:     public sealed class ArenaNetworkManager : NetworkManager
+13:     {
+14:         private readonly Dictionary<NetworkConnectionToClient, Transform> reservedSpawns = new Dictionary<NetworkConnectionToClient, Transform>();
+15:         private readonly Queue<Transform> releasedSpawns = new Queue<Transform>();
+16:         [SerializeField] private bool roomEnabled = false;
+17:         public bool RoomEnabled => roomEnabled;
+18:         public LobbySnapshot CurrentRoom { get; private set; }
+19:         private readonly HashSet<NetworkConnectionToClient> rejectedConnections = new HashSet<NetworkConnectionToClient>();
+20:         private string rejectionReason;
+21:         public string RejectionReason => rejectionReason;
+22:         public event Action<string> RoomRejected;
+23:         public string ConnectionStatus { get; private set; } = "";
+24:         public event Action RoomChanged;
+25:         public event Action ServerStarted;
+26:         public event Action ServerStopped;
+27:         public event Action<NetworkConnectionToClient> ServerConnected;
+28:         public event Action<NetworkConnectionToClient> ServerDisconnected;
+29:         public event Action<string> ServerSceneLoaded;
+30:         public Func<bool> ServerCanSpawnPlayer { get; set; }
+31: 
+32:         public override void Awake()
+33:         {
+34:             // A returning menu must adopt the session root instead of replacing its singleton.
+35:             if (roomEnabled && singleton is ArenaNetworkManager existing && existing != null && existing != this
+36:                 && (existing.gameObject.scene.name == "DontDestroyOnLoad" || existing.gameObject.scene == gameObject.scene))
+37:             {
+38:                 Destroy(gameObject);
+39:                 return;
+40:             }
+41:             base.Awake();
+42:         }
+43: 
+44:         public void HostRoom()
+45:         {
+46:             if (!roomEnabled || NetworkServer.active || NetworkClient.active) return;
+47:             ConfigureRoom();
+48:             ConnectionStatus = "Creating room...";
+49:             StartHost();
+50:             RoomChanged?.Invoke();
+51:         }
+52:         public void JoinRoom(string address)
+53:         {
+54:             if (!roomEnabled || NetworkServer.active || NetworkClient.active) return;
+55:             ConfigureRoom();
+56:             networkAddress = string.IsNullOrWhiteSpace(address) ? "localhost" : address.Trim();
+57:             ConnectionStatus = "Connecting...";
+58:             StartClient();
+59:             RoomChanged?.Invoke();
+60:         }
+61:         private void ConfigureRoom()
+62:         {
+63:             dontDestroyOnLoad = true;
+64:             DontDestroyOnLoad(gameObject);
+65:             maxConnections = 4;
+66:             autoCreatePlayer = false;
+67:             onlineScene = "";
+68:             offlineScene = "Assets/_Project/Scenes/MainMenu.unity";
+69:             CurrentRoom = default;
+70:             rejectionReason = null;
+71:         }
+72:         public void LeaveRoom()
+73:         {
+74:             ConnectionStatus = "";
+75:             rejectionReason = null;
+76:             var returnScene = offlineScene;
+77:             if (SceneManager.GetActiveScene().name == "MainMenu") offlineScene = "";
+78:             if (NetworkServer.active && NetworkClient.activeHost) StopHost();
+79:             else if (NetworkClient.active) StopClient();
+80:             offlineScene = returnScene;
+81:         }
+82:         public void LeaveMatch() => MatchSessionNavigation.ReturnToMainMenu();
+83:         internal void ClearRoomClientState()
+84:         {
+85:             CurrentRoom = default;
+86:             ConnectionStatus = "";
+87:             RoomChanged?.Invoke();
+88:         }
+89:         public void RequestReady(bool ready)
+90:         {
+91:             if (roomEnabled && NetworkClient.isConnected) NetworkClient.Send(new LobbyReadyRequest { IsReady = ready });
+92:         }
+93:         public void RequestRoomStart()
+94:         {
+95:             if (roomEnabled && NetworkClient.isConnected) NetworkClient.Send(new LobbyStartRequest());
+96:         }
+97:         // Called only by the server session coordinator after its host/readiness checks.
+98:         public void LoadRoomArena()
+99:         {
+100:             if (!NetworkServer.active || !roomEnabled) return;
+101:             onlineScene = "Assets/_Project/Scenes/Arena_MVP.unity";
+102:             autoCreatePlayer = true;
+103:             ServerChangeScene(onlineScene);
+104:         }
+105:         public override void OnStartServer()
+106:         {
+107:             // One transient denial connection allows a full-room reason through Mirror
+108:             // before disconnect. It never joins the roster or becomes authenticated.
+109:             if (roomEnabled)
+110:             {
+111:                 NetworkServer.maxConnections = LobbyLimits.Capacity + 1;
+112:                 NetworkServer.RegisterHandler<LobbyRejectionAcknowledged>((connection, _) =>
+113:                 {
+114:                     if (rejectedConnections.Contains(connection)) connection.Disconnect();
+115:                 }, false);
+116:             }
+117:             base.OnStartServer();
+118:             ServerStarted?.Invoke();
+119:         }
+120:         public override void OnStartClient()
+121:         {
+122:             rejectionReason = null;
+123:             rejectionReason = null;
+124:             rejectionReason = null;
+125:             rejectionReason = null;
+126:             if (roomEnabled)
+127:             {
+128:                 NetworkClient.RegisterHandler<LobbySnapshot>(snapshot =>
+129:                 {
+130:                     CurrentRoom = snapshot;
+131:                     ConnectionStatus = "";
+132:                     RoomChanged?.Invoke();
+133:                 });
+134:                 NetworkClient.RegisterHandler<LobbyRejection>(message =>
+135:                 {
+136:                     NetworkClient.Send(new LobbyRejectionAcknowledged());
+137:                     rejectionReason = message.Reason;
+138:                     ConnectionStatus = "Cannot join: " + message.Reason;
+139:                     RoomRejected?.Invoke(message.Reason);
+140:                     RoomChanged?.Invoke();
+141:                 }, false);
+142:             }
+143:             base.OnStartClient();
+144:         }
+145:         public override void OnClientConnect()
+146:         {
+147:             // Lobby messages do not need scene readiness. Wait until admission and the arena load
+148:             // before Ready/AddPlayer; a rejected client must not send gameplay messages.
+149:             if (roomEnabled && string.IsNullOrEmpty(onlineScene)) return;
+150:             base.OnClientConnect();
+151:         }
+152:         public override void OnClientDisconnect()
+153:         {
+154:             if (!string.IsNullOrEmpty(offlineScene) && (SceneManager.GetActiveScene().name == "Arena_MVP" || networkSceneName.EndsWith("Arena_MVP.unity")))
+155:                 MatchSessionNavigation.ReturnToMainMenu();
+156:             if (roomEnabled && !string.IsNullOrEmpty(rejectionReason))
+157:                 ConnectionStatus = "Cannot join: " + rejectionReason;
+158:             else if (roomEnabled && ConnectionStatus != "")
+159:                 ConnectionStatus = "Unable to join. The room may be full, closed, or unavailable.";
+160:             else if (roomEnabled) ConnectionStatus = "Disconnected from room.";
+161:             base.OnClientDisconnect();
+162:         }
+163:         public override void OnStopClient()
+164:         {
+165:             CurrentRoom = default;
+166:             RoomChanged?.Invoke();
+167:             base.OnStopClient();
+168:         }
+169:         public override void OnServerSceneChanged(string sceneName)
+170:         {
+171:             base.OnServerSceneChanged(sceneName);
+172:             ServerSceneLoaded?.Invoke(sceneName);
+173:         }
+174:         public override void OnClientSceneChanged()
+175:         {
+176:             if (roomEnabled) autoCreatePlayer = true;
+177:             base.OnClientSceneChanged();
+178:         }
+179: 
+180:         public override void Start()
+181:         {
+182:             var launch = ArenaLaunchOptions.Read(System.Environment.GetCommandLineArgs());
+183:             if (launch.Role == ArenaNetworkRole.None) { base.Start(); return; }
+184:             // Explicit client/host roles take precedence over the headless server default.
+185:             networkAddress = launch.Address;
+186:             if (launch.Port != 0 && transport is PortTransport portTransport) portTransport.Port = launch.Port;
+187:             if (launch.Role == ArenaNetworkRole.Server) StartServer();
+188:             else if (launch.Role == ArenaNetworkRole.Client) StartClient();
+189:             else StartHost();
+190:         }
+191: 
+192:         [ContextMenu("TV1/Start Host (Play Mode)")]
+193:         private void StartInspectorHost() { if (Application.isPlaying && mode == NetworkManagerMode.Offline) StartHost(); }
+194: 
+195:         [ContextMenu("TV1/Start Client (Play Mode)")]
+196:         private void StartInspectorClient() { if (Application.isPlaying && mode == NetworkManagerMode.Offline) StartClient(); }
+197: 
+198:         [ContextMenu("TV1/Start Server (Play Mode)")]
+199:         private void StartInspectorServer() { if (Application.isPlaying && mode == NetworkManagerMode.Offline) StartServer(); }
+200: 
+201:         public override void OnServerConnect(NetworkConnectionToClient conn)
+202:         {
+203:             if (roomEnabled && NetworkServer.connections.Values.Count(connection => connection.isAuthenticated) > LobbyLimits.Capacity)
+204:             {
+205:                 RejectRoomConnection(conn, LobbyLimits.FullReason);
+206:                 return;
+207:             }
+208:             base.OnServerConnect(conn);
+209:             ServerConnected?.Invoke(conn);
+210:             Debug.Log($"[TV1] Client connected: {conn.connectionId}");
+211:         }
+212: 
+213:         public void RejectRoomConnection(NetworkConnectionToClient connection, string reason)
+214:         {
+215:             if (!NetworkServer.active || connection == null || !rejectedConnections.Add(connection)) return;
+216:             connection.isAuthenticated = false;
+217:             connection.Send(new LobbyRejection { Reason = reason });
+218:             StartCoroutine(DisconnectRejected(connection));
+219:         }
+220:         private IEnumerator DisconnectRejected(NetworkConnectionToClient connection)
+221:         {
+222:             // Normal clients acknowledge receipt before disconnect. Bound non-responsive peers.
+223:             yield return new WaitForSecondsRealtime(5f);
+224:             if (NetworkServer.active && NetworkServer.connections.TryGetValue(connection.connectionId, out var current)
+225:                 && ReferenceEquals(current, connection)) connection.Disconnect();
+226:         }
+227: 
+228:         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
+229:         {
+230:             // Mirror normally enforces this before dispatching the callback; keep direct calls safe too.
+231:             if (!NetworkServer.active || conn == null || conn.identity != null || reservedSpawns.ContainsKey(conn)) return;
+232:             if (ServerCanSpawnPlayer != null && !ServerCanSpawnPlayer()) return;
+233:             if (playerPrefab == null || playerPrefab.GetComponent<NetworkPlayer>() == null
+234:                 || playerPrefab.GetComponent<NetworkIdentity>() == null)
+235:             {
+236:                 Debug.LogError("[TV1] Player prefab requires NetworkIdentity and NetworkPlayer.");
+237:                 return;
+238:             }
+239: 
+240:             Transform start = null;
+241:             while (releasedSpawns.Count > 0 && start == null)
+242:             {
+243:                 var released = releasedSpawns.Dequeue();
+244:                 if (released != null && startPositions.Contains(released) && !reservedSpawns.ContainsValue(released)) start = released;
+245:             }
+246:             // GetStartPosition advances Mirror's round-robin cursor. Skip slots still in use after a reconnect.
+247:             for (var attempt = 0; start == null && attempt < startPositions.Count; attempt++)
+248:             {
+249:                 var candidate = GetStartPosition();
+250:                 if (candidate != null && !reservedSpawns.ContainsValue(candidate)) { start = candidate; break; }
+251:             }
+252:             if (start == null)
+253:             {
+254:                 Debug.LogWarning($"[TV1] No free server spawn for connection {conn.connectionId}.");
+255:                 return;
+256:             }
+257: 
+258:             // Reserve before callbacks can run. Key by connection instance so a delayed old disconnect
+259:             // cannot free the slot of a new connection that happens to reuse its numeric ID.
+260:             reservedSpawns.Add(conn, start);
+261:             GameObject player = null;
+262:             try
+263:             {
+264:                 player = Instantiate(playerPrefab, start.position, start.rotation);
+265:                 player.name = $"{playerPrefab.name} [connId={conn.connectionId}]";
+266:                 player.GetComponent<NetworkPlayer>().SetConnectionId(conn.connectionId);
+267:                 if (!NetworkServer.AddPlayerForConnection(conn, player))
+268:                 {
+269:                     reservedSpawns.Remove(conn);
+270:                     Destroy(player);
+271:                 }
+272:             }
+273:             catch
+274:             {
+275:                 reservedSpawns.Remove(conn);
+276:                 if (player != null)
+277:                 {
+278:                     if (player.GetComponent<NetworkIdentity>().netId != 0) NetworkServer.Destroy(player);
+279:                     else Destroy(player);
+280:                 }
+281:                 throw;
+282:             }
+283:         }
+284: 
+285:         public override void OnServerDisconnect(NetworkConnectionToClient conn)
+286:         {
+287:             if (conn == null) return;
+288:             rejectedConnections.Remove(conn);
+289:             reservedSpawns.TryGetValue(conn, out var released);
+290:             try
+291:             {
+292:                 NetworkServer.DestroyPlayerForConnection(conn);
+293:                 // Mirror's base cleanup is idempotent and clears owned/observer references.
+294:                 base.OnServerDisconnect(conn);
+295:             }
+296:             finally
+297:             {
+298:                 if (reservedSpawns.Remove(conn) && released != null) releasedSpawns.Enqueue(released);
+299:             }
+300:             Debug.Log($"[TV1] Client disconnected: {conn.connectionId}");
+301:             ServerDisconnected?.Invoke(conn);
+302:         }
+303: 
+304:         public override void OnStopServer()
+305:         {
+306:             rejectedConnections.Clear();
+307:             reservedSpawns.Clear();
+308:             releasedSpawns.Clear();
+309:             ServerStopped?.Invoke();
+310:             base.OnStopServer();
+311:         }
+312:     }
+313: }
+
+FILE Assets/_Project/Scripts/Networking/LobbyMessages.cs
+1: using Mirror;
+2: 
+3: namespace SmallArena.Networking
+4: {
+5:     public enum LobbyPhase : byte { Offline, Waiting, Loading, Playing }
+6: 
+7:     public struct LobbyMember
+8:     {
+9:         public int ConnectionId;
+10:         public int SlotIndex;
+11:         public bool IsReady;
+12:         public bool IsHost;
+13:     }
+14: 
+15:     public struct LobbySnapshot : NetworkMessage
+16:     {
+17:         public LobbyPhase Phase;
+18:         public int LocalConnectionId;
+19:         public bool CanStart;
+20:         public LobbyMember[] Members;
+21:     }
+22: 
+23:     public struct LobbyReadyRequest : NetworkMessage { public bool IsReady; }
+24:     public struct LobbyStartRequest : NetworkMessage { }
+25:     public static class LobbyLimits
+26:     {
+27:         public const int Capacity = 4;
+28:         public const string FullReason = "Room is full (4/4)";
+29:     }
+30:     public struct LobbyRejectionAcknowledged : NetworkMessage { }
+31:     public struct LobbyRejection : NetworkMessage { public string Reason; }
+32: }
+
+FILE Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs
+1: using System.Collections;
+2: using Mirror;
+3: using UnityEngine;
+4: using UnityEngine.SceneManagement;
+5: 
+6: namespace SmallArena.Networking
+7: {
+8:     /// <summary>Owns one asynchronous return operation, surviving destruction of the old session manager.</summary>
+9:     public sealed class MatchSessionNavigation : MonoBehaviour
+10:     {
+11:         private static MatchSessionNavigation active;
+12:         public static bool IsReturning => active != null;
+13: 
+14:         public static void ReturnToMainMenu()
+15:         {
+16:             if (IsReturning) return;
+17:             var manager = NetworkManager.singleton;
+18:             if (manager != null) manager.offlineScene = ""; // This operation, not Mirror's delayed scene load, owns navigation.
+19:             var stopServer = NetworkServer.active && (NetworkClient.activeHost
+20:                 || manager != null && (manager.mode == NetworkManagerMode.Host || manager.mode == NetworkManagerMode.ServerOnly));
+21:             var owner = new GameObject("Match session teardown");
+22:             DontDestroyOnLoad(owner);
+23:             active = owner.AddComponent<MatchSessionNavigation>();
+24:             active.StartCoroutine(active.Return(manager, stopServer));
+25:         }
+26: 
+27:         private IEnumerator Return(NetworkManager manager, bool stopServer)
+28:         {
+29:             // Disconnect callbacks run before Mirror finalizes connectState. Never re-enter them synchronously.
+30:             yield return null;
+31:             if (manager != null)
+32:             {
+33:                 if (stopServer && NetworkClient.activeHost) manager.StopHost();
+34:                 else
+35:                 {
+36:                     if (NetworkClient.active || NetworkClient.connection != null) manager.StopClient();
+37:                     if (stopServer && NetworkServer.active) manager.StopServer();
+38:                 }
+39:             }
+40:             else
+41:             {
+42:                 if (NetworkClient.active || NetworkClient.connection != null) NetworkClient.Disconnect();
+43:                 if (stopServer && NetworkServer.active) NetworkServer.Shutdown();
+44:             }
+45:             var deadline = Time.realtimeSinceStartup + 5f;
+46:             while ((NetworkClient.active || NetworkClient.connection != null) && Time.realtimeSinceStartup < deadline) yield return null;
+47:             if (NetworkClient.active || NetworkClient.connection != null || NetworkClient.spawned.Count > 0) NetworkClient.Shutdown();
+48:             if (stopServer && NetworkServer.active) NetworkServer.Shutdown();
+49:             while (NetworkManager.loadingSceneAsync != null && !NetworkManager.loadingSceneAsync.isDone) yield return null;
+50:             if (manager is ArenaNetworkManager arena && arena != null) arena.ClearRoomClientState();
+51:             if (manager != null) Destroy(manager.gameObject);
+52:             yield return null; // Finish Unity destruction before resetting singleton references or creating the menu root.
+53:             NetworkManager.ResetStatics();
+54:             if (!NetworkServer.active) Transport.active = null;
+55:             if (SceneManager.GetActiveScene().name != "MainMenu") yield return SceneManager.LoadSceneAsync("MainMenu");
+56:             Destroy(gameObject);
+57:         }
+58: 
+59:         private void OnDestroy() { if (active == this) active = null; }
+60:     }
+61: }
+
+FILE Assets/_Project/Scripts/Server/Sessions/LobbyRoom.cs
+1: using System.Collections.Generic;
+2: using System.Linq;
+3: using SmallArena.Networking;
+4: 
+5: namespace SmallArena.Server.Sessions
+6: {
+7:     /// <summary>Server-owned membership/readiness rules. Connection IDs come from Mirror, never client payloads.</summary>
+8:     public sealed class LobbyRoom
+9:     {
+10:         public const int Capacity = LobbyLimits.Capacity;
+11:         private readonly Dictionary<int, LobbyMember> members = new Dictionary<int, LobbyMember>();
+12:         public LobbyPhase Phase { get; private set; } = LobbyPhase.Offline;
+13:         public int Count => members.Count;
+14:         public bool CanStart => Phase == LobbyPhase.Waiting && Count >= 2 && AllReady;
+15:         public bool AllReady => Count > 0 && members.Values.All(member => member.IsReady);
+16:         public LobbyMember[] Members => members.Values.OrderBy(member => member.SlotIndex).ToArray();
+17: 
+18:         public void Open() { members.Clear(); Phase = LobbyPhase.Waiting; }
+19:         public void Close() { members.Clear(); Phase = LobbyPhase.Offline; }
+20:         public bool TryJoin(int id, bool isHost)
+21:         {
+22:             if (Phase != LobbyPhase.Waiting || members.ContainsKey(id) || Count >= Capacity) return false;
+23:             var slot = Enumerable.Range(0, Capacity).First(index => !members.Values.Any(member => member.SlotIndex == index));
+24:             members.Add(id, new LobbyMember { ConnectionId = id, SlotIndex = slot, IsHost = isHost });
+25:             return true;
+26:         }
+27:         public bool Remove(int id) => members.Remove(id);
+28:         public bool SetReady(int id, bool ready)
+29:         {
+30:             if (Phase != LobbyPhase.Waiting || !members.TryGetValue(id, out var member) || member.IsReady == ready) return false;
+31:             member.IsReady = ready;
+32:             members[id] = member;
+33:             return true;
+34:         }
+35:         public bool TryStart(int requester)
+36:         {
+37:             if (!CanStart || !members.TryGetValue(requester, out var member) || !member.IsHost) return false;
+38:             Phase = LobbyPhase.Loading;
+39:             return true;
+40:         }
+41:         public void FinishLoading() { if (Phase == LobbyPhase.Loading) Phase = LobbyPhase.Playing; }
+42:     }
+43: }
+
+FILE Assets/_Project/Scripts/Server/Sessions/ServerLobbyController.cs
+1: using Mirror;
+2: using SmallArena.Networking;
+3: using UnityEngine;
+4: 
+5: namespace SmallArena.Server.Sessions
+6: {
+7:     /// <summary>Server session coordinator. UI and network bridges cannot mutate room rules.</summary>
+8:     [DisallowMultipleComponent]
+9:     [RequireComponent(typeof(ArenaNetworkManager))]
+10:     public sealed class ServerLobbyController : MonoBehaviour
+11:     {
+12:         private ArenaNetworkManager manager;
+13:         private readonly LobbyRoom room = new LobbyRoom();
+14:         public LobbyRoom Room => room;
+15: 
+16:         private void OnEnable()
+17:         {
+18:             manager = GetComponent<ArenaNetworkManager>();
+19:             manager.ServerStarted += Open;
+20:             manager.ServerStopped += Close;
+21:             manager.ServerConnected += Join;
+22:             manager.ServerDisconnected += Leave;
+23:             manager.ServerSceneLoaded += SceneLoaded;
+24:             manager.ServerCanSpawnPlayer = CanSpawn;
+25:         }
+26:         private void OnDisable()
+27:         {
+28:             if (manager == null) return;
+29:             manager.ServerStarted -= Open;
+30:             manager.ServerStopped -= Close;
+31:             manager.ServerConnected -= Join;
+32:             manager.ServerDisconnected -= Leave;
+33:             manager.ServerSceneLoaded -= SceneLoaded;
+34:             manager.ServerCanSpawnPlayer = null;
+35:             Close();
+36:         }
+37:         private bool CanSpawn() => !manager.RoomEnabled || room.Phase == LobbyPhase.Playing;
+38:         private void Open()
+39:         {
+40:             if (!manager.RoomEnabled) return;
+41:             room.Open();
+42:             NetworkServer.RegisterHandler<LobbyReadyRequest>(Ready);
+43:             NetworkServer.RegisterHandler<LobbyStartRequest>(StartMatch);
+44:         }
+45:         private void Close() => room.Close();
+46:         private void Join(NetworkConnectionToClient connection)
+47:         {
+48:             if (!manager.RoomEnabled) return;
+49:             if (!room.TryJoin(connection.connectionId, connection == NetworkServer.localConnection))
+50:             {
+51:                 manager.RejectRoomConnection(connection, room.Count >= LobbyRoom.Capacity
+52:                     ? LobbyLimits.FullReason : "The match has already started.");
+53:                 return;
+54:             }
+55:             Publish();
+56:         }
+57:         private void Leave(NetworkConnectionToClient connection)
+58:         {
+59:             if (room.Remove(connection.connectionId)) Publish();
+60:         }
+61:         private void Ready(NetworkConnectionToClient connection, LobbyReadyRequest request)
+62:         {
+63:             if (room.SetReady(connection.connectionId, request.IsReady)) Publish();
+64:         }
+65:         private void StartMatch(NetworkConnectionToClient connection, LobbyStartRequest request)
+66:         {
+67:             if (!room.TryStart(connection.connectionId)) return;
+68:             Publish();
+69:             manager.LoadRoomArena();
+70:         }
+71:         private void SceneLoaded(string scene)
+72:         {
+73:             if (!manager.RoomEnabled || !scene.EndsWith("Arena_MVP.unity") && scene != "Arena_MVP") return;
+74:             room.FinishLoading();
+75:             Publish();
+76:         }
+77:         private void Publish()
+78:         {
+79:             if (!NetworkServer.active) return;
+80:             var members = room.Members;
+81:             foreach (var connection in NetworkServer.connections.Values)
+82:                 if (connection.isAuthenticated)
+83:                     connection.Send(new LobbySnapshot { Phase = room.Phase, LocalConnectionId = connection.connectionId, CanStart = room.CanStart, Members = members });
+84:         }
+85:     }
+86: }
+
+FILE Assets/Mirror/Core/NetworkManager.cs
+1: using System;
+2: using System.Collections.Generic;
+3: using System.Linq;
+4: using UnityEngine;
+5: using UnityEngine.SceneManagement;
+6: using UnityEngine.Serialization;
+7: 
+8: namespace Mirror
+9: {
+10:     public enum PlayerSpawnMethod { Random, RoundRobin }
+11:     public enum NetworkManagerMode { Offline, ServerOnly, ClientOnly, Host }
+12:     public enum HeadlessStartOptions { DoNothing, AutoStartServer, AutoStartClient }
+13: 
+14:     [DisallowMultipleComponent]
+15:     [AddComponentMenu("Network/Network Manager")]
+16:     [HelpURL("https://mirror-networking.gitbook.io/docs/components/network-manager")]
+17:     public class NetworkManager : MonoBehaviour
+18:     {
+19:         /// <summary>Enable to keep NetworkManager alive when changing scenes.</summary>
+20:         // This should be set if your game has a single NetworkManager that exists for the lifetime of the process. If there is a NetworkManager in each scene, then this should not be set.</para>
+21:         [Header("Configuration")]
+22:         [FormerlySerializedAs("m_DontDestroyOnLoad")]
+23:         [Tooltip("Should the Network Manager object be persisted through scene changes?")]
+24:         public bool dontDestroyOnLoad = true;
+25: 
+26:         /// <summary>Multiplayer games should always run in the background so the network doesn't time out.</summary>
+27:         [FormerlySerializedAs("m_RunInBackground")]
+28:         [Tooltip("Multiplayer games should always run in the background so the network doesn't time out.")]
+29:         public bool runInBackground = true;
+30: 
+31:         /// <summary>Should the server auto-start when 'Server Build' is checked in build settings</summary>
+32:         [Header("Auto-Start Options")]
+33: 
+34:         [Tooltip("Choose whether Server or Client should auto-start in headless builds")]
+35:         public HeadlessStartOptions headlessStartMode = HeadlessStartOptions.DoNothing;
+36: 
+37:         [Tooltip("Headless Start Mode in Editor\nwhen enabled, headless start mode will be used in editor as well.")]
+38:         public bool editorAutoStart;
+39: 
+40:         /// <summary>Server Update frequency, per second. Use around 60Hz for fast paced games like Counter-Strike to minimize latency. Use around 30Hz for games like WoW to minimize computations. Use around 1-10Hz for slow paced games like EVE.</summary>
+41:         [Tooltip("Server / Client send rate per second.\nUse 60-100Hz for fast paced games like Counter-Strike to minimize latency.\nUse around 30Hz for games like WoW to minimize computations.\nUse around 1-10Hz for slow paced games like EVE.")]
+42:         [FormerlySerializedAs("serverTickRate")]
+43:         public int sendRate = 60;
+44: 
+45:         // client send rate follows server send rate to avoid errors for now
+46:         /// <summary>Client Update frequency, per second. Use around 60Hz for fast paced games like Counter-Strike to minimize latency. Use around 30Hz for games like WoW to minimize computations. Use around 1-10Hz for slow paced games like EVE.</summary>
+47:         // [Tooltip("Client broadcasts 'sendRate' times per second. Use around 60Hz for fast paced games like Counter-Strike to minimize latency. Use around 30Hz for games like WoW to minimize computations. Use around 1-10Hz for slow paced games like EVE.")]
+48:         // public int clientSendRate = 30; // 33 ms
+49: 
+50:         /// <summary>Automatically switch to this scene upon going offline (on start / on disconnect / on shutdown).</summary>
+51:         [Header("Scene Management")]
+52:         [Scene]
+53:         [FormerlySerializedAs("m_OfflineScene")]
+54:         [Tooltip("Scene that Mirror will switch to when the client or server is stopped")]
+55:         public string offlineScene = "";
+56: 
+57:         /// <summary>Automatically switch to this scene upon going online (after connect/startserver).</summary>
+58:         [Scene]
+59:         [FormerlySerializedAs("m_OnlineScene")]
+60:         [Tooltip("Scene that Mirror will switch to when the server is started. Clients will recieve a Scene Message to load the server's current scene when they connect.")]
+61:         public string onlineScene = "";
+62: 
+63:         [Range(0, 60), Tooltip("Optional delay that can be used after disconnecting to show a 'Connection lost...' message or similar before loading the offline scene, which may take a long time in big projects.")]
+64:         public float offlineSceneLoadDelay = 0;
+65: 
+66:         // transport layer
+67:         [Header("Network Info")]
+68:         [Tooltip("Transport component attached to this object that server and client will use to connect")]
+69:         public Transport transport;
+70: 
+71:         /// <summary>Server's address for clients to connect to.</summary>
+72:         [FormerlySerializedAs("m_NetworkAddress")]
+73:         [Tooltip("Network Address where the client should connect to the server. Server does not use this for anything.")]
+74:         public string networkAddress = "localhost";
+75: 
+76:         /// <summary>The maximum number of concurrent network connections to support.</summary>
+77:         [FormerlySerializedAs("m_MaxConnections")]
+78:         [Tooltip("Maximum number of concurrent connections.")]
+79:         public int maxConnections = 100;
+80: 
+81:         // Mirror global disconnect inactive option, independent of Transport.
+82:         // not all Transports do this properly, and it's easiest to configure this just once.
+83:         // this is very useful for some projects, keep it.
+84:         [Tooltip("When enabled, the server automatically disconnects inactive connections after the configured timeout.")]
+85:         public bool disconnectInactiveConnections;
+86: 
+87:         [Tooltip("Timeout in seconds for server to automatically disconnect inactive connections if 'disconnectInactiveConnections' is enabled.")]
+88:         public float disconnectInactiveTimeout = 60f;
+89: 
+90:         [Header("Authentication")]
+91:         [Tooltip("Authentication component attached to this object")]
+92:         public NetworkAuthenticator authenticator;
+93: 
+94:         /// <summary>The default prefab to be used to create player objects on the server.</summary>
+95:         // Player objects are created in the default handler for AddPlayer() on
+96:         // the server. Implementing OnServerAddPlayer overrides this behaviour.
+97:         [Header("Player Object")]
+98:         [FormerlySerializedAs("m_PlayerPrefab")]
+99:         [Tooltip("Prefab of the player object. Prefab must have a Network Identity component. May be an empty game object or a full avatar.")]
+100:         public GameObject playerPrefab;
+101: 
+102:         /// <summary>Enable to automatically create player objects on connect and on scene change.</summary>
+103:         [FormerlySerializedAs("m_AutoCreatePlayer")]
+104:         [Tooltip("Should Mirror automatically spawn the player after scene change?")]
+105:         public bool autoCreatePlayer = true;
+106: 
+107:         /// <summary>Where to spawn players.</summary>
+108:         [FormerlySerializedAs("m_PlayerSpawnMethod")]
+109:         [Tooltip("Round Robin or Random order of Start Position selection")]
+110:         public PlayerSpawnMethod playerSpawnMethod;
+111: 
+112:         /// <summary>Prefabs that can be spawned over the network need to be registered here.</summary>
+113:         [FormerlySerializedAs("m_SpawnPrefabs"), HideInInspector]
+114:         public List<GameObject> spawnPrefabs = new List<GameObject>();
+115: 
+116:         /// <summary>List of transforms populated by NetworkStartPositions</summary>
+117:         public static List<Transform> startPositions = new List<Transform>();
+118:         public static int startPositionIndex;
+119: 
+120:         [Header("Security")]
+121:         [Tooltip("For security, it is recommended to disconnect a player if a networked action triggers an exception\nThis could prevent components being accessed in an undefined state, which may be an attack vector for exploits.\nHowever, some games may want to allow exceptions in order to not interrupt the player's experience.")]
+122:         public bool exceptionsDisconnect = true; // security by default
+123: 
+124:         [Header("Snapshot Interpolation")]
+125:         public SnapshotInterpolationSettings snapshotSettings = new SnapshotInterpolationSettings();
+126: 
+127:         [Header("Connection Quality")]
+128:         [Tooltip("Method to use for connection quality evaluation.\nSimple: based on rtt and jitter.\nPragmatic: based on snapshot interpolation adjustment.")]
+129:         public ConnectionQualityMethod evaluationMethod;
+130: 
+131:         [Tooltip("Interval in seconds to evaluate connection quality.\nSet to 0 to disable connection quality evaluation.")]
+132:         [Range(0, 60)]
+133:         [FormerlySerializedAs("connectionQualityInterval")]
+134:         public float evaluationInterval = 3;
+135: 
+136:         [Header("Interpolation UI - Requires Editor / Dev Build")]
+137:         public bool timeInterpolationGui = false;
+138: 
+139:         /// <summary>The one and only NetworkManager</summary>
+140:         public static NetworkManager singleton { get; internal set; }
+141: 
+142:         /// <summary>Number of active player objects across all connections on the server.</summary>
+143:         public int numPlayers => NetworkServer.connections.Count(kv => kv.Value.identity != null);
+144: 
+145:         /// <summary>True if the server is running or client is connected/connecting.</summary>
+146:         public bool isNetworkActive => NetworkServer.active || NetworkClient.active;
+147: 
+148:         // TODO remove this
+149:         // internal for tests
+150:         internal static NetworkConnection clientReadyConnection;
+151: 
+152:         /// <summary>True if the client loaded a new scene when connecting to the server.</summary>
+153:         // This is set before OnClientConnect is called, so it can be checked
+154:         // there to perform different logic if a scene load occurred.
+155:         protected bool clientLoadedScene;
+156: 
+157:         // helper enum to know if we started the networkmanager as server/client/host.
+158:         // -> this is necessary because when StartHost changes server scene to
+159:         //    online scene, FinishLoadScene is called and the host client isn't
+160:         //    connected yet (no need to connect it before server was fully set up).
+161:         //    in other words, we need this to know which mode we are running in
+162:         //    during FinishLoadScene.
+163:         public NetworkManagerMode mode { get; private set; }
+164: 
+165:         // virtual so that inheriting classes' OnValidate() can call base.OnValidate() too
+166:         public virtual void OnValidate()
+167:         {
+168:             // always >= 0
+169:             maxConnections = Mathf.Max(maxConnections, 0);
+170: 
+171:             if (playerPrefab != null && !playerPrefab.TryGetComponent(out NetworkIdentity _))
+172:             {
+173:                 Debug.LogError("NetworkManager - Player Prefab must have a NetworkIdentity.");
+174:                 playerPrefab = null;
+175:             }
+176: 
+177:             // This avoids the mysterious "Replacing existing prefab with assetId ... Old prefab 'Player', New prefab 'Player'" warning.
+178:             if (playerPrefab != null && spawnPrefabs.Contains(playerPrefab))
+179:             {
+180:                 Debug.LogWarning("NetworkManager - Player Prefab doesn't need to be in Spawnable Prefabs list too. Removing it.");
+181:                 spawnPrefabs.Remove(playerPrefab);
+182:             }
+183:         }
+184: 
+185:         // virtual so that inheriting classes' Reset() can call base.Reset() too
+186:         // Reset only gets called when the component is added or the user resets the component
+187:         // Thats why we validate these things that only need to be validated on adding the NetworkManager here
+188:         // If we would do it in OnValidate() then it would run this everytime a value changes
+189:         public virtual void Reset()
+190:         {
+191:             // make sure someone doesn't accidentally add another NetworkManager
+192:             // need transform.root because when adding to a child, the parent's
+193:             // Reset isn't called.
+194:             foreach (NetworkManager manager in transform.root.GetComponentsInChildren<NetworkManager>())
+195:             {
+196:                 if (manager != this)
+197:                 {
+198:                     Debug.LogError($"{name} detected another component of type {typeof(NetworkManager)} in its hierarchy on {manager.name}. There can only be one, please remove one of them.");
+199:                     // return early so that transport component isn't auto-added
+200:                     // to the duplicate NetworkManager.
+201:                     return;
+202:                 }
+203:             }
+204:         }
+205: 
+206:         // virtual so that inheriting classes' Awake() can call base.Awake() too
+207:         public virtual void Awake()
+208:         {
+209:             // Don't allow collision-destroyed second instance to continue.
+210:             if (!InitializeSingleton()) return;
+211: 
+212:             // Apply configuration in Awake once already
+213:             ApplyConfiguration();
+214: 
+215:             // Set the networkSceneName to prevent a scene reload
+216:             // if client connection to server fails.
+217:             networkSceneName = offlineScene;
+218: 
+219:             // setup OnSceneLoaded callback
+220:             SceneManager.sceneLoaded += OnSceneLoaded;
+221:         }
+222: 
+223:         // virtual so that inheriting classes' Start() can call base.Start() too
+224:         public virtual void Start()
+225:         {
+226:             // Auto-start headless server or client.
+227:             //
+228:             // We can't do this in Awake because Awake is for initialization
+229:             // and some transports might not be ready until Start.
+230:             //
+231:             // Auto-starting in Editor is useful for debugging, so that can
+232:             // be enabled with editorAutoStart.
+233:             if (Utils.IsHeadless())
+234:             {
+235:                 if (!Application.isEditor || editorAutoStart)
+236:                     switch (headlessStartMode)
+237:                     {
+238:                         case HeadlessStartOptions.AutoStartServer:
+239:                             StartServer();
+240:                             break;
+241:                         case HeadlessStartOptions.AutoStartClient:
+242:                             StartClient();
+243:                             break;
+244:                     }
+245:             }
+246:         }
+247: 
+248:         // make sure to call base.Update() when overwriting
+249:         public virtual void Update()
+250:         {
+251:             ApplyConfiguration();
+252:         }
+253: 
+254:         // virtual so that inheriting classes' LateUpdate() can call base.LateUpdate() too
+255:         public virtual void LateUpdate()
+256:         {
+257:             UpdateScene();
+258:         }
+259: 
+260:         ////////////////////////////////////////////////////////////////////////
+261: 
+262:         // keep the online scene change check in a separate function.
+263:         // only change scene if the requested online scene is not blank, and is not already loaded.
+264:         bool IsServerOnlineSceneChangeNeeded() =>
+265:             !string.IsNullOrWhiteSpace(onlineScene) &&
+266:             !Utils.IsSceneActive(onlineScene) &&
+267:             onlineScene != offlineScene;
+268: 
+269:         // NetworkManager exposes some NetworkServer/Client configuration.
+270:         // we apply it every Update() in order to avoid two sources of truth.
+271:         // fixes issues where NetworkServer.sendRate was never set because
+272:         // NetworkManager.StartServer was never called, etc.
+273:         // => all exposed settings should be applied at all times if NM exists.
+274:         void ApplyConfiguration()
+275:         {
+276:             NetworkServer.tickRate = sendRate;
+277:             NetworkClient.snapshotSettings = snapshotSettings;
+278:             NetworkClient.connectionQualityInterval = evaluationInterval;
+279:             NetworkClient.connectionQualityMethod = evaluationMethod;
+280:         }
+281: 
+282:         // full server setup code, without spawning objects yet
+283:         void SetupServer()
+284:         {
+285:             // Debug.Log("NetworkManager SetupServer");
+286:             InitializeSingleton();
+287: 
+288:             // apply settings before initializing anything
+289:             NetworkServer.disconnectInactiveConnections = disconnectInactiveConnections;
+290:             NetworkServer.disconnectInactiveTimeout = disconnectInactiveTimeout;
+291:             NetworkServer.exceptionsDisconnect = exceptionsDisconnect;
+292: 
+293:             if (runInBackground)
+294:                 Application.runInBackground = true;
+295: 
+296:             if (authenticator != null)
+297:             {
+298:                 authenticator.OnStartServer();
+299:                 authenticator.OnServerAuthenticated.AddListener(OnServerAuthenticated);
+300:             }
+301: 
+302:             ConfigureHeadlessFrameRate();
+303: 
+304:             // start listening to network connections
+305:             NetworkServer.Listen(maxConnections);
+306: 
+307:             // this must be after Listen(), since that registers the default message handlers
+308:             RegisterServerMessages();
+309: 
+310:             // do not call OnStartServer here yet.
+311:             // this is up to the caller. different for server-only vs. host mode.
+312:         }
+313: 
+314:         /// <summary>Starts the server, listening for incoming connections.</summary>
+315:         public void StartServer()
+316:         {
+317:             if (NetworkServer.active)
+318:             {
+319:                 Debug.LogWarning("Server already started.");
+320:                 return;
+321:             }
+322: 
+323:             mode = NetworkManagerMode.ServerOnly;
+324: 
+325:             // StartServer is inherently ASYNCHRONOUS (=doesn't finish immediately)
+326:             //
+327:             // Here is what it does:
+328:             //   Listen
+329:             //   if onlineScene:
+330:             //       LoadSceneAsync
+331:             //       ...
+332:             //       FinishLoadSceneServerOnly
+333:             //           SpawnObjects
+334:             //   else:
+335:             //       SpawnObjects
+336:             //
+337:             // there is NO WAY to make it synchronous because both LoadSceneAsync
+338:             // and LoadScene do not finish loading immediately. as long as we
+339:             // have the onlineScene feature, it will be asynchronous!
+340: 
+341:             SetupServer();
+342: 
+343:             // call OnStartServer AFTER Listen, so that NetworkServer.active is
+344:             // true and we can call NetworkServer.Spawn in OnStartServer
+345:             // overrides.
+346:             // (useful for loading & spawning stuff from database etc.)
+347:             //
+348:             // note: there is no risk of someone connecting after Listen() and
+349:             //       before OnStartServer() because this all runs in one thread
+350:             //       and we don't start processing connects until Update.
+351:             OnStartServer();
+352: 
+353:             // scene change needed? then change scene and spawn afterwards.
+354:             if (IsServerOnlineSceneChangeNeeded())
+355:             {
+356:                 ServerChangeScene(onlineScene);
+357:             }
+358:             // otherwise spawn directly
+359:             else
+360:             {
+361:                 NetworkServer.SpawnObjects();
+362:             }
+363:         }
+364: 
+365:         void SetupClient()
+366:         {
+367:             InitializeSingleton();
+368: 
+369:             // apply settings before initializing anything
+370:             NetworkClient.exceptionsDisconnect = exceptionsDisconnect;
+371:             // NetworkClient.sendRate = clientSendRate;
+372: 
+373:             if (runInBackground)
+374:                 Application.runInBackground = true;
+375: 
+376:             if (authenticator != null)
+377:             {
+378:                 authenticator.OnStartClient();
+379:                 authenticator.OnClientAuthenticated.AddListener(OnClientAuthenticated);
+380:             }
+381: 
+382:         }
+383: 
+384:         /// <summary>Starts the client, connects it to the server with networkAddress.</summary>
+385:         public void StartClient()
+386:         {
+387:             // Do checks and short circuits before setting anything up.
+388:             // If / when we retry, we won't have conflict issues.
+389:             if (NetworkClient.active)
+390:             {
+391:                 Debug.LogWarning("Client already started.");
+392:                 return;
+393:             }
+394: 
+395:             if (string.IsNullOrWhiteSpace(networkAddress))
+396:             {
+397:                 Debug.LogError("Must set the Network Address field in the manager");
+398:                 return;
+399:             }
+400: 
+401:             mode = NetworkManagerMode.ClientOnly;
+402: 
+403:             SetupClient();
+404: 
+405:             // In case this is a headless client...
+406:             ConfigureHeadlessFrameRate();
+407: 
+408:             RegisterClientMessages();
+409: 
+410:             NetworkClient.Connect(networkAddress);
+411: 
+412:             OnStartClient();
+413:         }
+414: 
+415:         /// <summary>Starts the client, connects it to the server via Uri</summary>
+416:         public void StartClient(Uri uri)
+417:         {
+418:             if (NetworkClient.active)
+419:             {
+420:                 Debug.LogWarning("Client already started.");
+421:                 return;
+422:             }
+423: 
+424:             mode = NetworkManagerMode.ClientOnly;
+425: 
+426:             SetupClient();
+427: 
+428:             RegisterClientMessages();
+429: 
+430:             // Debug.Log($"NetworkManager StartClient address:{uri}");
+431:             networkAddress = uri.Host;
+432: 
+433:             NetworkClient.Connect(uri);
+434: 
+435:             OnStartClient();
+436:         }
+437: 
+438:         /// <summary>Starts a network "host" - a server and client in the same application.</summary>
+439:         public void StartHost()
+440:         {
+441:             if (NetworkServer.active || NetworkClient.active)
+442:             {
+443:                 Debug.LogWarning("Server or Client already started.");
+444:                 return;
+445:             }
+446: 
+447:             mode = NetworkManagerMode.Host;
+448: 
+449:             // StartHost is inherently ASYNCHRONOUS (=doesn't finish immediately)
+450:             //
+451:             // Here is what it does:
+452:             //   Listen
+453:             //   ConnectHost
+454:             //   if onlineScene:
+455:             //       LoadSceneAsync
+456:             //       ...
+457:             //       FinishLoadSceneHost
+458:             //           FinishStartHost
+459:             //               SpawnObjects
+460:             //               StartHostClient      <= not guaranteed to happen after SpawnObjects if onlineScene is set!
+461:             //                   ClientAuth
+462:             //                       success: server sends changescene msg to client
+463:             //   else:
+464:             //       FinishStartHost
+465:             //
+466:             // there is NO WAY to make it synchronous because both LoadSceneAsync
+467:             // and LoadScene do not finish loading immediately. as long as we
+468:             // have the onlineScene feature, it will be asynchronous!
+469: 
+470:             // setup server first
+471:             SetupServer();
+472: 
+473:             // scene change needed? then change scene and spawn afterwards.
+474:             // => BEFORE host client connects. if client auth succeeds then the
+475:             //    server tells it to load 'onlineScene'. we can't do that if
+476:             //    server is still in 'offlineScene'. so load on server first.
+477:             if (IsServerOnlineSceneChangeNeeded())
+478:             {
+479:                 // call FinishStartHost after changing scene.
+480:                 finishStartHostPending = true;
+481:                 ServerChangeScene(onlineScene);
+482:             }
+483:             // otherwise call FinishStartHost directly
+484:             else
+485:             {
+486:                 FinishStartHost();
+487:             }
+488:         }
+489: 
+490:         // This may be set true in StartHost and is evaluated in FinishStartHost
+491:         bool finishStartHostPending;
+492: 
+493:         // FinishStartHost is guaranteed to be called after the host server was
+494:         // fully started and all the asynchronous StartHost magic is finished
+495:         // (= scene loading), or immediately if there was no asynchronous magic.
+496:         //
+497:         // note: we don't really need FinishStartClient/FinishStartServer. the
+498:         //       host version is enough.
+499:         void FinishStartHost()
+500:         {
+501:             // ConnectHost needs to be called BEFORE SpawnObjects:
+502:             // https://github.com/vis2k/Mirror/pull/1249/
+503:             // -> this sets NetworkServer.localConnection.
+504:             // -> localConnection needs to be set before SpawnObjects because:
+505:             //    -> SpawnObjects calls OnStartServer in all NetworkBehaviours
+506:             //       -> OnStartServer might spawn an object and set [SyncVar(hook="OnColorChanged")] object.color = green;
+507:             //          -> this calls SyncVar.set (generated by Weaver), which has
+508:             //             a custom case for host mode (because host mode doesn't
+509:             //             get OnDeserialize calls, where SyncVar hooks are usually
+510:             //             called):
+511:             //
+512:             //               if (!SyncVarEqual(value, ref color))
+513:             //               {
+514:             //                   if (NetworkServer.localClientActive && !getSyncVarHookGuard(1uL))
+515:             //                   {
+516:             //                       setSyncVarHookGuard(1uL, value: true);
+517:             //                       OnColorChangedHook(value);
+518:             //                       setSyncVarHookGuard(1uL, value: false);
+519:             //                   }
+520:             //                   SetSyncVar(value, ref color, 1uL);
+521:             //               }
+522:             //
+523:             //          -> localClientActive needs to be true, otherwise the hook
+524:             //             isn't called in host mode!
+525:             //
+526:             // TODO call this after spawnobjects and worry about the syncvar hook fix later?
+527:             NetworkClient.ConnectHost();
+528: 
+529:             // invoke user callbacks AFTER ConnectHost has set .activeHost.
+530:             // this way initialization can properly handle host mode.
+531:             //
+532:             // fixes: https://github.com/MirrorNetworking/Mirror/issues/3302
+533:             // where [SyncVar] hooks wouldn't be called for objects spawned in
+534:             // NetworkManager.OnStartServer, because .activeHost was still false.
+535:             //
+536:             // TODO is there a risk of someone connecting between Listen() and FinishStartHost()?
+537:             OnStartServer();
+538: 
+539:             // call OnStartHost AFTER SetupServer. this way we can use
+540:             // NetworkServer.Spawn etc. in there too. just like OnStartServer
+541:             // is called after the server is actually properly started.
+542:             OnStartHost();
+543: 
+544:             // server scene was loaded. now spawn all the objects
+545:             NetworkServer.SpawnObjects();
+546: 
+547:             // connect client and call OnStartClient AFTER server scene was
+548:             // loaded and all objects were spawned.
+549:             // DO NOT do this earlier. it would cause race conditions where a
+550:             // client will do things before the server is even fully started.
+551:             //Debug.Log("StartHostClient called");
+552:             SetupClient();
+553:             RegisterClientMessages();
+554: 
+555:             // InvokeOnConnected needs to be called AFTER RegisterClientMessages
+556:             // (https://github.com/vis2k/Mirror/pull/1249/)
+557:             HostMode.InvokeOnConnected();
+558: 
+559:             OnStartClient();
+560:         }
+561: 
+562:         /// <summary>This stops both the client and the server that the manager is using.</summary>
+563:         public void StopHost()
+564:         {
+565:             OnStopHost();
+566:             StopClient();
+567:             StopServer();
+568:         }
+569: 
+570:         /// <summary>Stops the server from listening and simulating the game.</summary>
+571:         public void StopServer()
+572:         {
+573:             // return if already stopped to avoid recursion deadlock
+574:             if (!NetworkServer.active)
+575:                 return;
+576: 
+577:             if (authenticator != null)
+578:             {
+579:                 authenticator.OnServerAuthenticated.RemoveListener(OnServerAuthenticated);
+580:                 authenticator.OnStopServer();
+581:             }
+582: 
+583:             // Get Network Manager out of DDOL before going to offline scene
+584:             // to avoid collision and let a fresh Network Manager be created.
+585:             // IMPORTANT: .gameObject can be null if StopClient is called from
+586:             //            OnApplicationQuit or from tests!
+587:             if (gameObject != null
+588:                 && gameObject.scene.name == "DontDestroyOnLoad"
+589:                 && !string.IsNullOrWhiteSpace(offlineScene)
+590:                 && SceneManager.GetActiveScene().path != offlineScene)
+591:                 SceneManager.MoveGameObjectToScene(gameObject, SceneManager.GetActiveScene());
+592: 
+593:             OnStopServer();
+594: 
+595:             //Debug.Log("NetworkManager StopServer");
+596:             NetworkServer.Shutdown();
+597: 
+598:             // set offline mode BEFORE changing scene so that FinishStartScene
+599:             // doesn't think we need initialize anything.
+600:             mode = NetworkManagerMode.Offline;
+601: 
+602:             if (!string.IsNullOrWhiteSpace(offlineScene))
+603:             {
+604:                 ServerChangeScene(offlineScene);
+605:             }
+606: 
+607:             startPositionIndex = 0;
+608: 
+609:             networkSceneName = "";
+610:         }
+611: 
+612:         /// <summary>Stops and disconnects the client.</summary>
+613:         public void StopClient()
+614:         {
+615:             if (mode == NetworkManagerMode.Offline)
+616:                 return;
+617: 
+618:             // For Host client, call OnServerDisconnect before NetworkClient.Disconnect
+619:             // because we need NetworkServer.localConnection to not be null
+620:             // NetworkClient.Disconnect will set it null.
+621:             if (mode == NetworkManagerMode.Host)
+622:                 OnServerDisconnect(NetworkServer.localConnection);
+623: 
+624:             // ask client -> transport to disconnect.
+625:             // handle voluntary and involuntary disconnects in OnClientDisconnect.
+626:             //
+627:             //   StopClient
+628:             //     NetworkClient.Disconnect
+629:             //       Transport.Disconnect
+630:             //         ...
+631:             //       Transport.OnClientDisconnect
+632:             //     NetworkClient.OnTransportDisconnect
+633:             //   NetworkManager.OnClientDisconnect
+634:             NetworkClient.Disconnect();
+635:         }
+636: 
+637:         // called when quitting the application by closing the window / pressing
+638:         // stop in the editor. virtual so that inheriting classes'
+639:         // OnApplicationQuit() can call base.OnApplicationQuit() too
+640:         // (this can't be in OnDestroy: https://github.com/MirrorNetworking/Mirror/issues/3952)
+641:         public virtual void OnApplicationQuit()
+642:         {
+643:             // stop client first
+644:             // (we want to send the quit packet to the server instead of waiting
+645:             //  for a timeout)
+646:             if (NetworkClient.isConnected)
+647:             {
+648:                 StopClient();
+649:                 //Debug.Log("OnApplicationQuit: stopped client");
+650:             }
+651: 
+652:             // stop server after stopping client (for proper host mode stopping)
+653:             if (NetworkServer.active)
+654:             {
+655:                 StopServer();
+656:                 //Debug.Log("OnApplicationQuit: stopped server");
+657:             }
+658: 
+659:             // Call ResetStatics to reset statics and singleton
+660:             ResetStatics();
+661:         }
+662: 
+663:         /// <summary>Set the frame rate for a headless builds. Override to disable or modify.</summary>
+664:         // useful for dedicated servers.
+665:         // useful for headless benchmark clients.
+666:         public virtual void ConfigureHeadlessFrameRate()
+667:         {
+668:             if (Utils.IsHeadless())
+669:             {
+670:                 Application.targetFrameRate = sendRate;
+671:                 // Debug.Log($"Server Tick Rate set to {Application.targetFrameRate} Hz.");
+672:             }
+673:         }
+674: 
+675:         bool InitializeSingleton()
+676:         {
+677:             if (singleton != null && singleton == this)
+678:                 return true;
+679: 
+680:             if (dontDestroyOnLoad)
+681:             {
+682:                 if (singleton != null)
+683:                 {
+684:                     Debug.LogWarning("Multiple NetworkManagers detected in the scene. Only one NetworkManager can exist at a time. The duplicate NetworkManager will be destroyed.");
+685:                     Destroy(gameObject);
+686: 
+687:                     // Return false to not allow collision-destroyed second instance to continue.
+688:                     return false;
+689:                 }
+690:                 //Debug.Log("NetworkManager created singleton (DontDestroyOnLoad)");
+691:                 singleton = this;
+692:                 if (Application.isPlaying)
+693:                 {
+694:                     // Force the object to scene root, in case user made it a child of something
+695:                     // in the scene since DDOL is only allowed for scene root objects
+696:                     transform.SetParent(null);
+697:                     DontDestroyOnLoad(gameObject);
+698:                 }
+699:             }
+700:             else
+701:             {
+702:                 //Debug.Log("NetworkManager created singleton (ForScene)");
+703:                 singleton = this;
+704:             }
+705: 
+706:             // set active transport AFTER setting singleton.
+707:             // so only if we didn't destroy ourselves.
+708: 
+709:             // This tries to avoid missing transport errors and more clearly tells user what to fix.
+710:             if (transport == null)
+711:                 if (TryGetComponent(out Transport newTransport))
+712:                 {
+713:                     Debug.LogWarning($"No Transport assigned to Network Manager - Using {newTransport} found on same object.");
+714:                     transport = newTransport;
+715:                 }
+716:                 else
+717:                 {
+718:                     Debug.LogError("No Transport on Network Manager...add a transport and assign it.");
+719:                     return false;
+720:                 }
+721: 
+722:             Transport.active = transport;
+723:             return true;
+724:         }
+725: 
+726:         void RegisterServerMessages()
+727:         {
+728:             NetworkServer.OnConnectedEvent = OnServerConnectInternal;
+729:             NetworkServer.OnDisconnectedEvent = OnServerDisconnect;
+730:             NetworkServer.OnErrorEvent = OnServerError;
+731:             NetworkServer.OnTransportExceptionEvent = OnServerTransportException;
+732:             NetworkServer.RegisterHandler<AddPlayerMessage>(OnServerAddPlayerInternal);
+733: 
+734:             // Network Server initially registers its own handler for this, so we replace it here.
+735:             NetworkServer.ReplaceHandler<ReadyMessage>(OnServerReadyMessageInternal);
+736:         }
+737: 
+738:         void RegisterClientMessages()
+739:         {
+740:             NetworkClient.OnConnectedEvent = OnClientConnectInternal;
+741:             NetworkClient.OnDisconnectedEvent = OnClientDisconnectInternal;
+742:             NetworkClient.OnErrorEvent = OnClientError;
+743:             NetworkClient.OnTransportExceptionEvent = OnClientTransportException;
+744: 
+745:             // Don't require authentication because server may send NotReadyMessage from ServerChangeScene
+746:             NetworkClient.RegisterHandler<NotReadyMessage>(OnClientNotReadyMessageInternal, false);
+747:             NetworkClient.RegisterHandler<SceneMessage>(OnClientSceneInternal, false);
+748: 
+749:             if (playerPrefab != null)
+750:                 NetworkClient.RegisterPrefab(playerPrefab);
+751: 
+752:             foreach (GameObject prefab in spawnPrefabs.Where(t => t != null))
+753:                 NetworkClient.RegisterPrefab(prefab);
+754:         }
+755: 
+756:         // This is the only way to clear the singleton, so another instance can be created.
+757:         // RuntimeInitializeOnLoadMethod -> fast playmode without domain reload
+758:         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+759:         public static void ResetStatics()
+760:         {
+761:             // call StopHost if we have a singleton
+762:             if (singleton)
+763:                 singleton.StopHost();
+764: 
+765:             // reset all statics
+766:             startPositions.Clear();
+767:             startPositionIndex = 0;
+768:             clientReadyConnection = null;
+769:             loadingSceneAsync = null;
+770:             networkSceneName = string.Empty;
+771: 
+772:             // and finally (in case it isn't null already)...
+773:             singleton = null;
+774:         }
+775: 
+776:         // virtual so that inheriting classes' OnDestroy() can call base.OnDestroy() too
+777:         public virtual void OnDestroy()
+778:         {
+779:             //Debug.Log("NetworkManager destroyed");
+780:         }
+781: 
+782:         /// <summary>The name of the current network scene.</summary>
+783:         // set by NetworkManager when changing the scene.
+784:         // new clients will automatically load this scene.
+785:         // Loading a scene manually won't set it.
+786:         public static string networkSceneName { get; protected set; } = "";
+787: 
+788:         public static AsyncOperation loadingSceneAsync;
+789: 
+790:         /// <summary>Change the server scene and all client's scenes across the network.</summary>
+791:         // Called automatically if onlineScene or offlineScene are set, but it
+792:         // can be called from user code to switch scenes again while the game is
+793:         // in progress. This automatically sets clients to be not-ready during
+794:         // the change and ready again to participate in the new scene.
+795:         public virtual void ServerChangeScene(string newSceneName)
+796:         {
+797:             if (string.IsNullOrWhiteSpace(newSceneName))
+798:             {
+799:                 Debug.LogError("ServerChangeScene empty scene name");
+800:                 return;
+801:             }
+802: 
+803:             if (NetworkServer.isLoadingScene && newSceneName == networkSceneName)
+804:             {
+805:                 Debug.LogError($"Scene change is already in progress for {newSceneName}");
+806:                 return;
+807:             }
+808: 
+809:             // Throw error if called from client
+810:             // Allow changing scene while stopping the server
+811:             if (!NetworkServer.active && newSceneName != offlineScene)
+812:             {
+813:                 Debug.LogError("ServerChangeScene can only be called on an active server.");
+814:                 return;
+815:             }
+816: 
+817:             // Debug.Log($"ServerChangeScene {newSceneName}");
+818:             NetworkServer.SetAllClientsNotReady();
+819:             networkSceneName = newSceneName;
+820: 
+821:             // Let server prepare for scene change
+822:             OnServerChangeScene(newSceneName);
+823: 
+824:             // set server flag to stop processing messages while changing scenes
+825:             // it will be re-enabled in FinishLoadScene.
+826:             NetworkServer.isLoadingScene = true;
+827: 
+828:             loadingSceneAsync = SceneManager.LoadSceneAsync(newSceneName);
+829: 
+830:             // ServerChangeScene can be called when stopping the server
+831:             // when this happens the server is not active so does not need to tell clients about the change
+832:             if (NetworkServer.active)
+833:             {
+834:                 // notify all clients about the new scene
+835:                 NetworkServer.SendToAll(new SceneMessage
+836:                 {
+837:                     sceneName = newSceneName
+838:                 });
+839:             }
+840: 
+841:             startPositionIndex = 0;
+842:             startPositions.Clear();
+843:         }
+844: 
+845:         // This is only set in ClientChangeScene below...never on server.
+846:         // We need to check this in OnClientSceneChanged called from FinishLoadSceneClientOnly
+847:         // to prevent AddPlayer message after loading/unloading additive scenes
+848:         SceneOperation clientSceneOperation = SceneOperation.Normal;
+849: 
+850:         internal void ClientChangeScene(string newSceneName, SceneOperation sceneOperation = SceneOperation.Normal, bool customHandling = false)
+851:         {
+852:             if (string.IsNullOrWhiteSpace(newSceneName))
+853:             {
+854:                 Debug.LogError("ClientChangeScene empty scene name");
+855:                 return;
+856:             }
+857: 
+858:             //Debug.Log($"ClientChangeScene newSceneName: {newSceneName} networkSceneName{networkSceneName}");
+859: 
+860:             // Let client prepare for scene change
+861:             OnClientChangeScene(newSceneName, sceneOperation, customHandling);
+862: 
+863:             // After calling OnClientChangeScene, exit if server since server is already doing
+864:             // the actual scene change, and we don't need to do it for the host client
+865:             if (NetworkServer.active)
+866:                 return;
+867: 
+868:             // set client flag to stop processing messages while loading scenes.
+869:             // otherwise we would process messages and then lose all the state
+870:             // as soon as the load is finishing, causing all kinds of bugs
+871:             // because of missing state.
+872:             // (client may be null after StopClient etc.)
+873:             // Debug.Log("ClientChangeScene: pausing handlers while scene is loading to avoid data loss after scene was loaded.");
+874:             NetworkClient.isLoadingScene = true;
+875: 
+876:             // Cache sceneOperation so we know what was requested by the
+877:             // Scene message in OnClientChangeScene and OnClientSceneChanged
+878:             clientSceneOperation = sceneOperation;
+879: 
+880:             // scene handling will happen in overrides of OnClientChangeScene and/or OnClientSceneChanged
+881:             // Do not call FinishLoadScene here. Custom handler will assign loadingSceneAsync and we need
+882:             // to wait for that to finish. UpdateScene already checks for that to be not null and isDone.
+883:             if (customHandling)
+884:                 return;
+885: 
+886:             switch (sceneOperation)
+887:             {
+888:                 case SceneOperation.Normal:
+889:                     loadingSceneAsync = SceneManager.LoadSceneAsync(newSceneName);
+890:                     break;
+891:                 case SceneOperation.LoadAdditive:
+892:                     // Ensure additive scene is not already loaded on client by name or path
+893:                     // since we don't know which was passed in the Scene message
+894:                     if (!SceneManager.GetSceneByName(newSceneName).IsValid() && !SceneManager.GetSceneByPath(newSceneName).IsValid())
+895:                         loadingSceneAsync = SceneManager.LoadSceneAsync(newSceneName, LoadSceneMode.Additive);
+896:                     else
+897:                     {
+898:                         Debug.LogWarning($"Scene {newSceneName} is already loaded");
+899: 
+900:                         // Reset the flag that we disabled before entering this switch
+901:                         NetworkClient.isLoadingScene = false;
+902:                     }
+903:                     break;
+904:                 case SceneOperation.UnloadAdditive:
+905:                     // Ensure additive scene is actually loaded on client by name or path
+906:                     // since we don't know which was passed in the Scene message
+907:                     if (SceneManager.GetSceneByName(newSceneName).IsValid() || SceneManager.GetSceneByPath(newSceneName).IsValid())
+908:                         loadingSceneAsync = SceneManager.UnloadSceneAsync(newSceneName, UnloadSceneOptions.UnloadAllEmbeddedSceneObjects);
+909:                     else
+910:                     {
+911:                         Debug.LogWarning($"Cannot unload {newSceneName} with UnloadAdditive operation");
+912: 
+913:                         // Reset the flag that we disabled before entering this switch
+914:                         NetworkClient.isLoadingScene = false;
+915:                     }
+916:                     break;
+917:             }
+918: 
+919:             // don't change the client's current networkSceneName when loading additive scene content
+920:             if (sceneOperation == SceneOperation.Normal)
+921:                 networkSceneName = newSceneName;
+922:         }
+923: 
+924:         // support additive scene loads:
+925:         //   NetworkScenePostProcess disables all scene objects on load, and
+926:         //   * NetworkServer.SpawnObjects enables them again on the server when
+927:         //     calling OnStartServer
+928:         //   * NetworkClient.PrepareToSpawnSceneObjects enables them again on the
+929:         //     client after the server sends ObjectSpawnStartedMessage to client
+930:         //     in SpawnObserversForConnection. this is only called when the
+931:         //     client joins, so we need to rebuild scene objects manually again
+932:         // TODO merge this with FinishLoadScene()?
+933:         void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+934:         {
+935:             if (mode == LoadSceneMode.Additive)
+936:             {
+937:                 if (NetworkServer.active)
+938:                 {
+939:                     // TODO only respawn the server objects from that scene later!
+940:                     NetworkServer.SpawnObjects();
+941:                     // Debug.Log($"Respawned Server objects after additive scene load: {scene.name}");
+942:                 }
+943:                 if (NetworkClient.active)
+944:                 {
+945:                     NetworkClient.PrepareToSpawnSceneObjects();
+946:                     // Debug.Log($"Rebuild Client spawnableObjects after additive scene load: {scene.name}");
+947:                 }
+948:             }
+949:         }
+950: 
+951:         void UpdateScene()
+952:         {
+953:             if (loadingSceneAsync != null && loadingSceneAsync.isDone)
+954:             {
+955:                 //Debug.Log($"ClientChangeScene done readyConn {clientReadyConnection}");
+956: 
+957:                 // try-finally to guarantee loadingSceneAsync being cleared.
+958:                 // fixes https://github.com/vis2k/Mirror/issues/2517 where if
+959:                 // FinishLoadScene throws an exception, loadingSceneAsync would
+960:                 // never be cleared and this code would run every Update.
+961:                 try
+962:                 {
+963:                     FinishLoadScene();
+964:                 }
+965:                 finally
+966:                 {
+967:                     loadingSceneAsync.allowSceneActivation = true;
+968:                     loadingSceneAsync = null;
+969:                 }
+970:             }
+971:         }
+972: 
+973:         protected void FinishLoadScene()
+974:         {
+975:             // NOTE: this cannot use NetworkClient.allClients[0] - that client may be for a completely different purpose.
+976: 
+977:             // process queued messages that we received while loading the scene
+978:             //Debug.Log("FinishLoadScene: resuming handlers after scene was loading.");
+979:             NetworkServer.isLoadingScene = false;
+980:             NetworkClient.isLoadingScene = false;
+981: 
+982:             // host mode?
+983:             if (mode == NetworkManagerMode.Host)
+984:             {
+985:                 FinishLoadSceneHost();
+986:             }
+987:             // server-only mode?
+988:             else if (mode == NetworkManagerMode.ServerOnly)
+989:             {
+990:                 FinishLoadSceneServerOnly();
+991:             }
+992:             // client-only mode?
+993:             else if (mode == NetworkManagerMode.ClientOnly)
+994:             {
+995:                 FinishLoadSceneClientOnly();
+996:             }
+997:             // otherwise we called it after stopping when loading offline scene.
+998:             // do nothing then.
+999:         }
+1000: 
+1001:         // finish load scene part for host mode. makes code easier and is
+1002:         // necessary for FinishStartHost later.
+1003:         // (the 3 things have to happen in that exact order)
+1004:         void FinishLoadSceneHost()
+1005:         {
+1006:             // debug message is very important. if we ever break anything then
+1007:             // it's very obvious to notice.
+1008:             //Debug.Log("Finished loading scene in host mode.");
+1009: 
+1010:             if (clientReadyConnection != null)
+1011:             {
+1012:                 clientLoadedScene = true;
+1013:                 clientReadyConnection = null;
+1014:             }
+1015: 
+1016:             // do we need to finish a StartHost() call?
+1017:             // then call FinishStartHost and let it take care of spawning etc.
+1018:             if (finishStartHostPending)
+1019:             {
+1020:                 finishStartHostPending = false;
+1021:                 FinishStartHost();
+1022: 
+1023:                 // call OnServerSceneChanged
+1024:                 OnServerSceneChanged(networkSceneName);
+1025: 
+1026:                 // DO NOT call OnClientSceneChanged here.
+1027:                 // the scene change happened because StartHost loaded the
+1028:                 // server's online scene. it has nothing to do with the client.
+1029:                 // this was not meant as a client scene load, so don't call it.
+1030:                 //
+1031:                 // otherwise AddPlayer would be called twice:
+1032:                 // -> once for client OnConnected
+1033:                 // -> once in OnClientSceneChanged
+1034:             }
+1035:             // otherwise we just changed a scene in host mode
+1036:             else
+1037:             {
+1038:                 // spawn server objects
+1039:                 NetworkServer.SpawnObjects();
+1040: 
+1041:                 // call OnServerSceneChanged
+1042:                 OnServerSceneChanged(networkSceneName);
+1043: 
+1044:                 if (NetworkClient.isConnected)
+1045:                     OnClientSceneChanged();
+1046:             }
+1047:         }
+1048: 
+1049:         // finish load scene part for server-only. . makes code easier and is
+1050:         // necessary for FinishStartServer later.
+1051:         void FinishLoadSceneServerOnly()
+1052:         {
+1053:             // debug message is very important. if we ever break anything then
+1054:             // it's very obvious to notice.
+1055:             //Debug.Log("Finished loading scene in server-only mode.");
+1056: 
+1057:             NetworkServer.SpawnObjects();
+1058:             OnServerSceneChanged(networkSceneName);
+1059:         }
+1060: 
+1061:         // finish load scene part for client-only. makes code easier and is
+1062:         // necessary for FinishStartClient later.
+1063:         void FinishLoadSceneClientOnly()
+1064:         {
+1065:             // debug message is very important. if we ever break anything then
+1066:             // it's very obvious to notice.
+1067:             //Debug.Log("Finished loading scene in client-only mode.");
+1068: 
+1069:             if (clientReadyConnection != null)
+1070:             {
+1071:                 clientLoadedScene = true;
+1072:                 clientReadyConnection = null;
+1073:             }
+1074: 
+1075:             if (NetworkClient.isConnected)
+1076:                 OnClientSceneChanged();
+1077:         }
+1078: 
+1079:         /// <summary>
+1080:         /// Registers the transform of a game object as a player spawn location.
+1081:         /// <para>This is done automatically by NetworkStartPosition components, but can be done manually from user script code.</para>
+1082:         /// </summary>
+1083:         /// <param name="start">Transform to register.</param>
+1084:         // Static because it's called from NetworkStartPosition::Awake
+1085:         // and singleton may not exist yet
+1086:         public static void RegisterStartPosition(Transform start)
+1087:         {
+1088:             // Debug.Log($"RegisterStartPosition: {start.gameObject.name} {start.position}");
+1089:             startPositions.Add(start);
+1090: 
+1091:             // reorder the list so that round-robin spawning uses the start positions
+1092:             // in hierarchy order.  This assumes all objects with NetworkStartPosition
+1093:             // component are siblings, either in the scene root or together as children
+1094:             // under a single parent in the scene.
+1095:             startPositions = startPositions.OrderBy(transform => transform.GetSiblingIndex()).ToList();
+1096:         }
+1097: 
+1098:         /// <summary>Unregister a Transform from start positions.</summary>
+1099:         // Static because it's called from NetworkStartPosition::OnDestroy
+1100:         // and singleton may not exist yet
+1101:         public static void UnRegisterStartPosition(Transform start)
+1102:         {
+1103:             //Debug.Log($"UnRegisterStartPosition: {start.name} {start.position}");
+1104:             startPositions.Remove(start);
+1105:         }
+1106: 
+1107:         /// <summary>Get the next NetworkStartPosition based on the selected PlayerSpawnMethod.</summary>
+1108:         public virtual Transform GetStartPosition()
+1109:         {
+1110:             // first remove any dead transforms
+1111:             startPositions.RemoveAll(t => t == null);
+1112: 
+1113:             if (startPositions.Count == 0)
+1114:                 return null;
+1115: 
+1116:             if (playerSpawnMethod == PlayerSpawnMethod.Random)
+1117:             {
+1118:                 return startPositions[UnityEngine.Random.Range(0, startPositions.Count)];
+1119:             }
+1120:             else
+1121:             {
+1122:                 Transform startPosition = startPositions[startPositionIndex];
+1123:                 startPositionIndex = (startPositionIndex + 1) % startPositions.Count;
+1124:                 return startPosition;
+1125:             }
+1126:         }
+1127: 
+1128:         void OnServerConnectInternal(NetworkConnectionToClient conn)
+1129:         {
+1130:             //Debug.Log("NetworkManager.OnServerConnectInternal");
+1131: 
+1132:             if (authenticator != null)
+1133:             {
+1134:                 // we have an authenticator - let it handle authentication
+1135:                 authenticator.OnServerAuthenticate(conn);
+1136:             }
+1137:             else
+1138:             {
+1139:                 // authenticate immediately
+1140:                 OnServerAuthenticated(conn);
+1141:             }
+1142:         }
+1143: 
+1144:         // called after successful authentication
+1145:         // TODO do the NetworkServer.OnAuthenticated thing from x branch
+1146:         void OnServerAuthenticated(NetworkConnectionToClient conn)
+1147:         {
+1148:             //Debug.Log("NetworkManager.OnServerAuthenticated");
+1149: 
+1150:             // set connection to authenticated
+1151:             conn.isAuthenticated = true;
+1152: 
+1153:             // proceed with the login handshake by calling OnServerConnect
+1154:             if (networkSceneName != "" && networkSceneName != offlineScene)
+1155:             {
+1156:                 SceneMessage msg = new SceneMessage()
+1157:                 {
+1158:                     sceneName = networkSceneName
+1159:                 };
+1160:                 conn.Send(msg);
+1161:             }
+1162: 
+1163:             OnServerConnect(conn);
+1164:         }
+1165: 
+1166:         void OnServerReadyMessageInternal(NetworkConnectionToClient conn, ReadyMessage msg)
+1167:         {
+1168:             //Debug.Log("NetworkManager.OnServerReadyMessageInternal");
+1169:             OnServerReady(conn);
+1170:         }
+1171: 
+1172:         void OnServerAddPlayerInternal(NetworkConnectionToClient conn, AddPlayerMessage msg)
+1173:         {
+1174:             //Debug.Log("NetworkManager.OnServerAddPlayer");
+1175: 
+1176:             if (autoCreatePlayer && playerPrefab == null)
+1177:             {
+1178:                 Debug.LogError("The PlayerPrefab is empty on the NetworkManager. Please setup a PlayerPrefab object.");
+1179:                 return;
+1180:             }
+1181: 
+1182:             if (autoCreatePlayer && !playerPrefab.TryGetComponent(out NetworkIdentity _))
+1183:             {
+1184:                 Debug.LogError("The PlayerPrefab does not have a NetworkIdentity. Please add a NetworkIdentity to the player prefab.");
+1185:                 return;
+1186:             }
+1187: 
+1188:             if (conn.identity != null)
+1189:             {
+1190:                 Debug.LogError("There is already a player for this connection.");
+1191:                 return;
+1192:             }
+1193: 
+1194:             OnServerAddPlayer(conn);
+1195:         }
+1196: 
+1197:         void OnClientConnectInternal()
+1198:         {
+1199:             //Debug.Log("NetworkManager.OnClientConnectInternal");
+1200: 
+1201:             if (authenticator != null)
+1202:             {
+1203:                 // we have an authenticator - let it handle authentication
+1204:                 authenticator.OnClientAuthenticate();
+1205:             }
+1206:             else
+1207:             {
+1208:                 // authenticate immediately
+1209:                 OnClientAuthenticated();
+1210:             }
+1211:         }
+1212: 
+1213:         // called after successful authentication
+1214:         void OnClientAuthenticated()
+1215:         {
+1216:             //Debug.Log("NetworkManager.OnClientAuthenticated");
+1217: 
+1218:             // set connection to authenticated
+1219:             NetworkClient.connection.isAuthenticated = true;
+1220: 
+1221:             // Set flag to wait for scene change?
+1222:             if (string.IsNullOrWhiteSpace(onlineScene) || onlineScene == offlineScene || Utils.IsSceneActive(onlineScene))
+1223:             {
+1224:                 clientLoadedScene = false;
+1225:             }
+1226:             else
+1227:             {
+1228:                 // Scene message expected from server.
+1229:                 clientLoadedScene = true;
+1230:                 clientReadyConnection = NetworkClient.connection;
+1231:             }
+1232: 
+1233:             // Call virtual method regardless of whether a scene change is expected or not.
+1234:             OnClientConnect();
+1235:         }
+1236: 
+1237:         // Transport callback, invoked after client fully disconnected.
+1238:         // the call order should always be:
+1239:         //   Disconnect() -> ask Transport -> Transport.OnDisconnected -> Cleanup
+1240:         void OnClientDisconnectInternal()
+1241:         {
+1242:             //Debug.Log("NetworkManager.OnClientDisconnectInternal");
+1243: 
+1244:             // Only let this run once. StopClient in Host mode changes to ServerOnly
+1245:             if (mode == NetworkManagerMode.ServerOnly || mode == NetworkManagerMode.Offline)
+1246:                 return;
+1247: 
+1248:             // user callback
+1249:             OnClientDisconnect();
+1250: 
+1251:             if (authenticator != null)
+1252:             {
+1253:                 authenticator.OnClientAuthenticated.RemoveListener(OnClientAuthenticated);
+1254:                 authenticator.OnStopClient();
+1255:             }
+1256: 
+1257:             // set mode BEFORE changing scene so FinishStartScene doesn't re-initialize anything.
+1258:             // set mode BEFORE NetworkClient.Disconnect so StopClient only runs once.
+1259:             // set mode BEFORE OnStopClient so StopClient only runs once.
+1260:             // If we got here from StopClient in Host mode, change to ServerOnly.
+1261:             // - If StopHost was called, StopServer will put us in Offline mode.
+1262:             if (mode == NetworkManagerMode.Host)
+1263:                 mode = NetworkManagerMode.ServerOnly;
+1264:             else
+1265:                 mode = NetworkManagerMode.Offline;
+1266: 
+1267:             //Debug.Log("NetworkManager StopClient");
+1268:             OnStopClient();
+1269: 
+1270:             // shutdown client
+1271:             NetworkClient.Shutdown();
+1272: 
+1273:             // Exit here if we're now in ServerOnly mode (StopClient called in Host mode).
+1274:             if (mode == NetworkManagerMode.ServerOnly) return;
+1275: 
+1276:             // Get Network Manager out of DDOL before going to offline scene
+1277:             // to avoid collision and let a fresh Network Manager be created.
+1278:             // IMPORTANT: .gameObject can be null if StopClient is called from
+1279:             //            OnApplicationQuit or from tests!
+1280:             if (gameObject != null
+1281:                 && gameObject.scene.name == "DontDestroyOnLoad"
+1282:                 && !string.IsNullOrWhiteSpace(offlineScene)
+1283:                 && SceneManager.GetActiveScene().path != offlineScene)
+1284:                 SceneManager.MoveGameObjectToScene(gameObject, SceneManager.GetActiveScene());
+1285: 
+1286:             // If StopHost called in Host mode, StopServer will change scenes after this.
+1287:             // Check loadingSceneAsync to ensure we don't double-invoke the scene change.
+1288:             // Check if NetworkServer.active because we can get here via Disconnect before server has started to change scenes.
+1289:             if (!string.IsNullOrWhiteSpace(offlineScene) && !Utils.IsSceneActive(offlineScene) && loadingSceneAsync == null && !NetworkServer.active)
+1290:                 Invoke(nameof(ClientChangeOfflineScene), offlineSceneLoadDelay);
+1291: 
+1292:             networkSceneName = "";
+1293:         }
+1294: 
+1295:         // wrap ClientChangeScene call without parameters for use in Invoke.
+1296:         void ClientChangeOfflineScene() =>
+1297:             ClientChangeScene(offlineScene, SceneOperation.Normal);
+1298: 
+1299:         void OnClientNotReadyMessageInternal(NotReadyMessage msg)
+1300:         {
+1301:             //Debug.Log("NetworkManager.OnClientNotReadyMessageInternal");
+1302:             NetworkClient.ready = false;
+1303:             OnClientNotReady();
+1304: 
+1305:             // NOTE: clientReadyConnection is not set here! don't want OnClientConnect to be invoked again after scene changes.
+1306:         }
+1307: 
+1308:         void OnClientSceneInternal(SceneMessage msg)
+1309:         {
+1310:             //Debug.Log("NetworkManager.OnClientSceneInternal");
+1311: 
+1312:             // This needs to run for host client too. NetworkServer.active is checked there
+1313:             if (NetworkClient.isConnected)
+1314:                 ClientChangeScene(msg.sceneName, msg.sceneOperation, msg.customHandling);
+1315:         }
+1316: 
+1317:         /// <summary>Called on the server when a new client connects.</summary>
+1318:         public virtual void OnServerConnect(NetworkConnectionToClient conn) { }
+1319: 
+1320:         /// <summary>Called on the server when a client disconnects.</summary>
+1321:         // Called by NetworkServer.OnTransportDisconnect!
+1322:         public virtual void OnServerDisconnect(NetworkConnectionToClient conn)
+1323:         {
+1324:             // by default, this function destroys the connection's player.
+1325:             // can be overwritten for cases like delayed logouts in MMOs to
+1326:             // avoid players escaping from PvP situations by logging out.
+1327:             NetworkServer.DestroyPlayerForConnection(conn);
+1328:             //Debug.Log("OnServerDisconnect: Client disconnected.");
+1329:         }
+1330: 
+1331:         /// <summary>Called on the server when a client is ready (= loaded the scene)</summary>
+1332:         public virtual void OnServerReady(NetworkConnectionToClient conn)
+1333:         {
+1334:             if (conn.identity == null)
+1335:             {
+1336:                 // this is now allowed (was not for a while)
+1337:                 //Debug.Log("Ready with no player object");
+1338:             }
+1339:             NetworkServer.SetClientReady(conn);
+1340:         }
+1341: 
+1342:         /// <summary>Called on server when a client requests to add the player. Adds playerPrefab by default. Can be overwritten.</summary>
+1343:         // The default implementation for this function creates a new player object from the playerPrefab.
+1344:         public virtual void OnServerAddPlayer(NetworkConnectionToClient conn)
+1345:         {
+1346:             Transform startPos = GetStartPosition();
+1347:             GameObject player = startPos != null
+1348:                 ? Instantiate(playerPrefab, startPos.position, startPos.rotation)
+1349:                 : Instantiate(playerPrefab);
+1350: 
+1351:             // instantiating a "Player" prefab gives it the name "Player(clone)"
+1352:             // => appending the connectionId is WAY more useful for debugging!
+1353:             player.name = $"{playerPrefab.name} [connId={conn.connectionId}]";
+1354:             NetworkServer.AddPlayerForConnection(conn, player);
+1355:         }
+1356: 
+1357:         /// <summary>Called on server when transport raises an exception. NetworkConnection may be null.</summary>
+1358:         public virtual void OnServerError(NetworkConnectionToClient conn, TransportError error, string reason) { }
+1359: 
+1360:         /// <summary>Called on server when transport raises an exception. NetworkConnection may be null.</summary>
+1361:         public virtual void OnServerTransportException(NetworkConnectionToClient conn, Exception exception) { }
+1362: 
+1363:         /// <summary>Called from ServerChangeScene immediately before SceneManager.LoadSceneAsync is executed</summary>
+1364:         public virtual void OnServerChangeScene(string newSceneName) { }
+1365: 
+1366:         /// <summary>Called on server after a scene load with ServerChangeScene() is completed.</summary>
+1367:         public virtual void OnServerSceneChanged(string sceneName) { }
+1368: 
+1369:         /// <summary>Called on the client when connected to a server. By default it sets client as ready and adds a player.</summary>
+1370:         public virtual void OnClientConnect()
+1371:         {
+1372:             // OnClientConnect by default calls AddPlayer but it should not do
+1373:             // that when we have online/offline scenes. so we need the
+1374:             // clientLoadedScene flag to prevent it.
+1375:             if (!clientLoadedScene)
+1376:             {
+1377:                 // Ready/AddPlayer is usually triggered by a scene load completing.
+1378:                 // if no scene was loaded, then Ready/AddPlayer it here instead.
+1379:                 if (!NetworkClient.ready)
+1380:                     NetworkClient.Ready();
+1381: 
+1382:                 if (autoCreatePlayer)
+1383:                     NetworkClient.AddPlayer();
+1384:             }
+1385:         }
+1386: 
+1387:         /// <summary>Called on clients when disconnected from a server.</summary>
+1388:         public virtual void OnClientDisconnect() { }
+1389: 
+1390:         /// <summary>Called on client when transport raises an exception.</summary>
+1391:         public virtual void OnClientError(TransportError error, string reason) { }
+1392: 
+1393:         /// <summary>Called on client when transport raises an exception.</summary>
+1394:         public virtual void OnClientTransportException(Exception exception) { }
+1395: 
+1396:         /// <summary>Called on clients when a servers tells the client it is no longer ready, e.g. when switching scenes.</summary>
+1397:         public virtual void OnClientNotReady() { }
+1398: 
+1399:         /// <summary>Called from ClientChangeScene immediately before SceneManager.LoadSceneAsync is executed</summary>
+1400:         // customHandling: indicates if scene loading will be handled through overrides
+1401:         public virtual void OnClientChangeScene(string newSceneName, SceneOperation sceneOperation, bool customHandling) { }
+1402: 
+1403:         /// <summary>Called on clients when a scene has completed loaded, when the scene load was initiated by the server.</summary>
+1404:         // Scene changes can cause player objects to be destroyed. The default
+1405:         // implementation of OnClientSceneChanged in the NetworkManager is to
+1406:         // add a player object for the connection if no player object exists.
+1407:         public virtual void OnClientSceneChanged()
+1408:         {
+1409:             // always become ready.
+1410:             if (NetworkClient.connection.isAuthenticated && !NetworkClient.ready) NetworkClient.Ready();
+1411: 
+1412:             // Only call AddPlayer for normal scene changes, not additive load/unload
+1413:             if (NetworkClient.connection.isAuthenticated && clientSceneOperation == SceneOperation.Normal && autoCreatePlayer && NetworkClient.localPlayer == null)
+1414:             {
+1415:                 // add player if existing one is null
+1416:                 NetworkClient.AddPlayer();
+1417:             }
+1418:         }
+1419: 
+1420:         // Since there are multiple versions of StartServer, StartClient and
+1421:         // StartHost, to reliably customize their functionality, users would
+1422:         // need override all the versions. Instead these callbacks are invoked
+1423:         // from all versions, so users only need to implement this one case.
+1424: 
+1425:         /// <summary>This is invoked when a host is started.</summary>
+1426:         public virtual void OnStartHost() { }
+1427: 
+1428:         /// <summary>This is invoked when a server is started - including when a host is started.</summary>
+1429:         public virtual void OnStartServer() { }
+1430: 
+1431:         /// <summary>This is invoked when the client is started.</summary>
+1432:         public virtual void OnStartClient() { }
+1433: 
+1434:         /// <summary>This is called when a server is stopped - including when a host is stopped.</summary>
+1435:         public virtual void OnStopServer() { }
+1436: 
+1437:         /// <summary>This is called when a client is stopped.</summary>
+1438:         public virtual void OnStopClient() { }
+1439: 
+1440:         /// <summary>This is called when a host is stopped.</summary>
+1441:         public virtual void OnStopHost() { }
+1442: 
+1443: #if DEBUG
+1444:         // keep OnGUI even in builds. useful to debug snap interp.
+1445:         void OnGUI()
+1446:         {
+1447:             if (!timeInterpolationGui) return;
+1448:             NetworkClient.OnGUI();
+1449:         }
+1450: #endif
+1451:     }
+1452: }
+
+FILE Assets/_Project/Tests/PlayMode/LobbyRoomManagementTests.cs
+1: #if UNITY_EDITOR
+2: using System;
+3: using System.Collections;
+4: using System.Linq;
+5: using System.Text.RegularExpressions;
+6: using Mirror;
+7: using NUnit.Framework;
+8: using SmallArena.Client.UI;
+9: using SmallArena.Networking;
+10: using SmallArena.Server.Sessions;
+11: using TMPro;
+12: using UnityEngine;
+13: using UnityEngine.InputSystem;
+14: using UnityEngine.SceneManagement;
+15: using UnityEngine.TestTools;
+16: using UnityEngine.UI;
+17: using Object = UnityEngine.Object;
+18: 
+19: namespace SmallArena.Tests.PlayMode
+20: {
+21:     public abstract class LobbyTestFixture : InputTestFixture
+22:     {
+23:         protected ArenaNetworkManager manager;
+24:         protected ServerLobbyController server;
+25:         protected LobbyRoomView view;
+26:         protected M1LoopbackTransport transport;
+27: 
+28:         [UnitySetUp]
+29:         public IEnumerator LoadMenu()
+30:         {
+31:             yield return SceneManager.LoadSceneAsync("MainMenu");
+32:             yield return null;
+33:             manager = (ArenaNetworkManager)NetworkManager.singleton;
+34:             server = manager.GetComponent<ServerLobbyController>();
+35:             view = Object.FindAnyObjectByType<LobbyRoomView>();
+36:             manager.transport.enabled = false;
+37:             transport = manager.gameObject.AddComponent<M1LoopbackTransport>();
+38:             manager.transport = transport;
+39:             Transport.active = transport;
+40:         }
+41: 
+42:         [UnityTearDown]
+43:         public IEnumerator CleanupRoom()
+44:         {
+45:             if (manager != null)
+46:             {
+47:                 manager.offlineScene = manager.onlineScene = "";
+48:                 if (NetworkClient.activeHost && NetworkServer.active) manager.StopHost();
+49:                 else
+50:                 {
+51:                     if (NetworkClient.active) manager.StopClient();
+52:                     if (transport != null) transport.Pump();
+53:                     if (NetworkServer.active) manager.StopServer();
+54:                 }
+55:                 Object.Destroy(manager.gameObject);
+56:             }
+57:             yield return null;
+58:             NetworkManager.ResetStatics();
+59:             Transport.active = null;
+60:             var scene = SceneManager.GetActiveScene();
+61:             SceneManager.SetActiveScene(SceneManager.CreateScene("Lobby test cleanup"));
+62:             if (scene.IsValid() && scene.isLoaded) yield return SceneManager.UnloadSceneAsync(scene);
+63:         }
+64: 
+65:         protected static IEnumerator Until(Func<bool> condition)
+66:         {
+67:             var deadline = Time.realtimeSinceStartup + 15;
+68:             while (!condition() && Time.realtimeSinceStartup < deadline) yield return null;
+69:             Assert.That(condition(), Is.True, "Timed out waiting for lobby protocol/scene transition.");
+70:         }
+71:         protected void OpenPanel() => Object.FindAnyObjectByType<MainMenuController>().OnMultiplayerClicked();
+72:         protected IEnumerator Host()
+73:         {
+74:             OpenPanel();
+75:             view.HostButton.onClick.Invoke();
+76:             yield return Until(() => manager.CurrentRoom.Members?.Length == 1);
+77:         }
+78:         protected void Connect(int id) => transport.ConnectVirtual(id);
+79:         protected void ReadyRemote(int id, bool ready) => transport.SendFromVirtual(id, new LobbyReadyRequest { IsReady = ready });
+80: 
+81:     }
+82: 
+83:     public sealed class LobbyRoomManagementTests : LobbyTestFixture
+84:     {
+85:         [UnityTest]
+86:         public IEnumerator MultiplayerButton_OpensConnectionPanel_AndBackRestoresOfflineMenu()
+87:         {
+88:             var button = Object.FindObjectsByType<Button>().Single(item => item.name == "MultiplayerButton");
+89:             Assert.That(button.interactable, Is.True);
+90:             Assert.That(view.ConnectionVisible || view.RoomVisible, Is.False);
+91:             button.onClick.Invoke();
+92:             Assert.That(view.ConnectionVisible && !view.RoomVisible, Is.True);
+93:             Assert.That(view.Address.text, Is.EqualTo("localhost"));
+94:             Assert.That(view.HostButton.interactable && view.JoinButton.interactable, Is.True);
+95:             Assert.That(Object.FindAnyObjectByType<NetworkManagerHUD>(), Is.Null);
+96:             view.BackButton.onClick.Invoke();
+97:             Assert.That(view.ConnectionVisible || view.RoomVisible || NetworkClient.active || NetworkServer.active, Is.False);
+98:             Assert.That(button.gameObject.activeInHierarchy, Is.True);
+99:             yield return null;
+100:         }
+101: 
+102:         [UnityTest]
+103:         public IEnumerator HostButton_StaysInLobby_WithOneUnreadyMemberAndNoAvatar()
+104:         {
+105:             yield return Host();
+106:             Assert.That(NetworkServer.active && NetworkClient.activeHost, Is.True);
+107:             Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("MainMenu"));
+108:             Assert.That(manager.maxConnections, Is.EqualTo(4));
+109:             Assert.That(view.RoomVisible, Is.True);
+110:             Assert.That(manager.CurrentRoom.Members[0].IsHost, Is.True);
+111:             Assert.That(manager.CurrentRoom.Members[0].IsReady, Is.False);
+112:             Assert.That(view.StartButton.interactable, Is.False);
+113:             Assert.That(NetworkServer.spawned, Is.Empty);
+114:         }
+115: 
+116:         [UnityTest]
+117:         public IEnumerator Capacity_FourConnectionsJoin_FifthIsRejectedByServer()
+118:         {
+119:             yield return Host();
+120:             Connect(2); Connect(3); Connect(4);
+121:             yield return Until(() => server.Room.Count == 4 && manager.CurrentRoom.Members.Length == 4);
+122:             Assert.That(NetworkServer.connections.Count, Is.EqualTo(4));
+123:             Connect(5);
+124:             yield return Until(() => transport.RejectionTo(5) == LobbyLimits.FullReason);
+125:             yield return Until(() => !NetworkServer.connections.ContainsKey(5));
+126:             Assert.That(NetworkServer.connections.ContainsKey(5), Is.False);
+127:             Assert.That(server.Room.Count, Is.EqualTo(4));
+128:             Assert.That(server.Room.TryJoin(99, false), Is.False, "Room rules also reject a bypass of the transport limit.");
+129:         }
+130: 
+131:         [UnityTest]
+132:         public IEnumerator Disconnect_ReleasesRoomSlot_AndReplacementStartsUnready()
+133:         {
+134:             yield return Host();
+135:             Connect(2); Connect(3); Connect(4);
+136:             yield return Until(() => server.Room.Count == 4);
+137:             ReadyRemote(2, true);
+138:             yield return Until(() => server.Room.Members.Single(member => member.ConnectionId == 2).IsReady);
+139:             transport.DisconnectVirtual(2);
+140:             yield return Until(() => server.Room.Count == 3 && !NetworkServer.connections.ContainsKey(2));
+141:             Connect(5);
+142:             yield return Until(() => server.Room.Count == 4 && manager.CurrentRoom.Members.Any(member => member.ConnectionId == 5));
+143:             Assert.That(server.Room.Members.Any(member => member.ConnectionId == 2), Is.False);
+144:             Assert.That(server.Room.Members.Single(member => member.ConnectionId == 5).IsReady, Is.False);
+145:             Assert.That(NetworkServer.spawned, Is.Empty);
+146:         }
+147: 
+148:         [UnityTest]
+149:         public IEnumerator HostCannotStart_UntilEveryMemberIsReady()
+150:         {
+151:             yield return Host();
+152:             Connect(2);
+153:             yield return Until(() => server.Room.Count == 2);
+154:             view.ReadyButton.onClick.Invoke();
+155:             yield return Until(() => server.Room.Members.Single(member => member.IsHost).IsReady);
+156:             manager.RequestRoomStart();
+157:             yield return null;
+158:             yield return null;
+159:             Assert.That(server.Room.Phase, Is.EqualTo(LobbyPhase.Waiting));
+160:             Assert.That(view.StartButton.interactable, Is.False);
+161:             Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("MainMenu"));
+162:         }
+163: 
+164:         [UnityTest]
+165:         public IEnumerator OnlyReadyHost_CanLoadArena_AndPlayersSpawnAfterSceneLoad()
+166:         {
+167:             yield return Host();
+168:             Connect(2);
+169:             yield return Until(() => server.Room.Count == 2);
+170:             ReadyRemote(2, true);
+171:             view.ReadyButton.onClick.Invoke();
+172:             yield return Until(() => server.Room.AllReady && view.StartButton.interactable);
+173:             transport.SendFromVirtual(2, new LobbyStartRequest());
+174:             yield return null;
+175:             yield return null;
+176:             Assert.That(server.Room.Phase, Is.EqualTo(LobbyPhase.Waiting), "A ready remote member cannot start the host's match.");
+177:             view.StartButton.onClick.Invoke();
+178:             yield return Until(() => SceneManager.GetActiveScene().name == "Arena_MVP" && NetworkClient.localPlayer != null);
+179:             Assert.That(server.Room.Phase, Is.EqualTo(LobbyPhase.Playing));
+180:             Assert.That(NetworkManager.startPositions.Count, Is.EqualTo(4));
+181:             transport.SendFromVirtual(2, new ReadyMessage());
+182:             transport.SendFromVirtual(2, new AddPlayerMessage());
+183:             yield return Until(() => NetworkServer.spawned.Values.Count(identity => identity.GetComponent<NetworkPlayer>() != null) == 2);
+184:             Assert.That(NetworkServer.spawned.Values.Where(identity => identity.GetComponent<NetworkPlayer>() != null).Select(identity => identity.transform.position).Distinct().Count(), Is.EqualTo(2));
+185:             Assert.That(NetworkClient.localPlayer.GetComponent<NetworkPlayer>().isLocalPlayer, Is.True);
+186:             var offline = SceneManager.GetActiveScene().GetRootGameObjects().Single(root => root.name == "Player");
+187:             Assert.That(offline.activeSelf, Is.False);
+188:             Assert.That(server.Room.TryJoin(3, false), Is.False, "Joining a playing room is rejected.");
+189:         }
+190: 
+191:         [UnityTest]
+192:         public IEnumerator AddPlayerDuringLobby_CannotBypassTheServerSpawnGate()
+193:         {
+194:             yield return Host();
+195:             Connect(2);
+196:             yield return Until(() => server.Room.Count == 2);
+197:             transport.SendFromVirtual(2, new ReadyMessage());
+198:             transport.SendFromVirtual(2, new AddPlayerMessage());
+199:             yield return null;
+200:             yield return null;
+201:             Assert.That(NetworkServer.connections[2].identity, Is.Null);
+202:             Assert.That(NetworkServer.spawned, Is.Empty);
+203:         }
+204: 
+205:         [UnityTest]
+206:         public IEnumerator LeavingLobby_ClearsMembersAndAllowsAnotherHostSession()
+207:         {
+208:             yield return Host();
+209:             Connect(2);
+210:             yield return Until(() => server.Room.Count == 2);
+211:             view.LeaveButton.onClick.Invoke();
+212:             yield return Until(() => !NetworkServer.active && !NetworkClient.active);
+213:             Assert.That(server.Room.Count, Is.Zero);
+214:             Assert.That(view.ConnectionVisible, Is.True);
+215:             view.HostButton.onClick.Invoke();
+216:             yield return Until(() => server.Room.Count == 1 && manager.CurrentRoom.Members?.Length == 1);
+217:             Assert.That(server.Room.Members[0].IsReady, Is.False);
+218:         }
+219: 
+220:         [UnityTest]
+221:         public IEnumerator JoinButton_TrimsAddress_AndCancelRestoresMenu()
+222:         {
+223:             OpenPanel();
+224:             var probe = manager.gameObject.AddComponent<LobbyUnavailableTransport>();
+225:             manager.transport = probe;
+226:             Transport.active = probe;
+227:             view.Address.text = " 127.0.0.1 ";
+228:             view.JoinButton.onClick.Invoke();
+229:             Assert.That(probe.LastAddress, Is.EqualTo("127.0.0.1"));
+230:             Assert.That(NetworkClient.active && !view.HostButton.interactable && !view.JoinButton.interactable, Is.True);
+231:             view.BackButton.onClick.Invoke();
+232:             yield return null;
+233:             Assert.That(NetworkClient.active || view.ConnectionVisible || view.RoomVisible, Is.False);
+234:         }
+235: 
+236:         [UnityTest]
+237:         public IEnumerator FailedJoin_ShowsFriendlyStatus_AndReenablesConnectionButtons()
+238:         {
+239:             OpenPanel();
+240:             var probe = manager.gameObject.AddComponent<LobbyUnavailableTransport>();
+241:             manager.transport = probe;
+242:             Transport.active = probe;
+243:             view.JoinButton.onClick.Invoke();
+244:             probe.FailConnection();
+245:             yield return Until(() => view.HostButton.interactable && view.JoinButton.interactable);
+246:             Assert.That(NetworkClient.active, Is.False);
+247:             Assert.That(view.ConnectionVisible && view.HostButton.interactable && view.JoinButton.interactable, Is.True);
+248:             Assert.That(manager.ConnectionStatus, Does.Contain("room may be full"));
+249:         }
+250: 
+251:         [UnityTest]
+252:         public IEnumerator ArenaReturn_CreatesFreshMenuManager_AndCanHostAgain()
+253:         {
+254:             yield return Host();
+255:             Connect(2);
+256:             yield return Until(() => server.Room.Count == 2);
+257:             ReadyRemote(2, true);
+258:             view.ReadyButton.onClick.Invoke();
+259:             yield return Until(() => view.StartButton.interactable);
+260:             view.StartButton.onClick.Invoke();
+261:             yield return Until(() => SceneManager.GetActiveScene().name == "Arena_MVP" && NetworkClient.localPlayer != null);
+262:             var previous = manager;
+263:             manager.LeaveRoom();
+264:             yield return Until(() => SceneManager.GetActiveScene().name == "MainMenu" && Object.FindAnyObjectByType<LobbyRoomView>() != null);
+265:             yield return null;
+266:             Assert.That(previous == null, Is.True, "Mirror destroys the stopped session root when leaving the arena.");
+267:             manager = (ArenaNetworkManager)NetworkManager.singleton;
+268:             server = manager.GetComponent<ServerLobbyController>();
+269:             manager.transport.enabled = false;
+270:             transport = manager.gameObject.AddComponent<M1LoopbackTransport>();
+271:             manager.transport = transport;
+272:             Transport.active = transport;
+273:             view = Object.FindAnyObjectByType<LobbyRoomView>();
+274:             OpenPanel();
+275:             view.HostButton.onClick.Invoke();
+276:             yield return Until(() => manager.CurrentRoom.Members?.Length == 1);
+277:             Assert.That(Object.FindObjectsByType<ArenaNetworkManager>().Length, Is.EqualTo(1));
+278:         }
+279: 
+280:         [Test]
+281:         public void RoomRules_DropDuplicateReadyAndUnknownSender_AndLockOnceStarting()
+282:         {
+283:             var room = new LobbyRoom();
+284:             room.Open();
+285:             Assert.That(room.TryJoin(0, true) && room.TryJoin(2, false), Is.True);
+286:             Assert.That(room.SetReady(99, true), Is.False);
+287:             Assert.That(room.SetReady(0, true), Is.True);
+288:             Assert.That(room.SetReady(0, true), Is.False);
+289:             Assert.That(room.TryStart(0), Is.False);
+290:             room.SetReady(2, true);
+291:             Assert.That(room.TryStart(2), Is.False);
+292:             Assert.That(room.TryStart(0), Is.True);
+293:             Assert.That(room.TryStart(0) || room.SetReady(2, false) || room.TryJoin(3, false), Is.False);
+294:             room.FinishLoading();
+295:             Assert.That(room.Phase, Is.EqualTo(LobbyPhase.Playing));
+296:         }
+297:     }
+298: 
+299:     /// <summary>No sockets: hold a pending connection until cancellation or an explicit transport failure.</summary>
+300:     public sealed class LobbyUnavailableTransport : Transport
+301:     {
+302:         public string LastAddress { get; private set; }
+303:         public void FailConnection() => OnClientDisconnected?.Invoke();
+304:         public override bool Available() => true;
+305:         public override bool ClientConnected() => false;
+306:         public override void ClientConnect(string address) => LastAddress = address;
+307:         public override void ClientDisconnect() => FailConnection();
+308:         public override void ClientSend(ArraySegment<byte> segment, int channelId = Channels.Reliable) { }
+309:         public override bool ServerActive() => false;
+310:         public override void ServerStart() { }
+311:         public override void ServerStop() { }
+312:         public override void ServerSend(int id, ArraySegment<byte> segment, int channelId = Channels.Reliable) { }
+313:         public override void ServerDisconnect(int id) { }
+314:         public override string ServerGetClientAddress(int id) => "memory";
+315:         public override Uri ServerUri() => new Uri("memory://lobby");
+316:         public override int GetMaxPacketSize(int channelId = Channels.Reliable) => 65535;
+317:         public override void Shutdown() { }
+318:     }
+319: }
+320: #endif
+
+FILE Assets/_Project/Tests/PlayMode/LobbyGovernanceAndScreenTests.cs
+1: #if UNITY_EDITOR
+2: using System.Collections;
+3: using System.Linq;
+4: using Mirror;
+5: using NUnit.Framework;
+6: using SmallArena.Client;
+7: using SmallArena.Client.UI;
+8: using SmallArena.Networking;
+9: using UnityEngine;
+10: using UnityEngine.InputSystem;
+11: using UnityEngine.InputSystem.LowLevel;
+12: using UnityEngine.SceneManagement;
+13: using UnityEngine.TestTools;
+14: using Object = UnityEngine.Object;
+15: 
+16: namespace SmallArena.Tests.PlayMode
+17: {
+18:     public sealed class LobbyGovernanceAndScreenTests : LobbyTestFixture
+19:     {
+20:         [UnityTest]
+21:         public IEnumerator Slots_NativeHostAndRemoteSnapshot_ShowTwoUnreadyMembers()
+22:         {
+23:             yield return Host();
+24:             Connect(2);
+25:             yield return Until(() => manager.CurrentRoom.Members.Length == 2 && transport.SnapshotTo(2).Members?.Length == 2);
+26:             var remote = Object.Instantiate(view, view.transform.parent);
+27:             try
+28:             {
+29:                 remote.Render(transport.SnapshotTo(2), false, "");
+30:                 for (var i = 0; i < 4; i++)
+31:                 {
+32:                     Assert.That(view.SlotStatus(i), Is.EqualTo(i < 2 ? "Not Ready" : "Waiting..."));
+33:                     Assert.That(remote.SlotStatus(i), Is.EqualTo(view.SlotStatus(i)));
+34:                 }
+35:                 Assert.That(view.SlotName(0), Does.Contain("Host"));
+36:                 Assert.That(remote.SlotName(1), Does.Contain("You"));
+37:                 Assert.That(remote.StartButton.gameObject.activeSelf, Is.False);
+38:             }
+39:             finally { Object.Destroy(remote.gameObject); }
+40:         }
+41: 
+42:         [UnityTest]
+43:         public IEnumerator StartGuard_OneReadyHostBlocked_ThenAllReady_ThenUnreadyLocksImmediately()
+44:         {
+45:             yield return Host();
+46:             view.ReadyButton.onClick.Invoke();
+47:             yield return Until(() => server.Room.Members[0].IsReady);
+48:             Assert.That(view.StartButton.interactable || server.Room.CanStart, Is.False);
+49:             manager.RequestRoomStart();
+50:             yield return null; yield return null;
+51:             Assert.That(server.Room.Phase, Is.EqualTo(LobbyPhase.Waiting));
+52:             Connect(2);
+53:             yield return Until(() => server.Room.Count == 2);
+54:             ReadyRemote(2, true);
+55:             yield return Until(() => view.StartButton.interactable);
+56:             Assert.That(manager.CurrentRoom.CanStart, Is.True);
+57:             transport.SendFromVirtual(2, new LobbyStartRequest());
+58:             yield return null; yield return null;
+59:             Assert.That(server.Room.Phase, Is.EqualTo(LobbyPhase.Waiting), "Ready non-host cannot start.");
+60:             ReadyRemote(2, false);
+61:             yield return Until(() => !view.StartButton.interactable);
+62:             manager.RequestRoomStart();
+63:             yield return null; yield return null;
+64:             Assert.That(server.Room.Phase, Is.EqualTo(LobbyPhase.Waiting));
+65:             Assert.That(view.SlotStatus(1), Is.EqualTo("Not Ready"));
+66:         }
+67: 
+68:         [UnityTest]
+69:         public IEnumerator Disconnect_ReusesVacatedSlot_WithoutMovingOthersOrKeepingReady()
+70:         {
+71:             yield return Host(); Connect(2); Connect(3);
+72:             yield return Until(() => server.Room.Count == 3);
+73:             ReadyRemote(2, true);
+74:             yield return Until(() => view.SlotStatus(1) == "READY");
+75:             transport.DisconnectVirtual(2);
+76:             yield return Until(() => view.SlotStatus(1) == "Waiting...");
+77:             Assert.That(server.Room.Members.Single(m => m.ConnectionId == 3).SlotIndex, Is.EqualTo(2));
+78:             Connect(4);
+79:             yield return Until(() => view.SlotStatus(1) == "Not Ready");
+80:             Assert.That(server.Room.Members.Single(m => m.ConnectionId == 4).SlotIndex, Is.EqualTo(1));
+81:         }
+82: 
+83:         [UnityTest]
+84:         public IEnumerator FifthConnection_ReceivesSpecificReason_AndFourMembersStayIntact()
+85:         {
+86:             yield return Host(); Connect(2); Connect(3); Connect(4);
+87:             yield return Until(() => server.Room.Count == 4);
+88:             Connect(5);
+89:             yield return Until(() => transport.RejectionTo(5) != null);
+90:             Assert.That(transport.RejectionTo(5), Is.EqualTo(LobbyLimits.FullReason));
+91:             Assert.That(server.Room.Count, Is.EqualTo(4));
+92:             yield return Until(() => !NetworkServer.connections.ContainsKey(5));
+93:             Assert.That(NetworkClient.activeHost && NetworkServer.active, Is.True);
+94:             Assert.That(NetworkServer.connections.Count, Is.EqualTo(4));
+95:             ReadyRemote(2, true);
+96:             yield return Until(() => view.SlotStatus(1) == "READY");
+97:         }
+98: 
+99:         [UnityTest]
+100:         public IEnumerator FullRoom_NativeJoiningClientShowsModal_PreservesReasonAfterDisconnect_AndCanRetry()
+101:         {
+102:             OpenPanel(); manager.StartServer();
+103:             Connect(2); Connect(3); Connect(4); Connect(5);
+104:             yield return Until(() => server.Room.Count == 4);
+105:             // Native client joins this shared-process server; JoinRoom intentionally forbids a second UI session.
+106:             manager.StartClient();
+107:             yield return Until(() => view.ErrorVisible && !NetworkClient.active);
+108:             Assert.That(view.ConnectionVisible, Is.True);
+109:             Assert.That(view.ErrorMessage, Is.EqualTo("Cannot join: Room is full (4/4)"));
+110:             Assert.That(manager.ConnectionStatus, Is.EqualTo(view.ErrorMessage));
+111:             Assert.That(view.JoinButton.interactable, Is.True);
+112:             view.DismissErrorButton.onClick.Invoke();
+113:             Assert.That(view.ErrorVisible, Is.False);
+114:             transport.DisconnectVirtual(5);
+115:             yield return Until(() => server.Room.Count == 3);
+116:             // The fixture shares server/client statics; start the native client directly after freeing a slot.
+117:             manager.StartClient();
+118:             yield return Until(() => manager.CurrentRoom.Members?.Length == 4);
+119:             Assert.That(view.RoomVisible, Is.True);
+120:             Assert.That(manager.CurrentRoom.Members.Single(m => m.ConnectionId == 1).IsReady, Is.False);
+121:         }
+122: 
+123:         [UnityTest]
+124:         public IEnumerator F11_FreshPressToggles_HoldDoesNotRepeat_AndCursorIsPreserved()
+125:         {
+126:             var display = Object.FindAnyObjectByType<ScreenDisplayController>();
+127:             if (display == null) display = new GameObject("Display test").AddComponent<ScreenDisplayController>();
+128:             InputSystem.settings.updateMode = InputSettings.UpdateMode.ProcessEventsInDynamicUpdate;
+129:             var keyboard = InputSystem.AddDevice<Keyboard>();
+130:             var before = display.LastRequestedFullscreen;
+131:             var cursor = Cursor.visible; var cursorLock = Cursor.lockState; var calls = 0;
+132:             System.Action<bool> requested = _ => calls++;
+133:             display.FullscreenRequested += requested;
+134:             try
+135:             {
+136:                 InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F11));
+137:                 yield return null;
+138:                 Assert.That(display.LastRequestedFullscreen, Is.EqualTo(!before));
+139:                 yield return null; yield return null;
+140:                 Assert.That(calls, Is.EqualTo(1));
+141:                 InputSystem.QueueStateEvent(keyboard, new KeyboardState()); yield return null;
+142:                 InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F11)); yield return null;
+143:                 Assert.That(calls, Is.EqualTo(2));
+144:                 Assert.That(display.LastRequestedFullscreen, Is.EqualTo(before));
+145:                 Assert.That(Cursor.visible, Is.EqualTo(cursor));
+146:                 Assert.That(Cursor.lockState, Is.EqualTo(cursorLock));
+147:             }
+148:             finally { display.FullscreenRequested -= requested; }
+149:         }
+150: 
+151:         [UnityTest]
+152:         public IEnumerator DisplayController_PersistsAcrossMenuBootstrapArena_WithoutDuplicates()
+153:         {
+154:             var display = Object.FindAnyObjectByType<ScreenDisplayController>();
+155:             if (display == null) display = new GameObject("Persistent display test").AddComponent<ScreenDisplayController>();
+156:             // Stop idle menu networking root before Bootstrap creates its own.
+157:             Object.Destroy(manager.gameObject); yield return null; NetworkManager.ResetStatics();
+158:             yield return SceneManager.LoadSceneAsync("Bootstrap"); yield return null;
+159:             Assert.That(Object.FindAnyObjectByType<ScreenDisplayController>(), Is.SameAs(display));
+160:             manager = (ArenaNetworkManager)NetworkManager.singleton;
+161:             Object.Destroy(manager.gameObject); yield return null; NetworkManager.ResetStatics();
+162:             yield return SceneManager.LoadSceneAsync("Arena_MVP"); yield return null;
+163:             Assert.That(Object.FindObjectsByType<ScreenDisplayController>().Length, Is.EqualTo(1));
+164:             Assert.That(Object.FindAnyObjectByType<ScreenDisplayController>(), Is.SameAs(display));
+165:         }
+166:     }
+167: }
+168: #endif
+
+FILE Assets/_Project/Tests/PlayMode/SmallArena.PlayMode.Tests.asmdef
+1: {
+2:   "name": "SmallArena.PlayMode.Tests",
+3:   "rootNamespace": "SmallArena.Tests.PlayMode",
+4:   "references": ["Mirror","Mirror.Components","SmallArena.Shared.Domain","SmallArena.Shared.Protocol","SmallArena.Networking","SmallArena.Server","SmallArena.Client","Unity.InputSystem","Unity.InputSystem.TestFramework","Unity.TextMeshPro","UnityEngine.UI"],
+5:   "includePlatforms": [],
+6:   "excludePlatforms": [],
+7:   "allowUnsafeCode": false,
+8:   "overrideReferences": true,
+9:   "precompiledReferences": ["nunit.framework.dll"],
+10:   "autoReferenced": false,
+11:   "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+12:   "versionDefines": [],
+13:   "noEngineReferences": false,
+14:   "optionalUnityReferences": ["TestAssemblies"]
+15: }
+
+FILE tools/Run-DomainTests.ps1
+1: param(
+2:     [string]$EditorRoot = 'C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor',
+3:     [switch]$MutationChecks
+4: )
+5: 
+6: $ErrorActionPreference = 'Stop'
+7: $taskRoot = Split-Path -Parent $PSScriptRoot
+8: Set-Location -LiteralPath $taskRoot
+9: $domainFolder = Join-Path $taskRoot 'Assets/_Project/Scripts/Shared/Domain'
+10: $testFolder = Join-Path $taskRoot 'Assets/_Project/Tests/EditMode'
+11: $output = Join-Path $taskRoot 'TestResults/Domain'
+12: New-Item -ItemType Directory -Path $output -Force | Out-Null
+13: $dotnet = Join-Path $EditorRoot 'Data/NetCoreRuntime/dotnet.exe'
+14: $csc = Join-Path $EditorRoot 'Data/DotNetSdk/sdk/8.0.318/Roslyn/bincore/csc.dll'
+15: $referencePath = Join-Path $EditorRoot 'Data/DotNetSdk/packs/Microsoft.NETCore.App.Ref/8.0.21/ref/net8.0'
+16: $framework = @(Get-ChildItem -LiteralPath $referencePath -Filter '*.dll' | ForEach-Object { $_.FullName })
+17: $nunit = Join-Path $EditorRoot 'Data/Resources/PackageManager/BuiltInPackages/com.unity.ext.nunit/net472/unity-custom/nunit.framework.dll'
+18: $utf8 = New-Object System.Text.UTF8Encoding($false)
+19: 
+20: function Compile-Source([string]$Binary, [string[]]$Sources, [string[]]$References, [string]$Target = 'library') {
+21:     $arguments = @($csc, '/nologo', '/noconfig', '/nostdlib+', '/langversion:9.0', '/warnaserror+', ('/target:' + $Target), ('/out:' + $Binary))
+22:     $arguments += @($References | ForEach-Object { '/reference:' + $_ })
+23:     $arguments += $Sources
+24:     $diagnostics = @(& $dotnet @arguments 2>&1)
+25:     if ($LASTEXITCODE -ne 0) { throw ("Compiler failed for $Binary`n" + ($diagnostics -join "`n")) }
+26: }
+27: 
+28: function Compile-Suite([string]$SourceFolder, [string]$Destination) {
+29:     New-Item -ItemType Directory -Path $Destination -Force | Out-Null
+30:     $domainBinary = Join-Path $Destination 'SmallArena.Shared.Domain.dll'
+31:     # No engine, plugin or NUnit reference is passed to the domain compiler.
+32:     $domainSources = @(Get-ChildItem -LiteralPath $SourceFolder -Filter '*.cs' -Recurse | ForEach-Object { $_.FullName })
+33:     Compile-Source $domainBinary $domainSources $framework
+34:     $testSources = @(
+35:         (Join-Path $testFolder 'AssemblyInfo.cs'),
+36:         (Join-Path $testFolder 'MatchStateTests.cs'),
+37:         (Join-Path $testFolder 'GameplayConfigurationTests.cs'),
+38:         (Join-Path $testFolder 'OnlineStateTests.cs')
+39:     )
+40:     Compile-Source (Join-Path $Destination 'SmallArena.EditMode.Tests.dll') $testSources (@($framework) + @($domainBinary, $nunit))
+41: }
+42: 
+43: Copy-Item -LiteralPath $nunit -Destination (Join-Path $output 'nunit.framework.dll') -Force
+44: $hostBinary = Join-Path $output 'NUnitDomainRunner.dll'
+45: Compile-Source $hostBinary @((Join-Path $PSScriptRoot 'NUnitDomainRunner.cs')) (@($framework) + @($nunit)) 'exe'
+46: $runtime = '{"runtimeOptions":{"tfm":"net8.0","framework":{"name":"Microsoft.NETCore.App","version":"8.0.21"}}}'
+47: [IO.File]::WriteAllText((Join-Path $output 'NUnitDomainRunner.runtimeconfig.json'), $runtime, $utf8)
+48: 
+49: Compile-Suite $domainFolder $output
+50: $baselineXml = Join-Path $output 'results.xml'
+51: if (Test-Path -LiteralPath $baselineXml) { Remove-Item -LiteralPath $baselineXml -Force }
+52: $baselineLog = @(& $dotnet $hostBinary (Join-Path $output 'SmallArena.EditMode.Tests.dll') $baselineXml 2>&1)
+53: $baselineExit = $LASTEXITCODE
+54: $baselineLog | Set-Content -LiteralPath (Join-Path $output 'results.log')
+55: $baselineLog | Write-Output
+56: if ($baselineExit -ne 0) { throw 'Baseline NUnit run failed; see TestResults/Domain/results.log.' }
+57: [xml]$baselineResult = Get-Content -LiteralPath $baselineXml -Raw
+58: $caseCount = @($baselineResult.SelectNodes('//test-case')).Count
+59: if ($caseCount -eq 0) { throw 'NUnit discovered no cases.' }
+60: 
+61: # Verify the real compiled domain has no forbidden assembly references.
+62: $domainAssembly = [Reflection.Assembly]::ReflectionOnlyLoadFrom((Join-Path $output 'SmallArena.Shared.Domain.dll'))
+63: $domainReferences = @($domainAssembly.GetReferencedAssemblies() | ForEach-Object { $_.Name })
+64: if (@($domainReferences | Where-Object { $_ -match 'Unity|NUnit|SmallArena\.(Client|Server|Networking)' }).Count -ne 0) { throw 'Compiled domain has a forbidden reference.' }
+65: Write-Output ('Domain references: ' + ($domainReferences -join ', '))
+66: 
+67: if (-not $MutationChecks) { exit 0 }
+68: 
+69: # Each mutation is compiled and tested in an isolated copy. Production sources are never edited.
+70: $mutations = @(
+71:     @{ Id = 'M01'; File = 'MatchStateMachine.cs'; Find = '|| !readiness.IsReady'; Replace = '|| readiness.IsReady'; Description = 'Invert readiness guard' },
+72:     @{ Id = 'M02'; File = 'MatchStateMachine.cs'; Find = 'CurrentState != MatchState.Initializing'; Replace = 'CurrentState == MatchState.Initializing'; Description = 'Invert start-state guard' },
+73:     @{ Id = 'M03'; File = 'MatchStateMachine.cs'; Find = 'CurrentState != MatchState.Playing'; Replace = 'CurrentState == MatchState.Playing'; Description = 'Invert victory-state guard' },
+74:     @{ Id = 'M04'; File = 'MatchStateMachine.cs'; Find = 'TransitionTo(MatchState.Victory);'; Replace = 'TransitionTo(MatchState.Playing);'; Description = 'Victory remains Playing' },
+75:     @{ Id = 'M05'; File = 'MatchStateMachine.cs'; Find = 'OnStateChanged?.Invoke(nextState);'; Replace = '_ = OnStateChanged;'; Description = 'Suppress state-change notification' },
+76:     @{ Id = 'M06'; File = 'MatchStateMachine.cs'; Find = 'if (isNotifying || CurrentState != MatchState.Playing)'; Replace = 'if (CurrentState != MatchState.Playing)'; Description = 'Allow victory during Playing notification' },
+77:     @{ Id = 'M07'; File = 'MatchStateMachine.cs'; Find = "CurrentState = nextState;`n            isNotifying = true;"; Replace = 'isNotifying = true;'; FindAfter = 'OnStateChanged?.Invoke(nextState);'; ReplaceAfter = "OnStateChanged?.Invoke(nextState);`n                CurrentState = nextState;"; Description = 'Notify before committing state' },
+78:     @{ Id = 'M08'; File = 'MatchStateMachine.cs'; Find = 'isNotifying = false;'; Replace = 'isNotifying = true;'; Description = 'Never release notification guard' },
+79:     @{ Id = 'M09'; File = 'MatchStateMachine.cs'; Find = 'OnStateChanged?.Invoke(nextState);'; Replace = "OnStateChanged?.Invoke(nextState);`n                OnStateChanged?.Invoke(nextState);"; Description = 'Duplicate transition notification' },
+80:     @{ Id = 'M10'; File = 'MatchStateMachine.cs'; Find = 'CurrentState == MatchState.Playing'; Replace = 'CurrentState != MatchState.Playing'; Description = 'Invert IsPlaying query' },
+81:     @{ Id = 'M11'; File = 'MatchStateMachine.cs'; Find = 'get; private set;'; Replace = 'get; set;'; Description = 'Expose public state setter' },
+82:     @{ Id = 'M12'; File = 'MatchReadinessResult.cs'; Find = 'diagnosticMessage ?? string.Empty'; Replace = 'diagnosticMessage'; Description = 'Remove default/null diagnostic normalization' },
+83:     @{ Id = 'M13'; File = 'MatchStateMachine.cs'; Find = "finally`n            {`n                // Subscriber exceptions propagate; the committed state is retained.`n                isNotifying = false;`n            }"; Replace = "catch`n            {`n                throw;`n            }`n            isNotifying = false;"; Description = 'Release notification guard only on success' }
+84: )
+85: $summary = @()
+86: foreach ($mutation in $mutations) {
+87:     $mutationFolder = Join-Path $output ('Mutations/' + $mutation.Id)
+88:     $sourceFolder = Join-Path $mutationFolder 'Sources'
+89:     New-Item -ItemType Directory -Path $sourceFolder -Force | Out-Null
+90:     Get-ChildItem -LiteralPath $domainFolder -Filter '*.cs' | ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $sourceFolder -Force }
+91:     $sourcePath = Join-Path $sourceFolder $mutation.File
+92:     $source = [IO.File]::ReadAllText($sourcePath).Replace("`r`n", "`n")
+93:     if ([regex]::Matches($source, [regex]::Escape($mutation.Find)).Count -ne 1) { throw "Mutation anchor is not unique: $($mutation.Id)" }
+94:     $source = $source.Replace($mutation.Find, $mutation.Replace)
+95:     if ($mutation.ContainsKey('FindAfter')) {
+96:         if ([regex]::Matches($source, [regex]::Escape($mutation.FindAfter)).Count -ne 1) { throw "Second mutation anchor is not unique: $($mutation.Id)" }
+97:         $source = $source.Replace($mutation.FindAfter, $mutation.ReplaceAfter)
+98:     }
+99:     [IO.File]::WriteAllText($sourcePath, $source, $utf8)
+100:     Compile-Suite $sourceFolder $mutationFolder
+101:     foreach ($hostFile in @('NUnitDomainRunner.dll', 'NUnitDomainRunner.runtimeconfig.json', 'nunit.framework.dll')) {
+102:         Copy-Item -LiteralPath (Join-Path $output $hostFile) -Destination $mutationFolder -Force
+103:     }
+104:     $xmlPath = Join-Path $mutationFolder 'results.xml'
+105:     if (Test-Path -LiteralPath $xmlPath) { Remove-Item -LiteralPath $xmlPath -Force }
+106:     $mutationHost = Join-Path $mutationFolder 'NUnitDomainRunner.dll'
+107:     $runLog = @(& $dotnet $mutationHost (Join-Path $mutationFolder 'SmallArena.EditMode.Tests.dll') $xmlPath 2>&1)
+108:     $runExit = $LASTEXITCODE
+109:     $runLog | Set-Content -LiteralPath (Join-Path $mutationFolder 'results.log')
+110:     [xml]$result = Get-Content -LiteralPath $xmlPath -Raw
+111:     $failed = @($result.SelectNodes("//test-case[@result='Failed']"))
+112:     if ($runExit -eq 0 -or $failed.Count -eq 0 -or @($result.SelectNodes('//test-case')).Count -ne $caseCount) { throw "Mutation survived or run was invalid: $($mutation.Id)" }
+113:     $summary += [pscustomobject]@{ Id = $mutation.Id; Description = $mutation.Description; FailedTests = $failed.Count; DetectedBy = @($failed | ForEach-Object { $_.GetAttribute('name') }) }
+114:     Write-Output "KILLED $($mutation.Id): $($mutation.Description) ($($failed.Count) failing tests)"
+115: }
+116: $summary | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $output 'mutation-results.json')
+117: Write-Output "PASS: $caseCount NUnit cases; $($summary.Count)/$($mutations.Count) targeted mutations killed. No production source was mutated."
+
+FILE ProjectSettings/ProjectVersion.txt
+1: m_EditorVersion: 6000.6.8f1
+2: m_EditorVersionWithRevision: 6000.6.8f1 (237b6593792b)

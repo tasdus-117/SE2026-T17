@@ -1,0 +1,20 @@
+{
+  "original_root": "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17",
+  "worktree": "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066",
+  "baseline": "d939568aae110668df5f0114541e4498593b6108",
+  "branch": "codex/bt3-vt-066",
+  "original_settings_sha256": {
+    "Assets/_Project/Settings/UniversalRenderPipelineGlobalSettings.asset": "f074f70005181226c7614cbfb06b064e692c1032763bef94ccf334d91d0056d0",
+    "ProjectSettings/ProjectAuditorSettings.asset": "4071ebdd9bcf64a42402e7b284d62e29d6ddbea18549fdbe92ef78d1afc4f37a",
+    "ProjectSettings/ProjectSettings.asset": "dcfefb3462c406b9fbaa503106b45f79b71f65b52fad77f4bf306aef6412e731",
+    "ProjectSettings/ShaderGraphSettings.asset": "cdba1e5d65bcf6e3269d76ed3e60b6c21f98322002996642c9d74f1eb89f6b91"
+  },
+  "original_status": " M Assets/_Project/Settings/UniversalRenderPipelineGlobalSettings.asset\n M ProjectSettings/ProjectAuditorSettings.asset\n M ProjectSettings/ProjectSettings.asset\n M ProjectSettings/ShaderGraphSettings.asset\n?? docs/assignments/\n",
+  "worktree_status": " M Assets/_Project/Settings/UniversalRenderPipelineGlobalSettings.asset\n M ProjectSettings/ProjectAuditorSettings.asset\n M ProjectSettings/ProjectSettings.asset\n M ProjectSettings/ShaderGraphSettings.asset\n?? docs/assignments/\n?? tools/Run-Bt3Baseline.ps1\n?? tools/Verify-Bt3Pairwise.py\n",
+  "question1_same_as_approved_copy": true,
+  "ai_before_sha256": {
+    "test-cases-ai-v1.md": "81b903132a683db238fe7840ddc73841094ef4e20af1eebea34c6887c9746a58",
+    "pairwise-ai-v1.md": "efa8780e1253595d99abe5e8c69ebdefe309c8f1b525ce098e4905984cc03300",
+    "pairwise-ai-v1.json": "3718735ec4b52ad146fc8d57f4ab4bd12f2e454f69041aea866d11a488cc1666"
+  }
+}

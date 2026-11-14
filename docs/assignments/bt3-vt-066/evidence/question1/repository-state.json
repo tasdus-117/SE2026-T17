@@ -1,0 +1,100 @@
+{
+  "captured_utc": "2026-11-14T09:43:54.858650+00:00",
+  "baseline": "d939568aae110668df5f0114541e4498593b6108",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "exit_code": 0,
+      "stdout": " M Assets/_Project/Settings/UniversalRenderPipelineGlobalSettings.asset\n M ProjectSettings/ProjectAuditorSettings.asset\n M ProjectSettings/ProjectSettings.asset\n M ProjectSettings/ShaderGraphSettings.asset\n?? docs/assignments/\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exit_code": 0,
+      "stdout": "origin\thttps://github.com/tasdus-117/SE2026-T17 (fetch)\norigin\thttps://github.com/tasdus-117/SE2026-T17 (push)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "stdout": "d939568aae110668df5f0114541e4498593b6108\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exit_code": 0,
+      "stdout": "d939568aae110668df5f0114541e4498593b6108\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "exit_code": 0,
+      "stdout": "main\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list"
+      ],
+      "exit_code": 0,
+      "stdout": "C:/Users/tasdus_117/Desktop/SE2026-T17 d939568 [main]\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "-1",
+        "--format=fuller"
+      ],
+      "exit_code": 0,
+      "stdout": "commit d939568aae110668df5f0114541e4498593b6108\nMerge: 695f584 3da84b9\nAuthor:     Tu Nguyen Chi Hoang <144528689+tasdus-117@users.noreply.github.com>\nAuthorDate: Sat Nov 14 16:02:40 2026 +0700\nCommit:     GitHub <noreply@github.com>\nCommitDate: Sat Nov 14 16:02:40 2026 +0700\n\n    Merge pull request #9 from tasdus-117/feature/TV2-002-character-state-config\n    \n    feat(tv2): add online character state and immutable match rules (TV2-002)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--name-only",
+        "d939568aae110668df5f0114541e4498593b6108",
+        "--",
+        "Assets/_Project/Scripts",
+        "Assets/_Project/Tests",
+        "Assets/Mirror/Core/NetworkManager.cs",
+        "tools/Run-DomainTests.ps1",
+        "ProjectSettings/ProjectVersion.txt"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "preserved_document_sha256": {
+    "plan-v1.md": "55f87e971647c3a0193254849d7ebf8e487cc92e1640d3aae83abea59728c595",
+    "review-01-user-verbatim.md": "c96ac392584744204fd84c944aeed0f7ed3aea1d774b38b8d16a76fe542dfd44",
+    "review-02-user-verbatim.md": "7a85c40524df29853d78eb8986d94565791f0cbe56f7dc4020c58136ea3ff879"
+  },
+  "live_remote_check": "Separate approved git ls-remote invocation; see remote-main.txt."
+}

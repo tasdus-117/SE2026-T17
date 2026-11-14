@@ -1,0 +1,549 @@
+{
+  "scope": "Waiting session, healthy loader, all submitted requests eventually dispatched; data coverage, not executed behavior",
+  "factors": {
+    "requester": [
+      "host",
+      "guest",
+      "unknown"
+    ],
+    "roster": [
+      "solo_ready",
+      "two_partial",
+      "two_ready",
+      "four_ready"
+    ],
+    "delivery": [
+      "single",
+      "burst",
+      "after_result"
+    ]
+  },
+  "full_cartesian": 36,
+  "feasible_full_rows": 33,
+  "excluded_full_rows": [
+    {
+      "requester": "guest",
+      "roster": "solo_ready",
+      "delivery": "single"
+    },
+    {
+      "requester": "guest",
+      "roster": "solo_ready",
+      "delivery": "burst"
+    },
+    {
+      "requester": "guest",
+      "roster": "solo_ready",
+      "delivery": "after_result"
+    }
+  ],
+  "required_pairs": 32,
+  "covered_pairs": 32,
+  "missing_pairs": [],
+  "matrix_rows": 12,
+  "matrix": [
+    {
+      "id": "PW01",
+      "requester": "host",
+      "roster": "solo_ready",
+      "delivery": "single",
+      "case": "T01",
+      "requests": 1,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    },
+    {
+      "id": "PW02",
+      "requester": "host",
+      "roster": "two_partial",
+      "delivery": "burst",
+      "case": "T01",
+      "requests": 2,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    },
+    {
+      "id": "PW03",
+      "requester": "host",
+      "roster": "two_ready",
+      "delivery": "after_result",
+      "case": "T01",
+      "requests": 2,
+      "expected_accepted": true,
+      "expected_boundary_attempts": 1,
+      "expected_loader_side_effects": 1,
+      "expected_terminal_success": 1
+    },
+    {
+      "id": "PW04",
+      "requester": "guest",
+      "roster": "two_partial",
+      "delivery": "single",
+      "case": "T01",
+      "requests": 1,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    },
+    {
+      "id": "PW05",
+      "requester": "guest",
+      "roster": "two_ready",
+      "delivery": "burst",
+      "case": "T01",
+      "requests": 2,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    },
+    {
+      "id": "PW06",
+      "requester": "guest",
+      "roster": "four_ready",
+      "delivery": "after_result",
+      "case": "T01",
+      "requests": 2,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    },
+    {
+      "id": "PW07",
+      "requester": "unknown",
+      "roster": "solo_ready",
+      "delivery": "burst",
+      "case": "T01",
+      "requests": 2,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    },
+    {
+      "id": "PW08",
+      "requester": "unknown",
+      "roster": "two_partial",
+      "delivery": "after_result",
+      "case": "T01",
+      "requests": 2,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    },
+    {
+      "id": "PW09",
+      "requester": "unknown",
+      "roster": "two_ready",
+      "delivery": "single",
+      "case": "T01",
+      "requests": 1,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    },
+    {
+      "id": "PW10",
+      "requester": "host",
+      "roster": "four_ready",
+      "delivery": "single",
+      "case": "T01",
+      "requests": 1,
+      "expected_accepted": true,
+      "expected_boundary_attempts": 1,
+      "expected_loader_side_effects": 1,
+      "expected_terminal_success": 1
+    },
+    {
+      "id": "PW11",
+      "requester": "unknown",
+      "roster": "four_ready",
+      "delivery": "burst",
+      "case": "T01",
+      "requests": 2,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    },
+    {
+      "id": "PW12",
+      "requester": "host",
+      "roster": "solo_ready",
+      "delivery": "after_result",
+      "case": "T01",
+      "requests": 2,
+      "expected_accepted": false,
+      "expected_boundary_attempts": 0,
+      "expected_loader_side_effects": 0,
+      "expected_terminal_success": 0
+    }
+  ],
+  "pair_witnesses": [
+    {
+      "pair": [
+        "requester",
+        "guest",
+        "delivery",
+        "after_result"
+      ],
+      "rows": [
+        "PW06"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "guest",
+        "delivery",
+        "burst"
+      ],
+      "rows": [
+        "PW05"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "guest",
+        "delivery",
+        "single"
+      ],
+      "rows": [
+        "PW04"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "guest",
+        "roster",
+        "four_ready"
+      ],
+      "rows": [
+        "PW06"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "guest",
+        "roster",
+        "two_partial"
+      ],
+      "rows": [
+        "PW04"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "guest",
+        "roster",
+        "two_ready"
+      ],
+      "rows": [
+        "PW05"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "host",
+        "delivery",
+        "after_result"
+      ],
+      "rows": [
+        "PW03",
+        "PW12"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "host",
+        "delivery",
+        "burst"
+      ],
+      "rows": [
+        "PW02"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "host",
+        "delivery",
+        "single"
+      ],
+      "rows": [
+        "PW01",
+        "PW10"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "host",
+        "roster",
+        "four_ready"
+      ],
+      "rows": [
+        "PW10"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "host",
+        "roster",
+        "solo_ready"
+      ],
+      "rows": [
+        "PW01",
+        "PW12"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "host",
+        "roster",
+        "two_partial"
+      ],
+      "rows": [
+        "PW02"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "host",
+        "roster",
+        "two_ready"
+      ],
+      "rows": [
+        "PW03"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "unknown",
+        "delivery",
+        "after_result"
+      ],
+      "rows": [
+        "PW08"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "unknown",
+        "delivery",
+        "burst"
+      ],
+      "rows": [
+        "PW07",
+        "PW11"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "unknown",
+        "delivery",
+        "single"
+      ],
+      "rows": [
+        "PW09"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "unknown",
+        "roster",
+        "four_ready"
+      ],
+      "rows": [
+        "PW11"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "unknown",
+        "roster",
+        "solo_ready"
+      ],
+      "rows": [
+        "PW07"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "unknown",
+        "roster",
+        "two_partial"
+      ],
+      "rows": [
+        "PW08"
+      ]
+    },
+    {
+      "pair": [
+        "requester",
+        "unknown",
+        "roster",
+        "two_ready"
+      ],
+      "rows": [
+        "PW09"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "four_ready",
+        "delivery",
+        "after_result"
+      ],
+      "rows": [
+        "PW06"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "four_ready",
+        "delivery",
+        "burst"
+      ],
+      "rows": [
+        "PW11"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "four_ready",
+        "delivery",
+        "single"
+      ],
+      "rows": [
+        "PW10"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "solo_ready",
+        "delivery",
+        "after_result"
+      ],
+      "rows": [
+        "PW12"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "solo_ready",
+        "delivery",
+        "burst"
+      ],
+      "rows": [
+        "PW07"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "solo_ready",
+        "delivery",
+        "single"
+      ],
+      "rows": [
+        "PW01"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "two_partial",
+        "delivery",
+        "after_result"
+      ],
+      "rows": [
+        "PW08"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "two_partial",
+        "delivery",
+        "burst"
+      ],
+      "rows": [
+        "PW02"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "two_partial",
+        "delivery",
+        "single"
+      ],
+      "rows": [
+        "PW04"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "two_ready",
+        "delivery",
+        "after_result"
+      ],
+      "rows": [
+        "PW03"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "two_ready",
+        "delivery",
+        "burst"
+      ],
+      "rows": [
+        "PW05"
+      ]
+    },
+    {
+      "pair": [
+        "roster",
+        "two_ready",
+        "delivery",
+        "single"
+      ],
+      "rows": [
+        "PW09"
+      ]
+    }
+  ],
+  "review_status": "AI draft; T01 must be rerun/reverified after student case edits"
+}
