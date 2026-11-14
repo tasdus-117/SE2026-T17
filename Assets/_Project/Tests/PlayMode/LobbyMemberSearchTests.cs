@@ -87,6 +87,9 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(Query(room, page: 0, pageSize: 2).Select(m => m.ConnectionId), Is.EqualTo(new[] { 2, 7 }));
             Assert.That(Query(room, page: 1, pageSize: 2).Select(m => m.ConnectionId), Is.EqualTo(new[] { 9, 0 }));
             Assert.That(Query(room, page: 2, pageSize: 2), Is.Empty);
+            Assert.That(Query(room, page: 2, pageSize: 1).Select(m => m.ConnectionId), Is.EqualTo(new[] { 9 }));
+            Assert.That(Query(room, page: 3, pageSize: 1).Select(m => m.ConnectionId), Is.EqualTo(new[] { 0 }));
+            Assert.That(Query(room, page: 4, pageSize: 1), Is.Empty);
             Assert.That(Query(room, page: int.MaxValue), Is.Empty);
         }
 
@@ -182,11 +185,11 @@ namespace SmallArena.Tests.PlayMode
                 using (var reader = NetworkReaderPool.Get(writer.ToArraySegment()))
                 {
                     Assert.That(reader.ReadByte(), Is.EqualTo((byte)LobbyPhase.Waiting));
-                    Assert.That(reader.ReadInt(), Is.Zero);
+                    Assert.That(reader.ReadVarInt(), Is.Zero);
                     Assert.That(Compression.DecompressVarUInt(reader), Is.EqualTo(5UL));
                     foreach (var id in new[] { 0, 2, 7, 9 })
                     {
-                        Assert.That(reader.ReadInt(), Is.EqualTo(id));
+                        Assert.That(reader.ReadVarInt(), Is.EqualTo(id));
                         Assert.That(reader.ReadBool(), Is.EqualTo(id != 0));
                         Assert.That(reader.ReadBool(), Is.EqualTo(id == 0));
                     }
