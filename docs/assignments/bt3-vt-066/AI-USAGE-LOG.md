@@ -37,4 +37,10 @@ RoomPanel label/fixed sleep và bool-only retry bị sinh viên xóa (T18/T17). 
 
 ## Trạng thái ownership
 
-Plan đã chốt, test cases có user trực tiếp xóa, local production/recovery có user duyệt. Reflection và cam kết vẫn chờ sinh viên gửi/xác nhận. Chưa có quyền push/PR ở thời điểm ghi mục này; không merge.
+Plan đã chốt, test cases có user trực tiếp xóa, local production/recovery có user duyệt. Sinh viên đã gửi reflection 303 từ và xác nhận nguyên văn “Xác nhận đưa cam kết”. Sinh viên trả lời nguyên văn “Chưa cho phép push”; không push/PR/merge.
+
+## PDF và reflection
+
+Reflection do sinh viên tự viết, lưu toàn bộ raw reply ở reflection-user-raw.txt. PDF giữ nguyên ba đoạn, chỉ bỏ timestamp chat 5:29 PM và khoảng trắng bao quanh; 303 từ theo khoảng trắng. Metadata và consent ở reflection-metadata.json / submission-approval.json.
+
+PDF do ReportLab tạo, Arial Unicode nhúng; PyMuPDF render toàn bộ trang. Bản review có 8 trang chính, phụ lục AI Usage Log chứa nguyên plan/input/output/case review và log/assertions. Vì chưa có quyền push, URL branch dự kiến được ghi rõ chưa xuất bản/chưa xác minh; không giả lập link verified. tools/Build-Bt3Pdf.py và pdf-qa.json lưu quy trình/kiểm tra.

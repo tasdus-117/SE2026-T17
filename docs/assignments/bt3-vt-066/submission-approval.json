@@ -1,0 +1,12 @@
+{
+  "reviewer": "Nguyễn Chí Hoàng Tú",
+  "commitmentConfirmed": true,
+  "commitmentReplyVerbatim": "Xác nhận đưa cam kết",
+  "commitment": "Tôi chịu trách nhiệm về toàn bộ code, test và nội dung bài làm; tôi đã khai báo việc sử dụng AI.",
+  "pushAllowed": false,
+  "pushReplyVerbatim": "Chưa cho phép push",
+  "localPatchV2ReplyVerbatim": "Chấp nhận patch local v2",
+  "localRecoveryReplyVerbatim": "Chấp nhận recovery bổ sung",
+  "plannedBranchUrl": "https://github.com/tasdus-117/SE2026-T17/tree/codex/bt3-vt-066",
+  "githubVerified": false
+}
