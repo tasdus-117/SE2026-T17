@@ -83,7 +83,7 @@ namespace SmallArena.Tests.PlayMode
             yield return ReadyHost();
             var path = typeof(ArenaNetworkManager).GetField("arenaScenePath", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.That(path, Is.Not.Null, "The actual load boundary must validate its configured scene before Mirror's log/return path.");
-            path.SetValue(manager, "Assets/_Project/Scenes/BT3_missing_scene.unity");
+            path.SetValue(manager, "Assets/BT3_missing/Arena_MVP.unity");
             int arenaLoads = 0;
             UnityEngine.Events.UnityAction<Scene, LoadSceneMode> loaded = (scene, mode) => { if (scene.name == "Arena_MVP") arenaLoads++; };
             SceneManager.sceneLoaded += loaded;
@@ -125,6 +125,25 @@ namespace SmallArena.Tests.PlayMode
                 Assert.Throws<InvalidOperationException>(() => inactive.LoadRoomArena());
             }
             finally { Object.DestroyImmediate(root); }
+        }
+
+        [UnityTest]
+        public IEnumerator T16_TwentyRealSceneCycles_CheckTimingAndPersistentSharedState()
+        {
+            var rounds = new System.Collections.Generic.List<string>();
+            for (var round = 1; round <= 20; round++)
+            {
+                Assert.That(OverlayVisible(), Is.False, "No visible overlay carried into next session");
+                Assert.That(Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None)
+                    .Count(item => item.GetType().FullName == "SmallArena.Client.UI.ArenaLoadingOverlay"), Is.EqualTo(1), "Exactly one observer on this session root");
+                var started = Time.realtimeSinceStartup;
+                yield return T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady();
+                rounds.Add(round + "," + (Time.realtimeSinceStartup - started).ToString("F6", System.Globalization.CultureInfo.InvariantCulture) + ",Passed");
+                if (round < 20) { yield return CleanupRoom(); yield return LoadMenu(); }
+            }
+            var folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../docs/assignments/bt3-vt-066/evidence/flaky"));
+            System.IO.Directory.CreateDirectory(folder);
+            System.IO.File.WriteAllLines(System.IO.Path.Combine(folder, "real-scene-cycles.csv"), new[] { "round,seconds,result" }.Concat(rounds));
         }
     }
 }

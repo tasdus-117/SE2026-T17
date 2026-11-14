@@ -14,6 +14,11 @@ namespace SmallArena.Networking
         private readonly Dictionary<NetworkConnectionToClient, Transform> reservedSpawns = new Dictionary<NetworkConnectionToClient, Transform>();
         private readonly Queue<Transform> releasedSpawns = new Queue<Transform>();
         [SerializeField] private bool roomEnabled = false;
+        [SerializeField] private string arenaScenePath = "Assets/_Project/Scenes/Arena_MVP.unity";
+        private bool clientArenaLoading;
+        public event Action ClientArenaLoadStarted;
+        public event Action ClientArenaLoadFinished;
+        public event Action ClientArenaLoadAborted;
         public bool RoomEnabled => roomEnabled;
         public LobbySnapshot CurrentRoom { get; private set; }
         private readonly HashSet<NetworkConnectionToClient> rejectedConnections = new HashSet<NetworkConnectionToClient>();
@@ -68,6 +73,7 @@ namespace SmallArena.Networking
             offlineScene = "Assets/_Project/Scenes/MainMenu.unity";
             CurrentRoom = default;
             rejectionReason = null;
+            MatchSessionNavigation.ClearNotice();
         }
         public void LeaveRoom()
         {
@@ -97,10 +103,49 @@ namespace SmallArena.Networking
         // Called only by the server session coordinator after its host/readiness checks.
         public void LoadRoomArena()
         {
-            if (!NetworkServer.active || !roomEnabled) return;
-            onlineScene = "Assets/_Project/Scenes/Arena_MVP.unity";
+            if (!NetworkServer.active || !roomEnabled)
+                throw new InvalidOperationException("An active lobby server is required.");
+            if (NetworkServer.isLoadingScene || loadingSceneAsync != null && !loadingSceneAsync.isDone)
+                throw new InvalidOperationException("Another scene transition is still in progress.");
+            if (!IsArena(arenaScenePath))
+                throw new InvalidOperationException("Arena scene must target Arena_MVP.");
+            // Mirror has void/log-and-return failure paths. Preflight before it pauses handlers.
+            if (!Application.CanStreamedLevelBeLoaded(arenaScenePath))
+                throw new InvalidOperationException("Arena scene is unavailable in build settings.");
+            onlineScene = arenaScenePath;
             autoCreatePlayer = true;
             ServerChangeScene(onlineScene);
+        }
+        public void AbortRoomStart(string reason)
+        {
+            MatchSessionNavigation.RecordNotice("Unable to start match: " + reason);
+            EndClientArenaLoad(false);
+            MatchSessionNavigation.ReturnToMainMenu();
+        }
+        private static bool IsArena(string scene) => scene == "Arena_MVP" || scene != null && scene.EndsWith("/Arena_MVP.unity", StringComparison.Ordinal);
+        private void BeginClientArenaLoad(string scene)
+        {
+            if (!roomEnabled || !IsArena(scene) || clientArenaLoading) return;
+            clientArenaLoading = true;
+            ClientArenaLoadStarted?.Invoke();
+        }
+        private void EndClientArenaLoad(bool ready)
+        {
+            if (!clientArenaLoading) return;
+            clientArenaLoading = false;
+            if (ready) ClientArenaLoadFinished?.Invoke();
+            else ClientArenaLoadAborted?.Invoke();
+        }
+        public override void OnServerChangeScene(string scene)
+        {
+            // Host shares the server load. Show before the old scene can be destroyed.
+            if (NetworkClient.activeHost) BeginClientArenaLoad(scene);
+            base.OnServerChangeScene(scene);
+        }
+        public override void OnClientChangeScene(string scene, SceneOperation operation, bool customHandling)
+        {
+            BeginClientArenaLoad(scene);
+            base.OnClientChangeScene(scene, operation, customHandling);
         }
         public override void OnStartServer()
         {
@@ -151,6 +196,9 @@ namespace SmallArena.Networking
         }
         public override void OnClientDisconnect()
         {
+            if (!MatchSessionNavigation.IsReturning && (clientArenaLoading || IsArena(networkSceneName)))
+                MatchSessionNavigation.RecordNotice(clientArenaLoading ? "Disconnected while entering the arena." : "Disconnected from match.");
+            EndClientArenaLoad(false);
             if (!string.IsNullOrEmpty(offlineScene) && (SceneManager.GetActiveScene().name == "Arena_MVP" || networkSceneName.EndsWith("Arena_MVP.unity")))
                 MatchSessionNavigation.ReturnToMainMenu();
             if (roomEnabled && !string.IsNullOrEmpty(rejectionReason))
@@ -162,6 +210,7 @@ namespace SmallArena.Networking
         }
         public override void OnStopClient()
         {
+            EndClientArenaLoad(false);
             CurrentRoom = default;
             RoomChanged?.Invoke();
             base.OnStopClient();
@@ -175,6 +224,7 @@ namespace SmallArena.Networking
         {
             if (roomEnabled) autoCreatePlayer = true;
             base.OnClientSceneChanged();
+            EndClientArenaLoad(true);
         }
 
         public override void Start()

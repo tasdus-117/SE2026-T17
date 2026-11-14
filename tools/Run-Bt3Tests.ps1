@@ -11,6 +11,9 @@ $bt3XmlPath = Join-Path $bt3Out 'results.xml'
 if (Test-Path -LiteralPath $bt3XmlPath) { throw "Preserve existing output: $bt3XmlPath" }
 $bt3Args = @('-batchmode','-nographics','-projectPath',('"'+$bt3Root+'"'),'-runTests','-testPlatform','PlayMode','-testFilter',$Filter,'-testResults',('"'+$bt3XmlPath+'"'),'-logFile',('"'+(Join-Path $bt3Out 'unity.log')+'"'))
 $bt3Start = [DateTime]::UtcNow.ToString('o')
+$bt3SourceHashes = @(Get-ChildItem -LiteralPath (Join-Path $bt3Root 'Assets/_Project/Scripts'),(Join-Path $bt3Root 'Assets/_Project/Tests') -Filter '*.cs' -Recurse | Sort-Object FullName | ForEach-Object { [pscustomobject]@{path=$_.FullName; sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash} })
+$bt3SourceHashes | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $bt3Out 'source-hashes.json') -Encoding UTF8
+git -C $bt3Root diff HEAD -- Assets/_Project/Scripts Assets/_Project/Tests | Set-Content -LiteralPath (Join-Path $bt3Out 'source.diff') -Encoding UTF8
 $bt3Process = Start-Process -FilePath $Editor -ArgumentList $bt3Args -WindowStyle Hidden -Wait -PassThru
 $bt3Result = 'NoXml'; $bt3Cases = @()
 if (Test-Path -LiteralPath $bt3XmlPath) {

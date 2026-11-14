@@ -79,7 +79,7 @@ namespace SmallArena.Tests.PlayMode
         [Test]
         public void T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure()
         {
-            var room = ReadyRoom(); int boundary = 0, fakeLoads = 0, failed = 0, terminal = 0;
+            var room = ReadyRoom(); int boundary = 0, failed = 0, terminal = 0;
             var operation = Operation(room, () => { boundary++; throw new InvalidOperationException("startup boundary failure"); },
                 () => { if (room.Phase.ToString() == "Failed" || room.Phase == LobbyPhase.Playing) terminal++; },
                 error => { Assert.That(error.Message, Is.EqualTo("startup boundary failure")); failed++; });
@@ -87,7 +87,9 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(room.Phase.ToString(), Is.EqualTo("Failed"));
             Assert.That(Call(operation, "TryStart", 0), Is.False);
             Assert.That(Call(operation, "Complete"), Is.False);
-            Assert.That(boundary, Is.EqualTo(1)); Assert.That(fakeLoads, Is.Zero);
+            // This unit test observes attempts/terminal only. Native zero-load evidence
+            // comes from T05_RealMissingScene's SceneManager.sceneLoaded observer.
+            Assert.That(boundary, Is.EqualTo(1));
             Assert.That(failed, Is.EqualTo(1)); Assert.That(terminal, Is.EqualTo(1));
             room.Close(); Assert.That(room.Phase, Is.EqualTo(LobbyPhase.Offline));
         }

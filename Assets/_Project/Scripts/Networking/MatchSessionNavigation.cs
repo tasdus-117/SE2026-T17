@@ -10,6 +10,11 @@ namespace SmallArena.Networking
     {
         private static MatchSessionNavigation active;
         public static bool IsReturning => active != null;
+        private static string pendingNotice;
+        // Kept outside the manager because teardown destroys it before the menu appears.
+        public static void RecordNotice(string message) { if (string.IsNullOrEmpty(pendingNotice)) pendingNotice = message; }
+        public static string TakeNotice() { var message = pendingNotice; pendingNotice = null; return message; }
+        public static void ClearNotice() => pendingNotice = null;
 
         public static void ReturnToMainMenu()
         {
