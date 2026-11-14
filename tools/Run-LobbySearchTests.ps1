@@ -57,7 +57,7 @@ if ($Load) {
     [IO.File]::WriteAllText((Join-Path $output 'LobbySearchLoad.runtimeconfig.json'), $runtime, $utf8)
     & $dotnet (Join-Path $output 'LobbySearchLoad.dll') $output
     $loadCode = $LASTEXITCODE
-    [ordered]@{ utc = $loadStart; sha = $sha; command = $command; exitCode = $loadCode; harnessSha256 = (Get-FileHash -LiteralPath 'tools/LobbySearchLoad.cs' -Algorithm SHA256).Hash; runtime = $info.runtime; processors = [Environment]::ProcessorCount; os = [Environment]::OSVersion.VersionString; summary = @(Get-Content (Join-Path $output 'load-summary.txt')) } | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $output 'load-run.json')
+    [ordered]@{ utc = $loadStart; sha = $sha; command = $command; exitCode = $loadCode; harnessSha256 = (Get-FileHash -LiteralPath 'tools/LobbySearchLoad.cs' -Algorithm SHA256).Hash; runtime = $info.runtime; processors = [Environment]::ProcessorCount; os = [Environment]::OSVersion.VersionString; summary = [IO.File]::ReadAllLines((Join-Path $output 'load-summary.txt')) } | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $output 'load-run.json')
     exit $loadCode
 }
 exit 0
