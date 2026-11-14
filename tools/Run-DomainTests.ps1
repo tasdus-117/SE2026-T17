@@ -31,7 +31,12 @@ function Compile-Suite([string]$SourceFolder, [string]$Destination) {
     # No engine, plugin or NUnit reference is passed to the domain compiler.
     $domainSources = @(Get-ChildItem -LiteralPath $SourceFolder -Filter '*.cs' -Recurse | ForEach-Object { $_.FullName })
     Compile-Source $domainBinary $domainSources $framework
-    $testSources = @((Join-Path $testFolder 'AssemblyInfo.cs'), (Join-Path $testFolder 'MatchStateTests.cs'))
+    $testSources = @(
+        (Join-Path $testFolder 'AssemblyInfo.cs'),
+        (Join-Path $testFolder 'MatchStateTests.cs'),
+        (Join-Path $testFolder 'GameplayConfigurationTests.cs'),
+        (Join-Path $testFolder 'OnlineStateTests.cs')
+    )
     Compile-Source (Join-Path $Destination 'SmallArena.EditMode.Tests.dll') $testSources (@($framework) + @($domainBinary, $nunit))
 }
 
