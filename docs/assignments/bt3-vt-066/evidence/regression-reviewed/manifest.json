@@ -1,0 +1,306 @@
+﻿{
+    "editor":  "C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Unity.exe",
+    "arguments":  [
+                      "-batchmode",
+                      "-nographics",
+                      "-projectPath",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\"",
+                      "-runTests",
+                      "-testPlatform",
+                      "PlayMode",
+                      "-testFilter",
+                      "SmallArena.Tests.PlayMode.LobbyStartOperationTests;SmallArena.Tests.PlayMode.LobbyStartProgressTests;SmallArena.Tests.PlayMode.LobbyStartBoundaryTests;SmallArena.Tests.PlayMode.LobbyRoomManagementTests;SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests;SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests",
+                      "-testResults",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\regression-reviewed\\results.xml\"",
+                      "-logFile",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\regression-reviewed\\unity.log\""
+                  ],
+    "startedUtc":  "2026-11-14T10:14:35.1274643Z",
+    "endedUtc":  "2026-11-14T10:14:58.4160402Z",
+    "sourceSha":  "c9a27babe977155c9c7b4e95c8d7c4dd2423325a",
+    "exitCode":  0,
+    "result":  "Passed",
+    "caseCount":  56,
+    "cases":  [
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.ClientLeave_CleansProxyAndPlayer_WithoutStoppingIndependentServer",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.DisableAndReenable_DoesNotDuplicateEscapeListeners",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.Escape_TogglesMenuCursorAndLocalInput_WithoutPausingServerTime",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.HostLeave_CleansListenersIdentitiesAndRoom_ThenCanHostAgain",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.HostPause_OnlyGatesLocalOwner_AndServerKeepsRunning",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.OfflineLeave_UsesSharedNavigation_AndLoadsFreshMenu",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.Pause_ClearsGameplayIntent_ResumeDoesNotReplayHeldButtons",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.ResultHook_ShowsVictoryAndDefeat_WithoutChangingMatchRules",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.ResultReturn_RepeatedRequests_LoadMainMenuExactlyOnce",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.ServerDisconnect_WithoutLeaveClick_ReturnsClientToMainMenu",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.Disconnect_ReusesVacatedSlot_WithoutMovingOthersOrKeepingReady",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.DisplayController_PersistsAcrossMenuBootstrapArena_WithoutDuplicates",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.F11_FreshPressToggles_HoldDoesNotRepeat_AndCursorIsPreserved",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.FifthConnection_ReceivesSpecificReason_AndFourMembersStayIntact",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.FullRoom_NativeJoiningClientShowsModal_PreservesReasonAfterDisconnect_AndCanRetry",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.Slots_NativeHostAndRemoteSnapshot_ShowTwoUnreadyMembers",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.StartGuard_OneReadyHostBlocked_ThenAllReady_ThenUnreadyLocksImmediately",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.AddPlayerDuringLobby_CannotBypassTheServerSpawnGate",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.ArenaReturn_CreatesFreshMenuManager_AndCanHostAgain",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.Capacity_FourConnectionsJoin_FifthIsRejectedByServer",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.Disconnect_ReleasesRoomSlot_AndReplacementStartsUnready",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.FailedJoin_ShowsFriendlyStatus_AndReenablesConnectionButtons",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.HostButton_StaysInLobby_WithOneUnreadyMemberAndNoAvatar",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.HostCannotStart_UntilEveryMemberIsReady",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.JoinButton_TrimsAddress_AndCancelRestoresMenu",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.LeavingLobby_ClearsMembersAndAllowsAnotherHostSession",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.MultiplayerButton_OpensConnectionPanel_AndBackRestoresOfflineMenu",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.OnlyReadyHost_CanLoadArena_AndPlayersSpawnAfterSceneLoad",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyRoomManagementTests.RoomRules_DropDuplicateReadyAndUnknownSender_AndLockOnceStarting",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T02_RealMirrorRetry_CountsActualProductionBoundaryAndNativeLoad",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T05_RealMissingScene_RetryAndLateCompleteCannotReopenFailedOperation",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(3)",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(4)",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(5)",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T14_ExistingWrongSceneIsRejectedBeforeMirrorLoad",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"solo_ready\",\"single\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"two_partial\",\"burst\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"two_ready\",\"after_result\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"guest\",\"two_partial\",\"single\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"guest\",\"two_ready\",\"burst\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"guest\",\"four_ready\",\"after_result\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"unknown\",\"solo_ready\",\"burst\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"unknown\",\"two_partial\",\"after_result\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"unknown\",\"two_ready\",\"single\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"four_ready\",\"single\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"unknown\",\"four_ready\",\"burst\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"solo_ready\",\"after_result\")",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T02_T03_T04_RetryWhileLoadingAndAfterTerminal_CountsBoundaryAndCompletion",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T12_NewSessionCanStart_StaleCompletionWhileWaitingIsIgnored",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T09_ClientOnlyHook_ServerCallbackDoesNotCompleteGuestOverlay",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T10_T14_RealPreflightFailure_ReturnsReadableNoticeWithoutLoading",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T11_GuestDisconnect_DoesNotFailServerLoad",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T16_TwentyRealSceneCycles_CheckTimingAndPersistentSharedState",
+                      "result":  "Passed",
+                      "assertion":  null
+                  }
+              ]
+}

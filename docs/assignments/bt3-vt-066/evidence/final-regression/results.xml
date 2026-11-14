@@ -1,0 +1,724 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="57" result="Passed" total="57" passed="57" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-14 10:19:23Z" end-time="2026-11-14 10:19:36Z" duration="12.8314303">
+  <test-suite type="TestSuite" id="1366" name="Small Arena" fullname="Small Arena" runstate="Runnable" testcasecount="309" result="Passed" start-time="2026-11-14 10:19:23Z" end-time="2026-11-14 10:19:36Z" duration="12.831430" total="57" passed="57" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1719" name="SmallArena.PlayMode.Tests.dll" fullname="C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066/Library/ScriptAssemblies/SmallArena.PlayMode.Tests.dll" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:19:23Z" end-time="2026-11-14 10:19:36Z" duration="12.822378" total="57" passed="57" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="32644" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1720" name="SmallArena" fullname="SmallArena" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:19:23Z" end-time="2026-11-14 10:19:36Z" duration="12.820836" total="57" passed="57" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1721" name="Tests" fullname="SmallArena.Tests" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:19:23Z" end-time="2026-11-14 10:19:36Z" duration="12.819680" total="57" passed="57" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1722" name="PlayMode" fullname="SmallArena.Tests.PlayMode" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:19:23Z" end-time="2026-11-14 10:19:36Z" duration="12.818479" total="57" passed="57" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1449" name="InGameMenuAndTeardownTests" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-11-14 10:19:23Z" end-time="2026-11-14 10:19:25Z" duration="2.199906" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1458" name="ClientLeave_CleansProxyAndPlayer_WithoutStoppingIndependentServer" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.ClientLeave_CleansProxyAndPlayer_WithoutStoppingIndependentServer" methodname="ClientLeave_CleansProxyAndPlayer_WithoutStoppingIndependentServer" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="1538009588" result="Passed" start-time="2026-11-14 10:19:23Z" end-time="2026-11-14 10:19:24Z" duration="0.443456" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+]]></output>
+              </test-case>
+              <test-case id="1453" name="DisableAndReenable_DoesNotDuplicateEscapeListeners" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.DisableAndReenable_DoesNotDuplicateEscapeListeners" methodname="DisableAndReenable_DoesNotDuplicateEscapeListeners" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="84272013" result="Passed" start-time="2026-11-14 10:19:24Z" end-time="2026-11-14 10:19:24Z" duration="0.114028" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1450" name="Escape_TogglesMenuCursorAndLocalInput_WithoutPausingServerTime" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.Escape_TogglesMenuCursorAndLocalInput_WithoutPausingServerTime" methodname="Escape_TogglesMenuCursorAndLocalInput_WithoutPausingServerTime" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="1451011080" result="Passed" start-time="2026-11-14 10:19:24Z" end-time="2026-11-14 10:19:24Z" duration="0.115957" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1457" name="HostLeave_CleansListenersIdentitiesAndRoom_ThenCanHostAgain" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.HostLeave_CleansListenersIdentitiesAndRoom_ThenCanHostAgain" methodname="HostLeave_CleansListenersIdentitiesAndRoom_ThenCanHostAgain" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="201048969" result="Passed" start-time="2026-11-14 10:19:24Z" end-time="2026-11-14 10:19:24Z" duration="0.377465" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client disconnected: 0
+]]></output>
+              </test-case>
+              <test-case id="1456" name="HostPause_OnlyGatesLocalOwner_AndServerKeepsRunning" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.HostPause_OnlyGatesLocalOwner_AndServerKeepsRunning" methodname="HostPause_OnlyGatesLocalOwner_AndServerKeepsRunning" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="1401929448" result="Passed" start-time="2026-11-14 10:19:24Z" end-time="2026-11-14 10:19:24Z" duration="0.266488" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1454" name="OfflineLeave_UsesSharedNavigation_AndLoadsFreshMenu" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.OfflineLeave_UsesSharedNavigation_AndLoadsFreshMenu" methodname="OfflineLeave_UsesSharedNavigation_AndLoadsFreshMenu" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="2133513748" result="Passed" start-time="2026-11-14 10:19:24Z" end-time="2026-11-14 10:19:25Z" duration="0.199715" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1451" name="Pause_ClearsGameplayIntent_ResumeDoesNotReplayHeldButtons" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.Pause_ClearsGameplayIntent_ResumeDoesNotReplayHeldButtons" methodname="Pause_ClearsGameplayIntent_ResumeDoesNotReplayHeldButtons" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="1759841197" result="Passed" start-time="2026-11-14 10:19:25Z" end-time="2026-11-14 10:19:25Z" duration="0.116767" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1452" name="ResultHook_ShowsVictoryAndDefeat_WithoutChangingMatchRules" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.ResultHook_ShowsVictoryAndDefeat_WithoutChangingMatchRules" methodname="ResultHook_ShowsVictoryAndDefeat_WithoutChangingMatchRules" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="1931120646" result="Passed" start-time="2026-11-14 10:19:25Z" end-time="2026-11-14 10:19:25Z" duration="0.116715" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1455" name="ResultReturn_RepeatedRequests_LoadMainMenuExactlyOnce" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.ResultReturn_RepeatedRequests_LoadMainMenuExactlyOnce" methodname="ResultReturn_RepeatedRequests_LoadMainMenuExactlyOnce" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="59658012" result="Passed" start-time="2026-11-14 10:19:25Z" end-time="2026-11-14 10:19:25Z" duration="0.199445" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1459" name="ServerDisconnect_WithoutLeaveClick_ReturnsClientToMainMenu" fullname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests.ServerDisconnect_WithoutLeaveClick_ReturnsClientToMainMenu" methodname="ServerDisconnect_WithoutLeaveClick_ReturnsClientToMainMenu" classname="SmallArena.Tests.PlayMode.InGameMenuAndTeardownTests" runstate="Runnable" seed="69214106" result="Passed" start-time="2026-11-14 10:19:25Z" end-time="2026-11-14 10:19:25Z" duration="0.233181" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1460" name="LobbyGovernanceAndScreenTests" fullname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests" classname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-14 10:19:25Z" end-time="2026-11-14 10:19:27Z" duration="1.681859" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1463" name="Disconnect_ReusesVacatedSlot_WithoutMovingOthersOrKeepingReady" fullname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.Disconnect_ReusesVacatedSlot_WithoutMovingOthersOrKeepingReady" methodname="Disconnect_ReusesVacatedSlot_WithoutMovingOthersOrKeepingReady" classname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests" runstate="Runnable" seed="1234849270" result="Passed" start-time="2026-11-14 10:19:25Z" end-time="2026-11-14 10:19:26Z" duration="0.250427" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client connected: 3
+[TV1] Client disconnected: 2
+[TV1] Client connected: 4
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 4
+[TV1] Client disconnected: 3
+]]></output>
+              </test-case>
+              <test-case id="1467" name="DisplayController_PersistsAcrossMenuBootstrapArena_WithoutDuplicates" fullname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.DisplayController_PersistsAcrossMenuBootstrapArena_WithoutDuplicates" methodname="DisplayController_PersistsAcrossMenuBootstrapArena_WithoutDuplicates" classname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests" runstate="Runnable" seed="626804074" result="Passed" start-time="2026-11-14 10:19:26Z" end-time="2026-11-14 10:19:26Z" duration="0.249954" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1466" name="F11_FreshPressToggles_HoldDoesNotRepeat_AndCursorIsPreserved" fullname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.F11_FreshPressToggles_HoldDoesNotRepeat_AndCursorIsPreserved" methodname="F11_FreshPressToggles_HoldDoesNotRepeat_AndCursorIsPreserved" classname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests" runstate="Runnable" seed="40340741" result="Passed" start-time="2026-11-14 10:19:26Z" end-time="2026-11-14 10:19:26Z" duration="0.199690" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1464" name="FifthConnection_ReceivesSpecificReason_AndFourMembersStayIntact" fullname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.FifthConnection_ReceivesSpecificReason_AndFourMembersStayIntact" methodname="FifthConnection_ReceivesSpecificReason_AndFourMembersStayIntact" classname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests" runstate="Runnable" seed="748866365" result="Passed" start-time="2026-11-14 10:19:26Z" end-time="2026-11-14 10:19:26Z" duration="0.233264" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client connected: 3
+[TV1] Client connected: 4
+[TV1] Client disconnected: 5
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+]]></output>
+              </test-case>
+              <test-case id="1465" name="FullRoom_NativeJoiningClientShowsModal_PreservesReasonAfterDisconnect_AndCanRetry" fullname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.FullRoom_NativeJoiningClientShowsModal_PreservesReasonAfterDisconnect_AndCanRetry" methodname="FullRoom_NativeJoiningClientShowsModal_PreservesReasonAfterDisconnect_AndCanRetry" classname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests" runstate="Runnable" seed="1706584671" result="Passed" start-time="2026-11-14 10:19:26Z" end-time="2026-11-14 10:19:26Z" duration="0.233198" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 2
+[TV1] Client connected: 3
+[TV1] Client connected: 4
+[TV1] Client connected: 5
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 5
+[TV1] Client connected: 1
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+]]></output>
+              </test-case>
+              <test-case id="1461" name="Slots_NativeHostAndRemoteSnapshot_ShowTwoUnreadyMembers" fullname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.Slots_NativeHostAndRemoteSnapshot_ShowTwoUnreadyMembers" methodname="Slots_NativeHostAndRemoteSnapshot_ShowTwoUnreadyMembers" classname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests" runstate="Runnable" seed="675767568" result="Passed" start-time="2026-11-14 10:19:26Z" end-time="2026-11-14 10:19:27Z" duration="0.166525" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1462" name="StartGuard_OneReadyHostBlocked_ThenAllReady_ThenUnreadyLocksImmediately" fullname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests.StartGuard_OneReadyHostBlocked_ThenAllReady_ThenUnreadyLocksImmediately" methodname="StartGuard_OneReadyHostBlocked_ThenAllReady_ThenUnreadyLocksImmediately" classname="SmallArena.Tests.PlayMode.LobbyGovernanceAndScreenTests" runstate="Runnable" seed="1065571705" result="Passed" start-time="2026-11-14 10:19:27Z" end-time="2026-11-14 10:19:27Z" duration="0.333058" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1468" name="LobbyRoomManagementTests" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-11-14 10:19:27Z" end-time="2026-11-14 10:19:29Z" duration="2.250952" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1475" name="AddPlayerDuringLobby_CannotBypassTheServerSpawnGate" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.AddPlayerDuringLobby_CannotBypassTheServerSpawnGate" methodname="AddPlayerDuringLobby_CannotBypassTheServerSpawnGate" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="1705539427" result="Passed" start-time="2026-11-14 10:19:27Z" end-time="2026-11-14 10:19:27Z" duration="0.183789" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1479" name="ArenaReturn_CreatesFreshMenuManager_AndCanHostAgain" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.ArenaReturn_CreatesFreshMenuManager_AndCanHostAgain" methodname="ArenaReturn_CreatesFreshMenuManager_AndCanHostAgain" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="1537362054" result="Passed" start-time="2026-11-14 10:19:27Z" end-time="2026-11-14 10:19:27Z" duration="0.334171" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client disconnected: 0
+]]></output>
+              </test-case>
+              <test-case id="1471" name="Capacity_FourConnectionsJoin_FifthIsRejectedByServer" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.Capacity_FourConnectionsJoin_FifthIsRejectedByServer" methodname="Capacity_FourConnectionsJoin_FifthIsRejectedByServer" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="714326661" result="Passed" start-time="2026-11-14 10:19:27Z" end-time="2026-11-14 10:19:28Z" duration="0.216414" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client connected: 3
+[TV1] Client connected: 4
+[TV1] Client disconnected: 5
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+]]></output>
+              </test-case>
+              <test-case id="1472" name="Disconnect_ReleasesRoomSlot_AndReplacementStartsUnready" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.Disconnect_ReleasesRoomSlot_AndReplacementStartsUnready" methodname="Disconnect_ReleasesRoomSlot_AndReplacementStartsUnready" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="1147997489" result="Passed" start-time="2026-11-14 10:19:28Z" end-time="2026-11-14 10:19:28Z" duration="0.216508" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client connected: 3
+[TV1] Client connected: 4
+[TV1] Client disconnected: 2
+[TV1] Client connected: 5
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 5
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+]]></output>
+              </test-case>
+              <test-case id="1478" name="FailedJoin_ShowsFriendlyStatus_AndReenablesConnectionButtons" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.FailedJoin_ShowsFriendlyStatus_AndReenablesConnectionButtons" methodname="FailedJoin_ShowsFriendlyStatus_AndReenablesConnectionButtons" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="710718910" result="Passed" start-time="2026-11-14 10:19:28Z" end-time="2026-11-14 10:19:28Z" duration="0.133295" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1470" name="HostButton_StaysInLobby_WithOneUnreadyMemberAndNoAvatar" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.HostButton_StaysInLobby_WithOneUnreadyMemberAndNoAvatar" methodname="HostButton_StaysInLobby_WithOneUnreadyMemberAndNoAvatar" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="668160321" result="Passed" start-time="2026-11-14 10:19:28Z" end-time="2026-11-14 10:19:28Z" duration="0.133149" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client disconnected: 0
+]]></output>
+              </test-case>
+              <test-case id="1473" name="HostCannotStart_UntilEveryMemberIsReady" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.HostCannotStart_UntilEveryMemberIsReady" methodname="HostCannotStart_UntilEveryMemberIsReady" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="646788132" result="Passed" start-time="2026-11-14 10:19:28Z" end-time="2026-11-14 10:19:28Z" duration="0.199812" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1477" name="JoinButton_TrimsAddress_AndCancelRestoresMenu" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.JoinButton_TrimsAddress_AndCancelRestoresMenu" methodname="JoinButton_TrimsAddress_AndCancelRestoresMenu" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="1228145291" result="Passed" start-time="2026-11-14 10:19:28Z" end-time="2026-11-14 10:19:29Z" duration="0.132991" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1476" name="LeavingLobby_ClearsMembersAndAllowsAnotherHostSession" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.LeavingLobby_ClearsMembersAndAllowsAnotherHostSession" methodname="LeavingLobby_ClearsMembersAndAllowsAnotherHostSession" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="1770625362" result="Passed" start-time="2026-11-14 10:19:29Z" end-time="2026-11-14 10:19:29Z" duration="0.183387" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client disconnected: 0
+]]></output>
+              </test-case>
+              <test-case id="1469" name="MultiplayerButton_OpensConnectionPanel_AndBackRestoresOfflineMenu" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.MultiplayerButton_OpensConnectionPanel_AndBackRestoresOfflineMenu" methodname="MultiplayerButton_OpensConnectionPanel_AndBackRestoresOfflineMenu" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="1199877980" result="Passed" start-time="2026-11-14 10:19:29Z" end-time="2026-11-14 10:19:29Z" duration="0.133219" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1474" name="OnlyReadyHost_CanLoadArena_AndPlayersSpawnAfterSceneLoad" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.OnlyReadyHost_CanLoadArena_AndPlayersSpawnAfterSceneLoad" methodname="OnlyReadyHost_CanLoadArena_AndPlayersSpawnAfterSceneLoad" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="2129780350" result="Passed" start-time="2026-11-14 10:19:29Z" end-time="2026-11-14 10:19:29Z" duration="0.283229" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1480" name="RoomRules_DropDuplicateReadyAndUnknownSender_AndLockOnceStarting" fullname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests.RoomRules_DropDuplicateReadyAndUnknownSender_AndLockOnceStarting" methodname="RoomRules_DropDuplicateReadyAndUnknownSender_AndLockOnceStarting" classname="SmallArena.Tests.PlayMode.LobbyRoomManagementTests" runstate="Runnable" seed="1925256942" result="Passed" start-time="2026-11-14 10:19:29Z" end-time="2026-11-14 10:19:29Z" duration="0.083145" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1481" name="LobbyStartBoundaryTests" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-14 10:19:29Z" end-time="2026-11-14 10:19:30Z" duration="0.886642" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1482" name="T02_RealMirrorRetry_CountsActualProductionBoundaryAndNativeLoad" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T02_RealMirrorRetry_CountsActualProductionBoundaryAndNativeLoad" methodname="T02_RealMirrorRetry_CountsActualProductionBoundaryAndNativeLoad" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="455821214" result="Passed" start-time="2026-11-14 10:19:29Z" end-time="2026-11-14 10:19:29Z" duration="0.266943" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1483" name="T05_RealMissingScene_RetryAndLateCompleteCannotReopenFailedOperation" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T05_RealMissingScene_RetryAndLateCompleteCannotReopenFailedOperation" methodname="T05_RealMissingScene_RetryAndLateCompleteCannotReopenFailedOperation" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="829494811" result="Passed" start-time="2026-11-14 10:19:29Z" end-time="2026-11-14 10:19:30Z" duration="0.249807" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1487" name="T13_AuthenticatedCount_RealConnectCallbackBoundary" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.270019" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1484" name="T13_AuthenticatedCount_RealConnectCallbackBoundary(3)" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(3)" methodname="T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="1473071308" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.086178" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Server started listening
+[TV1] Client connected: 3
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+]]></output>
+                </test-case>
+                <test-case id="1485" name="T13_AuthenticatedCount_RealConnectCallbackBoundary(4)" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(4)" methodname="T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="1079831426" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.083371" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Server started listening
+[TV1] Client connected: 4
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+]]></output>
+                </test-case>
+                <test-case id="1486" name="T13_AuthenticatedCount_RealConnectCallbackBoundary(5)" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(5)" methodname="T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="2093374346" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.083983" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Server started listening
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+[TV1] Client disconnected: 5
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-case id="1488" name="T14_ExistingWrongSceneIsRejectedBeforeMirrorLoad" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T14_ExistingWrongSceneIsRejectedBeforeMirrorLoad" methodname="T14_ExistingWrongSceneIsRejectedBeforeMirrorLoad" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="1167063402" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.082908" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1489" name="LobbyStartOperationTests" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.037575" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="1502" name="T01_Pairwise_AuthorityRosterAndDelivery" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.019467" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1490" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;solo_ready&quot;,&quot;single&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;solo_ready&quot;,&quot;single&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1034845990" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.001476" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1491" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;two_partial&quot;,&quot;burst&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;two_partial&quot;,&quot;burst&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="99742399" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000142" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1492" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;two_ready&quot;,&quot;after_result&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;two_ready&quot;,&quot;after_result&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1657122433" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000234" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1493" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;two_partial&quot;,&quot;single&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;two_partial&quot;,&quot;single&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="536278027" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000097" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1494" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;two_ready&quot;,&quot;burst&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;two_ready&quot;,&quot;burst&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="538954677" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000063" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1495" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;four_ready&quot;,&quot;after_result&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;four_ready&quot;,&quot;after_result&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="966562225" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000058" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1496" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;solo_ready&quot;,&quot;burst&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;solo_ready&quot;,&quot;burst&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="896601085" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000056" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1497" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;two_partial&quot;,&quot;after_result&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;two_partial&quot;,&quot;after_result&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1444430236" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000058" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1498" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;two_ready&quot;,&quot;single&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;two_ready&quot;,&quot;single&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1953208587" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000066" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1499" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;four_ready&quot;,&quot;single&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;four_ready&quot;,&quot;single&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="697260948" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000065" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1500" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;four_ready&quot;,&quot;burst&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;four_ready&quot;,&quot;burst&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1059955102" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000060" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1501" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;solo_ready&quot;,&quot;after_result&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;solo_ready&quot;,&quot;after_result&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="2054640288" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000055" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1503" name="T02_T03_T04_RetryWhileLoadingAndAfterTerminal_CountsBoundaryAndCompletion" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T02_T03_T04_RetryWhileLoadingAndAfterTerminal_CountsBoundaryAndCompletion" methodname="T02_T03_T04_RetryWhileLoadingAndAfterTerminal_CountsBoundaryAndCompletion" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1158628258" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000694" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1504" name="T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure" methodname="T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="66106945" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000535" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1505" name="T12_NewSessionCanStart_StaleCompletionWhileWaitingIsIgnored" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T12_NewSessionCanStart_StaleCompletionWhileWaitingIsIgnored" methodname="T12_NewSessionCanStart_StaleCompletionWhileWaitingIsIgnored" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1213698186" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.000452" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1506" name="LobbyStartProgressTests" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:36Z" duration="5.735263" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1507" name="T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady" methodname="T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="977359245" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:30Z" duration="0.250430" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1508" name="T09_ClientOnlyHook_ServerCallbackDoesNotCompleteGuestOverlay" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T09_ClientOnlyHook_ServerCallbackDoesNotCompleteGuestOverlay" methodname="T09_ClientOnlyHook_ServerCallbackDoesNotCompleteGuestOverlay" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="773223698" result="Passed" start-time="2026-11-14 10:19:30Z" end-time="2026-11-14 10:19:31Z" duration="0.150335" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1509" name="T10_T14_RealPreflightFailure_ReturnsReadableNoticeWithoutLoading" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T10_T14_RealPreflightFailure_ReturnsReadableNoticeWithoutLoading" methodname="T10_T14_RealPreflightFailure_ReturnsReadableNoticeWithoutLoading" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="882880453" result="Passed" start-time="2026-11-14 10:19:31Z" end-time="2026-11-14 10:19:31Z" duration="0.266655" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1510" name="T11_GuestDisconnect_DoesNotFailServerLoad" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T11_GuestDisconnect_DoesNotFailServerLoad" methodname="T11_GuestDisconnect_DoesNotFailServerLoad" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="16489925" result="Passed" start-time="2026-11-14 10:19:31Z" end-time="2026-11-14 10:19:31Z" duration="0.233122" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client connected: 3
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 3
+]]></output>
+              </test-case>
+              <test-case id="1511" name="T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart" methodname="T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="1901608621" result="Passed" start-time="2026-11-14 10:19:31Z" end-time="2026-11-14 10:19:31Z" duration="0.366488" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1512" name="T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn" methodname="T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="1999596916" result="Passed" start-time="2026-11-14 10:19:31Z" end-time="2026-11-14 10:19:31Z" duration="0.084182" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Multiple NetworkManagers detected in the scene. Only one NetworkManager can exist at a time. The duplicate NetworkManager will be destroyed.
+]]></output>
+              </test-case>
+              <test-case id="1513" name="T16_TwentyRealSceneCycles_CheckTimingAndPersistentSharedState" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T16_TwentyRealSceneCycles_CheckTimingAndPersistentSharedState" methodname="T16_TwentyRealSceneCycles_CheckTimingAndPersistentSharedState" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="265680369" result="Passed" start-time="2026-11-14 10:19:31Z" end-time="2026-11-14 10:19:36Z" duration="4.370901" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Saving results to: C:/Users/tasdus_117/AppData/LocalLow/DefaultCompany/Small Arena\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

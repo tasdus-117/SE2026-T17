@@ -1,0 +1,346 @@
+﻿[
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\Input\\NetworkCombatInput.cs",
+        "sha256":  "B540D17F635179346843F46DD30C85D668472CF6CF9110EEE223A678B44768FE"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\Input\\PlayerInputHandler.cs",
+        "sha256":  "7563EC21C3DFF560642773E0AE4B18DCA7A7C6995252194A87AC031AAB62B37D"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\Presentation\\CameraOcclusionController.cs",
+        "sha256":  "8BCF0B26E879C67D16F7CEC570E89A0533FE629F39BB0B2A40F629F86003B018"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\Presentation\\OpponentHealthPresenter.cs",
+        "sha256":  "9E3E456F243BC55CDE8B8ABF344E0686E81258319A90341BEB5B17497E3DD7CB"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\Presentation\\PickupVisual.cs",
+        "sha256":  "420AFE42FC5BCB2ABCFE32E5FFA67AC56309FDFE48F460E7C87B5EE442AC674E"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\Presentation\\PlayerController.cs",
+        "sha256":  "D7A7F61525E1D245D80C61D3A46F8D719C142B6893EC12C0A35BCEE101FC73A0"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\Presentation\\ThirdPersonCameraController.cs",
+        "sha256":  "C64D39435B1368CD555EE5D0AC5266AB0F9EAFD574DD2B915CBFD5137E6964E2"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\ScreenDisplayController.cs",
+        "sha256":  "BF9A46DF949096B2B54ADF27BE407D0C796D3CD32967B5BB6FE86F8897B3C864"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\ArenaLoadingOverlay.cs",
+        "sha256":  "5D64556ABDD2010A88AA1226C2A202636304B46AE0D064809B59F033113F8985"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\HealthBarBillboard.cs",
+        "sha256":  "0E72CBE6E385025B8F8D2E6014CF98828596A82FDD020E925083C85FB4E6BEF4"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\InGameMenuController.cs",
+        "sha256":  "AD549CB4105A0ED42CF6E7A2D4E6D3903EE9638CF66E62BEB411154815BCEEE1"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\InGameMenuView.cs",
+        "sha256":  "3A27DF341652AC6FAA6F47272ECDFB397AC38CA5DB75E5183C6C0AC050C5168F"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\LobbyRoomController.cs",
+        "sha256":  "C02636A0C45845452E3E13D34D36C7033EE285EE61282C503C9A866367027BD3"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\LobbyRoomView.cs",
+        "sha256":  "B624711C44B0BE5C3FA04C66156BC881C85655CF19642E2803F3F06BE692D323"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\MainMenuController.cs",
+        "sha256":  "D601DFA869E94BCF943724DB8667B827B56FFDD32BDFADFAB4E99E9E8FD4342D"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\MatchUI.cs",
+        "sha256":  "7A97CE5149B91D70FECE7DF9F16F4CF60FAE0899855244435A20AB0B23F3F7B1"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\NetworkHealthBarView.cs",
+        "sha256":  "75EE064D7873D455B81CB8B417DBDBFDE0979E6885F6555564E77363C027CF57"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\NetworkHealthHUD.cs",
+        "sha256":  "28A900DB42ED44EEF02CF8BCB8A15E2CF37E97EA28BC5D4FA697E35BFED04932"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\OfflineHealthPresenter.cs",
+        "sha256":  "E2D2C1C2383AC7ABDC7F2431BAFCC594F493D92C462C2423B1EFAD8C65C44FD3"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Client\\UI\\SceneNavigation.cs",
+        "sha256":  "C40880D1E5ADCEA4A697A015C2E871F9B3DD7AB432273C0A16301FDAFD72B551"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\ArenaLaunchOptions.cs",
+        "sha256":  "E0914A1BE99F9A308A1F4891680324E3359BDB51AA053B7F6466621E048DE516"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\ArenaLootSpawner.cs",
+        "sha256":  "66BCBE8BCCEC3C6B0E5C55D38EFC4E835F8EF0C75777E89651258A4F8C584D41"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\ArenaNetworkManager.cs",
+        "sha256":  "4D12C1B3D54882DC0E56152CF0F5AC482D2DCF816BF566A13B9F959B3E2E9EAA"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\AssemblyInfo.cs",
+        "sha256":  "98007EA6155E3CE2D60D1BF63244AFFD47ED47E05130F040AE5A59801E53C3E6"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\LobbyMessages.cs",
+        "sha256":  "C546112D19DEA0741DE9676FAC7B7996932E8360141D800C4834C9C652022C19"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\MatchSessionNavigation.cs",
+        "sha256":  "196D6B94448D1F95AFBCE762CECBEA6BA70E43D70A991832F506735DFD4700D3"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\MeleeHitGeometry.cs",
+        "sha256":  "7BF1CC7201128A27723BC040FD83266CE36AFEEA83B4D4814CBF4872B6313401"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\NetworkCombat.cs",
+        "sha256":  "380BBE04D71ACC2245C803319E48EA9BBB34AA68419F81F12AA211B3C6FE0B56"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\NetworkHealth.cs",
+        "sha256":  "94BA73B14B910716253BD8C74147F5000A7360BBECA64749E9DD7F2C324265A4"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\NetworkLootItem.cs",
+        "sha256":  "E67ECEBAE8E702536C86BBC1D2F9BD2F9612251BE82B1E55F4429DC301A9F3B1"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\NetworkMatchRules.cs",
+        "sha256":  "3AACAB38D1E423D9483E968D19BE431E6730F5A12FCC31ECB669D3345DDB2E88"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\NetworkMovement.cs",
+        "sha256":  "340ABEB17FA85B51CE876F642A7AE7BFED42212ED57ECF7631DC981CE32BE9D6"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\NetworkPlayer.cs",
+        "sha256":  "BCD9EAF7906F357A9BFCFAE5CC3A5FC7603898791C86AA74829AF49BB5F6ADFD"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\AssemblyInfo.cs",
+        "sha256":  "BACC894E56AFE847C8C57B5C20A740E5E79F52BEF20D238A2C781E07444D122A"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Combat\\CombatController.cs",
+        "sha256":  "A84F6E11C19B035F20F6876D56EE5E5E81CD3EBA505EAE851C54856D422C4057"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Combat\\Health.cs",
+        "sha256":  "71F63EBEA4FF5490360DF1E7D357E481CAF1FE1F2858685841FC01FB568C8410"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Combat\\WeaponPickup.cs",
+        "sha256":  "B477D44318E2817AD42EAD4418C6F663C977A394D28679668FF10D9B6604305E"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Sessions\\LobbyRoom.cs",
+        "sha256":  "E754586E10D12B58B4006E825A53CD4CDA6DBF22893786924E4C98439765FA37"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Sessions\\LobbyStartOperation.cs",
+        "sha256":  "BF26C0D0ABEC0F31E0D4A03889B568E717AD4587DFB9BD8E9F87C0D2AFBBACB5"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Sessions\\ServerLobbyController.cs",
+        "sha256":  "E76651D5310843E36B98E3497F11AAC05B9BF1665967B1F695015929E2AC58C4"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Simulation\\GameManager.cs",
+        "sha256":  "1B39B59937C7DFF21670508D69951514CA874E6DF40376F29F025E171F32C49B"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Simulation\\OfflineMatchReadinessProbe.cs",
+        "sha256":  "B0E8BA422A72D89C850710546D2F1B30478D242AEBE6D21A47AA77472BCA28AA"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Simulation\\OfflineMatchScope.cs",
+        "sha256":  "1EEBD94F2736146EFF17103C9A7BAA3F0BE2983A297359EBE5FF9D8874370E59"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Simulation\\ServerPlayerMovement.cs",
+        "sha256":  "A54833B9B10C93FCCDC3CF5391B32FC7FA26554D71F5D4D1A8C5DA315DE39C74"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Simulation\\ServerPlayerSeparation.cs",
+        "sha256":  "5AA69666A6A4AA904AF1241AFE6FE01D8EC12E3E1C4846015CF5F6CDC62E806B"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Validation\\MovementInputValidator.cs",
+        "sha256":  "B607640218305D4309F2B488F85961A85573BE7060C4AA8740CC08ED94DFE226"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Domain\\AssemblyInfo.cs",
+        "sha256":  "1E8C817051FC55F2780F006CA4A715D72304EE600F00ACE1C3621B204A085D24"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Domain\\GameplayConfiguration.cs",
+        "sha256":  "5BBBAB2182730E89B4E28EB54AE4C03533A950A3B1063A5BB71A100282E3E2AD"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Domain\\IMatchReadinessProbe.cs",
+        "sha256":  "C89235EEF222CC437B74CAF1E3D75A099C79FD0009DEBBE8DCD718FB77731F53"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Domain\\MatchReadinessResult.cs",
+        "sha256":  "930E2D3B7B0D3E78E763CB54303EFAEBCB645A663BDC8D26EDBA796F86D796CC"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Domain\\MatchState.cs",
+        "sha256":  "CC8E9766029461ECBB8E72EEC8588F9A16FA88039010BED8A5E168DC73CF506B"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Domain\\MatchStateMachine.cs",
+        "sha256":  "EE938F20092FBA27145A7DBBE174D18B071D04EC9FA909EAAAB62D00D8A1ABF0"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Domain\\MatchViewContracts.cs",
+        "sha256":  "D5642C6A33491264A69B63BEAC8014A287C5FB198706459B09D74A6951CD9EBD"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Domain\\OnlineCharacterState.cs",
+        "sha256":  "8C82CB648A7739979D2ED0D94EDF4A445A8163249E1BA5F52436C126234A07C0"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Domain\\OnlineMatch.cs",
+        "sha256":  "FF19BBC88952E7DB6653F59BF19CC69DA1874B46017EE8836627C830335ABF2F"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Protocol\\MovementInput.cs",
+        "sha256":  "17738546EDE994A8547E3CAE800E94CED508D83F24734691DE2D1F52D2FA5A1C"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Shared\\Protocol\\PlayerIntentContracts.cs",
+        "sha256":  "86E9B25E7F71419E163C74E234049860A0CEC715A11775AFCFE5567CC7AB1854"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\EditMode\\AssemblyInfo.cs",
+        "sha256":  "0E6BB3FF7D413AD873EE6A92CA6715F8168F6CBE3F8EB18F7FCE35F2EF27B2E3"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\EditMode\\GameplayConfigurationTests.cs",
+        "sha256":  "7BE353776C8FB92A09C48BA813244A9A5892AD9A063E304C5B16BC950056C8EB"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\EditMode\\MatchStateTests.cs",
+        "sha256":  "2FF35F844F37EDF2A895C561EDCA5F44D8B0AD7613195042F34C7DEE05AFD98B"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\EditMode\\OnlineStateTests.cs",
+        "sha256":  "6206860EC096EBDB2734614BFFDE7F758D174A1B4B155C785D35E68D15B6FFE5"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\ArenaConfigurationTests.cs",
+        "sha256":  "90D57F25AFCCB96C2B58C9A816A30720DE6D86A537BEFD2E94AD82D4539B1520"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\ArenaLayoutTests.cs",
+        "sha256":  "CC9835AF190AE3BB7C2A61BAB35682D25F3383B775A29FD106029B0B6D99C79A"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\AssemblyInfo.cs",
+        "sha256":  "627D31E811B36A46B1106A48E6A9BAA8F397EEB0AD29475CF38F0694A93AFA44"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\CombatTests.cs",
+        "sha256":  "053866397B376D0555BC8202DAF677AF2660F04C72ABCD3B2CE9B0D2CE64AB51"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\InGameMenuAndTeardownTests.cs",
+        "sha256":  "5BF896C2765D4ACA09ADD09ADBF062E267A74ADB9C64590B81C74F21BB66F356"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\LobbyGovernanceAndScreenTests.cs",
+        "sha256":  "3DFF35F4FBD19302CE4648912785E468A6B4D7AD11D8052B166F6C965A13CCFE"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\LobbyRoomManagementTests.cs",
+        "sha256":  "A436FD6C245F9D4EA1D0701FA53763A2711AF2EC671101D825389D5557CB5246"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\LobbyStartBoundaryTests.cs",
+        "sha256":  "073E96BF114F5159161AD849AEA47A3E8A744858D791756D761342BC739267EA"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\LobbyStartOperationTests.cs",
+        "sha256":  "DB4A260C58B061AE41445CEAD584094ED03279247BF9678DF24B8CEF6C4BCF33"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\LobbyStartProgressTests.cs",
+        "sha256":  "6AD042A12E424C22A9952A11292E460A33570D60A32C9DDC2C5D840FE02B57EE"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\LootAndCollisionTests.cs",
+        "sha256":  "7800E79646071C1A77B0BA729B96C7B64068AD53D6383D95ED5E323D23636DA2"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\MatchInitializationTests.cs",
+        "sha256":  "EBACB1D45C80ED582B6E6C7E6ED8D019FE716458C5AAF66D44D3FED6C5B03DA0"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\MeleeReliabilityAndDisplayTests.cs",
+        "sha256":  "42638C3A7F3449F909CB2CFD6772B95D0313DA6CAB6E16F6626CF9FBB9A1B7EF"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\MenuNavigationTests.cs",
+        "sha256":  "61013608883A6B89D77463993BB432417C474399371FE94184B8DB7A61D126F3"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\MultiClientIntegrationTests.cs",
+        "sha256":  "62E7A5A21CC0CCC4426DC1ADF8AB6DA7A5A2280B631DEEAD301643E46271CBA5"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\NetworkedCombatAndHUDTests.cs",
+        "sha256":  "DC87ED2A348CBAC5CE4CE255229E82026A3E10E54BC7A5C5798B4D95E155FF77"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\NetworkGameplayFixture.cs",
+        "sha256":  "4F301F4891755E610C75827E9847676A61A8A3F16E947D8C7E549EBEFA4FB1F2"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\NetworkLifecycleTests.cs",
+        "sha256":  "40F6DD7B4EDEEF7DF4C868F4AD79563E00DFCE2C50858029340235E5444C0B36"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\NetworkMovementTests.cs",
+        "sha256":  "B4D9CC924626853C8667FB0E824579F5AE28CD907E043F533D140BA04C69FE75"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\OfflinePlayerFixture.cs",
+        "sha256":  "7589DA2D0C22925022B4E998F7182478B3E1C39C209176C5351CF3D6E59F9C16"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\PlayerControllerTests.cs",
+        "sha256":  "0048C45C7466E55293598E4C7C1E2F5CB2C774ABD547D87E3012E8C49072A0D3"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\PlayerInputHandlerTests.cs",
+        "sha256":  "E13A238DB68D029717801EA82016D572FF3216B283A0C1FFCF46D56FCBD5943A"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\ThirdPersonCameraTests.cs",
+        "sha256":  "EB75A470CDC6073ABD30A731346F32144064BEB3112C1B3D680DC95C7BC051D9"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\VictoryFlowTests.cs",
+        "sha256":  "E53F36387A7A601D35D55259782F9452CBEA48544C36ADA25775019CA89E2433"
+    },
+    {
+        "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Tests\\PlayMode\\WeaponPickupTests.cs",
+        "sha256":  "0B2764B403B8F78C65731F68EE83BA5141E52A5DC7D3B7F9631793DD6277AE91"
+    }
+]

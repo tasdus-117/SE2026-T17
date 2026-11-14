@@ -1,0 +1,15 @@
+{
+  "original_settings_unchanged": {
+    "Assets/_Project/Settings/UniversalRenderPipelineGlobalSettings.asset": true,
+    "ProjectSettings/ProjectAuditorSettings.asset": true,
+    "ProjectSettings/ProjectSettings.asset": true,
+    "ProjectSettings/ShaderGraphSettings.asset": true
+  },
+  "worktree_generated_settings_restored_only": [
+    "Assets/_Project/Settings/UniversalRenderPipelineGlobalSettings.asset",
+    "ProjectSettings/ProjectAuditorSettings.asset",
+    "ProjectSettings/ProjectSettings.asset",
+    "ProjectSettings/ShaderGraphSettings.asset"
+  ],
+  "question1_unchanged": true
+}

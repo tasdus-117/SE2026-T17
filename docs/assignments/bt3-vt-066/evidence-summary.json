@@ -1,0 +1,287 @@
+{
+  "baselineSha": "d939568aae110668df5f0114541e4498593b6108",
+  "productionSha": "02db6c3affce0252e60c3abf20d8bc3f48ef11e7",
+  "baseline": {
+    "label": "baseline",
+    "result": "Passed",
+    "total": 19,
+    "passed": 19,
+    "failed": 0,
+    "exitCode": 0,
+    "sourceSha": "d939568aae110668df5f0114541e4498593b6108",
+    "xml": "docs/assignments/bt3-vt-066/evidence/baseline/combined.xml",
+    "failures": []
+  },
+  "runs": [
+    {
+      "label": "red-assertions",
+      "result": "Failed(Child)",
+      "total": 20,
+      "passed": 1,
+      "failed": 19,
+      "exitCode": 2,
+      "sourceSha": "c9a27babe977155c9c7b4e95c8d7c4dd2423325a",
+      "xml": "docs/assignments/bt3-vt-066/evidence/red-assertions/results.xml",
+      "failures": [
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"solo_ready\",\"single\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"two_partial\",\"burst\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"two_ready\",\"after_result\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"guest\",\"two_partial\",\"single\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"guest\",\"two_ready\",\"burst\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"guest\",\"four_ready\",\"after_result\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"unknown\",\"solo_ready\",\"burst\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"unknown\",\"two_partial\",\"after_result\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"unknown\",\"two_ready\",\"single\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"four_ready\",\"single\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"unknown\",\"four_ready\",\"burst\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(\"host\",\"solo_ready\",\"after_result\")",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T02_T03_T04_RetryWhileLoadingAndAfterTerminal_CountsBoundaryAndCompletion",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartOperationTests.T12_NewSessionCanStart_StaleCompletionWhileWaitingIsIgnored",
+          "assertion": "  Start operation must expose guarded completion/failure at the production coordinator boundary.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady",
+          "assertion": "  Overlay must remain visible after RoomPanel destruction, before Mirror local-ready callback.\n  Expected: True\n  But was:  False\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T09_ClientOnlyHook_ServerCallbackDoesNotCompleteGuestOverlay",
+          "assertion": "  Client scene-start must show local overlay.\n  Expected: True\n  But was:  False\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T10_T14_RealPreflightFailure_ReturnsReadableNoticeWithoutLoading",
+          "assertion": "  The actual load boundary must validate its configured scene before Mirror's log/return path.\n  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn",
+          "assertion": "  Expected: <System.InvalidOperationException>\n  But was:  null\n"
+        }
+      ]
+    },
+    {
+      "label": "green-attempt1",
+      "result": "Passed",
+      "total": 20,
+      "passed": 20,
+      "failed": 0,
+      "exitCode": 0,
+      "sourceSha": "c9a27babe977155c9c7b4e95c8d7c4dd2423325a",
+      "xml": "docs/assignments/bt3-vt-066/evidence/green-attempt1/results.xml",
+      "failures": []
+    },
+    {
+      "label": "regression",
+      "result": "Passed",
+      "total": 54,
+      "passed": 54,
+      "failed": 0,
+      "exitCode": 0,
+      "sourceSha": "c9a27babe977155c9c7b4e95c8d7c4dd2423325a",
+      "xml": "docs/assignments/bt3-vt-066/evidence/regression/results.xml",
+      "failures": []
+    },
+    {
+      "label": "regression-reviewed",
+      "result": "Passed",
+      "total": 56,
+      "passed": 56,
+      "failed": 0,
+      "exitCode": 0,
+      "sourceSha": "c9a27babe977155c9c7b4e95c8d7c4dd2423325a",
+      "xml": "docs/assignments/bt3-vt-066/evidence/regression-reviewed/results.xml",
+      "failures": []
+    },
+    {
+      "label": "recovery-red",
+      "result": "Failed(Child)",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "exitCode": 2,
+      "sourceSha": "c9a27babe977155c9c7b4e95c8d7c4dd2423325a",
+      "xml": "docs/assignments/bt3-vt-066/evidence/recovery-red/results.xml",
+      "failures": [
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart",
+          "assertion": "  Failure teardown in MainMenu must recreate a usable manager for a new session.\n  Expected: True\n  But was:  False\n"
+        }
+      ]
+    },
+    {
+      "label": "recovery-green",
+      "result": "Passed",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "exitCode": 0,
+      "sourceSha": "c4719b4e998f83c1c6eb784ea5b5c239202573d9",
+      "xml": "docs/assignments/bt3-vt-066/evidence/recovery-green/results.xml",
+      "failures": []
+    },
+    {
+      "label": "final-regression",
+      "result": "Passed",
+      "total": 57,
+      "passed": 57,
+      "failed": 0,
+      "exitCode": 0,
+      "sourceSha": "c4719b4e998f83c1c6eb784ea5b5c239202573d9",
+      "xml": "docs/assignments/bt3-vt-066/evidence/final-regression/results.xml",
+      "failures": []
+    },
+    {
+      "label": "mutation-final/clean",
+      "result": "Passed",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "exitCode": 0,
+      "sourceSha": "02db6c3affce0252e60c3abf20d8bc3f48ef11e7",
+      "xml": "docs/assignments/bt3-vt-066/evidence/mutation-final/clean/results.xml",
+      "failures": []
+    },
+    {
+      "label": "mutation-final/mutant",
+      "result": "Failed(Child)",
+      "total": 3,
+      "passed": 2,
+      "failed": 1,
+      "exitCode": 2,
+      "sourceSha": "db5d5efb69c6616e07892ab0583790b7152d9131",
+      "xml": "docs/assignments/bt3-vt-066/evidence/mutation-final/mutant/results.xml",
+      "failures": [
+        {
+          "id": "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(4)",
+          "assertion": "  Authenticated count 4 must be admitted; 5 rejected.\n  Expected: 1\n  But was:  0\n"
+        }
+      ]
+    },
+    {
+      "label": "mutation-final/restored",
+      "result": "Passed",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "exitCode": 0,
+      "sourceSha": "02db6c3affce0252e60c3abf20d8bc3f48ef11e7",
+      "xml": "docs/assignments/bt3-vt-066/evidence/mutation-final/restored/results.xml",
+      "failures": []
+    }
+  ],
+  "mutation": {
+    "sourceSha": "02db6c3affce0252e60c3abf20d8bc3f48ef11e7",
+    "mutantSha": "db5d5efb69c6616e07892ab0583790b7152d9131",
+    "temporaryBranch": "codex/bt3-vt-066-mutant-20261114102229",
+    "submissionBranch": "codex/bt3-vt-066",
+    "filter": "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary",
+    "mutantExit": 2,
+    "restoredExit": 0,
+    "killedAtFour": true,
+    "targetRestored": true,
+    "failures": [
+      {
+        "id": "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(4)",
+        "assertion": "  Authenticated count 4 must be admitted; 5 rejected.\n  Expected: 1\n  But was:  0\n"
+      }
+    ]
+  },
+  "load": {
+    "evidence": "evidence/load-barrier100",
+    "sourceShaAtRun": "c9a27babe977155c9c7b4e95c8d7c4dd2423325a",
+    "compiledSourceHashesMatchFinalProduction": true,
+    "rounds": 20,
+    "operations": 2000,
+    "requests": 6000,
+    "expectedFailures": 200,
+    "firstRound": {
+      "round": 1,
+      "barrierParticipants": 100,
+      "completed": 100,
+      "requests": 300,
+      "expectedFailures": 10,
+      "unexpectedErrors": 0,
+      "timeouts": 0,
+      "duplicateBoundary": 0,
+      "duplicateFakeLoads": 0,
+      "duplicateTerminal": 0,
+      "peakSubmittedInFlight": 100,
+      "p95Ms": 32.1951,
+      "p95SuccessOnlyMs": 32.1957,
+      "targetMs": 3000,
+      "meetsTarget": true
+    },
+    "p95RangeMs": [
+      26.0288,
+      32.1951
+    ],
+    "limits": "Independent production room/start-operation logic, serial calls within each session; release barrier plus a dispatch barrier ensures 100 submitted operations in flight. Stopwatch includes harness dispatch queue wait. Does not establish real multiplayer/arena p95 or thread safety for shared room access.",
+    "dependencies": "Fake Mirror.NetworkMessage marker only; fake load increment + Task.Delay(12..24ms), 10% injected pre-side-effect failures. No Unity, transport, serialization, renderer, disk arena load or real clients."
+  },
+  "flaky": {
+    "realSceneCycles": 20,
+    "failures": 0,
+    "scope": "timing lifecycle window and consecutive sessions/shared singleton/observer; not randomized test order or Internet"
+  },
+  "coverage": {
+    "line": null,
+    "branch": null,
+    "reason": "com.unity.testtools.codecoverage not declared/installed; no line/branch percentage collected",
+    "riskCoverage": "traceability.md",
+    "missing": [
+      "multi-process guest UI",
+      "native load hang/crash",
+      "Internet packet loss/reconnect",
+      "real arena p95"
+    ]
+  },
+  "submissionGuard": {
+    "file": "Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs",
+    "baselineLine": 203,
+    "currentLine": 253,
+    "text": "if (roomEnabled && NetworkServer.connections.Values.Count(connection => connection.isAuthenticated) > LobbyLimits.Capacity)",
+    "operatorRestored": true
+  }
+}

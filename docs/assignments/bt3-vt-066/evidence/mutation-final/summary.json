@@ -1,0 +1,17 @@
+﻿{
+    "sourceSha":  "02db6c3affce0252e60c3abf20d8bc3f48ef11e7",
+    "mutantSha":  "db5d5efb69c6616e07892ab0583790b7152d9131",
+    "temporaryBranch":  "codex/bt3-vt-066-mutant-20261114102229",
+    "submissionBranch":  "codex/bt3-vt-066",
+    "filter":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary",
+    "mutantExit":  2,
+    "restoredExit":  0,
+    "killedAtFour":  true,
+    "targetRestored":  true,
+    "failures":  [
+                     {
+                         "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(4)",
+                         "assertion":  "  Authenticated count 4 must be admitted; 5 rejected.\n  Expected: 1\n  But was:  0\n"
+                     }
+                 ]
+}

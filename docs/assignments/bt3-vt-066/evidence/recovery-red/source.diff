@@ -1,0 +1,606 @@
+﻿diff --git a/Assets/_Project/Scripts/Client/UI/ArenaLoadingOverlay.cs b/Assets/_Project/Scripts/Client/UI/ArenaLoadingOverlay.cs
+new file mode 100644
+index 0000000..b0031f0
+--- /dev/null
++++ b/Assets/_Project/Scripts/Client/UI/ArenaLoadingOverlay.cs
+@@ -0,0 +1,63 @@
++using Mirror;
++using SmallArena.Networking;
++using TMPro;
++using UnityEngine;
++using UnityEngine.UI;
++
++namespace SmallArena.Client.UI
++{
++    /// <summary>Observer lives on the session root; visible UI exists only during one local load.</summary>
++    public sealed class ArenaLoadingOverlay : MonoBehaviour
++    {
++        private ArenaNetworkManager manager;
++        private GameObject canvas;
++        public bool IsVisible => canvas != null && canvas.activeInHierarchy;
++
++        public static void Observe(ArenaNetworkManager manager)
++        {
++            if (manager != null && manager.GetComponent<ArenaLoadingOverlay>() == null)
++                manager.gameObject.AddComponent<ArenaLoadingOverlay>();
++        }
++        private void OnEnable()
++        {
++            manager = GetComponent<ArenaNetworkManager>();
++            manager.ClientArenaLoadStarted += Show;
++            manager.ClientArenaLoadFinished += Hide;
++            manager.ClientArenaLoadAborted += Hide;
++        }
++        private void Show()
++        {
++            if (canvas != null) return;
++            canvas = new GameObject("Arena loading overlay", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
++            DontDestroyOnLoad(canvas);
++            var root = canvas.GetComponent<Canvas>();
++            root.renderMode = RenderMode.ScreenSpaceOverlay;
++            root.sortingOrder = 1000;
++            var panel = new GameObject("Loading", typeof(RectTransform), typeof(Image));
++            panel.transform.SetParent(canvas.transform, false);
++            var rect = panel.GetComponent<RectTransform>(); rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one; rect.offsetMin = rect.offsetMax = Vector2.zero;
++            panel.GetComponent<Image>().color = new Color(0.03f, 0.05f, 0.09f, 0.96f);
++            var label = new GameObject("Status", typeof(RectTransform), typeof(TextMeshProUGUI));
++            label.transform.SetParent(panel.transform, false);
++            var text = label.GetComponent<TextMeshProUGUI>();
++            text.text = "Loading arena...";
++            text.fontSize = 30; text.alignment = TextAlignmentOptions.Center;
++            var labelRect = label.GetComponent<RectTransform>(); labelRect.sizeDelta = new Vector2(600, 100);
++        }
++        private void Hide()
++        {
++            if (canvas == null) return;
++            canvas.SetActive(false); Destroy(canvas); canvas = null;
++        }
++        private void OnDisable()
++        {
++            if (manager != null)
++            {
++                manager.ClientArenaLoadStarted -= Show;
++                manager.ClientArenaLoadFinished -= Hide;
++                manager.ClientArenaLoadAborted -= Hide;
++            }
++            Hide();
++        }
++    }
++}
+diff --git a/Assets/_Project/Scripts/Client/UI/ArenaLoadingOverlay.cs.meta b/Assets/_Project/Scripts/Client/UI/ArenaLoadingOverlay.cs.meta
+new file mode 100644
+index 0000000..4324096
+--- /dev/null
++++ b/Assets/_Project/Scripts/Client/UI/ArenaLoadingOverlay.cs.meta
+@@ -0,0 +1,2 @@
++fileFormatVersion: 2
++guid: b7894bce7b3b4303a66ef49f34c2a4af
+diff --git a/Assets/_Project/Scripts/Client/UI/LobbyRoomController.cs b/Assets/_Project/Scripts/Client/UI/LobbyRoomController.cs
+index 3790a0b..a237ede 100644
+--- a/Assets/_Project/Scripts/Client/UI/LobbyRoomController.cs
++++ b/Assets/_Project/Scripts/Client/UI/LobbyRoomController.cs
+@@ -28,6 +28,9 @@ namespace SmallArena.Client.UI
+             view.LeaveButton.onClick.AddListener(Leave);
+             if (view.DismissErrorButton != null) view.DismissErrorButton.onClick.AddListener(view.DismissError);
+             if (manager != null) { manager.RoomChanged += Refresh; manager.RoomRejected += Rejected; }
++            ArenaLoadingOverlay.Observe(manager);
++            var notice = MatchSessionNavigation.TakeNotice();
++            if (!string.IsNullOrEmpty(notice)) view.ShowSessionError(notice);
+         }
+         private void OnDisable()
+         {
+@@ -50,6 +53,12 @@ namespace SmallArena.Client.UI
+         private void Update()
+         {
+             ReleaseIdleManager();
++            // A startup failure can return to the already active MainMenu without reloading it.
++            if (!MatchSessionNavigation.IsReturning)
++            {
++                var notice = MatchSessionNavigation.TakeNotice();
++                if (!string.IsNullOrEmpty(notice)) view.ShowSessionError(notice);
++            }
+             // Mirror finishes its connection-state change after the disconnect callback returns.
+             // Refresh once when that transition completes, not every frame.
+             if (visible && manager != null && wasConnecting != (NetworkClient.active && manager.CurrentRoom.Phase == LobbyPhase.Offline)) Refresh();
+diff --git a/Assets/_Project/Scripts/Client/UI/LobbyRoomView.cs b/Assets/_Project/Scripts/Client/UI/LobbyRoomView.cs
+index d61ca34..58707a0 100644
+--- a/Assets/_Project/Scripts/Client/UI/LobbyRoomView.cs
++++ b/Assets/_Project/Scripts/Client/UI/LobbyRoomView.cs
+@@ -38,6 +38,11 @@ namespace SmallArena.Client.UI
+             if (errorPanel != null) errorPanel.SetActive(true);
+         }
+         public void DismissError() { if (errorPanel != null) errorPanel.SetActive(false); }
++        public void ShowSessionError(string message)
++        {
++            if (errorText != null) errorText.text = message;
++            if (errorPanel != null) errorPanel.SetActive(true);
++        }
+         public TMP_InputField Address => address;
+         public Button HostButton => hostButton;
+         public Button JoinButton => joinButton;
+diff --git a/Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs b/Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs
+index 1c2350c..bfc8bec 100644
+--- a/Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs
++++ b/Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs
+@@ -14,6 +14,11 @@ namespace SmallArena.Networking
+         private readonly Dictionary<NetworkConnectionToClient, Transform> reservedSpawns = new Dictionary<NetworkConnectionToClient, Transform>();
+         private readonly Queue<Transform> releasedSpawns = new Queue<Transform>();
+         [SerializeField] private bool roomEnabled = false;
++        [SerializeField] private string arenaScenePath = "Assets/_Project/Scenes/Arena_MVP.unity";
++        private bool clientArenaLoading;
++        public event Action ClientArenaLoadStarted;
++        public event Action ClientArenaLoadFinished;
++        public event Action ClientArenaLoadAborted;
+         public bool RoomEnabled => roomEnabled;
+         public LobbySnapshot CurrentRoom { get; private set; }
+         private readonly HashSet<NetworkConnectionToClient> rejectedConnections = new HashSet<NetworkConnectionToClient>();
+@@ -68,6 +73,7 @@ namespace SmallArena.Networking
+             offlineScene = "Assets/_Project/Scenes/MainMenu.unity";
+             CurrentRoom = default;
+             rejectionReason = null;
++            MatchSessionNavigation.ClearNotice();
+         }
+         public void LeaveRoom()
+         {
+@@ -97,11 +103,50 @@ namespace SmallArena.Networking
+         // Called only by the server session coordinator after its host/readiness checks.
+         public void LoadRoomArena()
+         {
+-            if (!NetworkServer.active || !roomEnabled) return;
+-            onlineScene = "Assets/_Project/Scenes/Arena_MVP.unity";
++            if (!NetworkServer.active || !roomEnabled)
++                throw new InvalidOperationException("An active lobby server is required.");
++            if (NetworkServer.isLoadingScene || loadingSceneAsync != null && !loadingSceneAsync.isDone)
++                throw new InvalidOperationException("Another scene transition is still in progress.");
++            if (!IsArena(arenaScenePath))
++                throw new InvalidOperationException("Arena scene must target Arena_MVP.");
++            // Mirror has void/log-and-return failure paths. Preflight before it pauses handlers.
++            if (!Application.CanStreamedLevelBeLoaded(arenaScenePath))
++                throw new InvalidOperationException("Arena scene is unavailable in build settings.");
++            onlineScene = arenaScenePath;
+             autoCreatePlayer = true;
+             ServerChangeScene(onlineScene);
+         }
++        public void AbortRoomStart(string reason)
++        {
++            MatchSessionNavigation.RecordNotice("Unable to start match: " + reason);
++            EndClientArenaLoad(false);
++            MatchSessionNavigation.ReturnToMainMenu();
++        }
++        private static bool IsArena(string scene) => scene == "Arena_MVP" || scene != null && scene.EndsWith("/Arena_MVP.unity", StringComparison.Ordinal);
++        private void BeginClientArenaLoad(string scene)
++        {
++            if (!roomEnabled || !IsArena(scene) || clientArenaLoading) return;
++            clientArenaLoading = true;
++            ClientArenaLoadStarted?.Invoke();
++        }
++        private void EndClientArenaLoad(bool ready)
++        {
++            if (!clientArenaLoading) return;
++            clientArenaLoading = false;
++            if (ready) ClientArenaLoadFinished?.Invoke();
++            else ClientArenaLoadAborted?.Invoke();
++        }
++        public override void OnServerChangeScene(string scene)
++        {
++            // Host shares the server load. Show before the old scene can be destroyed.
++            if (NetworkClient.activeHost) BeginClientArenaLoad(scene);
++            base.OnServerChangeScene(scene);
++        }
++        public override void OnClientChangeScene(string scene, SceneOperation operation, bool customHandling)
++        {
++            BeginClientArenaLoad(scene);
++            base.OnClientChangeScene(scene, operation, customHandling);
++        }
+         public override void OnStartServer()
+         {
+             // One transient denial connection allows a full-room reason through Mirror
+@@ -151,6 +196,9 @@ namespace SmallArena.Networking
+         }
+         public override void OnClientDisconnect()
+         {
++            if (!MatchSessionNavigation.IsReturning && (clientArenaLoading || IsArena(networkSceneName)))
++                MatchSessionNavigation.RecordNotice(clientArenaLoading ? "Disconnected while entering the arena." : "Disconnected from match.");
++            EndClientArenaLoad(false);
+             if (!string.IsNullOrEmpty(offlineScene) && (SceneManager.GetActiveScene().name == "Arena_MVP" || networkSceneName.EndsWith("Arena_MVP.unity")))
+                 MatchSessionNavigation.ReturnToMainMenu();
+             if (roomEnabled && !string.IsNullOrEmpty(rejectionReason))
+@@ -162,6 +210,7 @@ namespace SmallArena.Networking
+         }
+         public override void OnStopClient()
+         {
++            EndClientArenaLoad(false);
+             CurrentRoom = default;
+             RoomChanged?.Invoke();
+             base.OnStopClient();
+@@ -175,6 +224,7 @@ namespace SmallArena.Networking
+         {
+             if (roomEnabled) autoCreatePlayer = true;
+             base.OnClientSceneChanged();
++            EndClientArenaLoad(true);
+         }
+ 
+         public override void Start()
+diff --git a/Assets/_Project/Scripts/Networking/LobbyMessages.cs b/Assets/_Project/Scripts/Networking/LobbyMessages.cs
+index 926b305..f5e3a61 100644
+--- a/Assets/_Project/Scripts/Networking/LobbyMessages.cs
++++ b/Assets/_Project/Scripts/Networking/LobbyMessages.cs
+@@ -2,7 +2,7 @@ using Mirror;
+ 
+ namespace SmallArena.Networking
+ {
+-    public enum LobbyPhase : byte { Offline, Waiting, Loading, Playing }
++    public enum LobbyPhase : byte { Offline, Waiting, Loading, Playing, Failed }
+ 
+     public struct LobbyMember
+     {
+diff --git a/Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs b/Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs
+index 936b340..764aa39 100644
+--- a/Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs
++++ b/Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs
+@@ -10,6 +10,11 @@ namespace SmallArena.Networking
+     {
+         private static MatchSessionNavigation active;
+         public static bool IsReturning => active != null;
++        private static string pendingNotice;
++        // Kept outside the manager because teardown destroys it before the menu appears.
++        public static void RecordNotice(string message) { if (string.IsNullOrEmpty(pendingNotice)) pendingNotice = message; }
++        public static string TakeNotice() { var message = pendingNotice; pendingNotice = null; return message; }
++        public static void ClearNotice() => pendingNotice = null;
+ 
+         public static void ReturnToMainMenu()
+         {
+diff --git a/Assets/_Project/Scripts/Server/Sessions/LobbyRoom.cs b/Assets/_Project/Scripts/Server/Sessions/LobbyRoom.cs
+index 205c6b8..30aa8dc 100644
+--- a/Assets/_Project/Scripts/Server/Sessions/LobbyRoom.cs
++++ b/Assets/_Project/Scripts/Server/Sessions/LobbyRoom.cs
+@@ -38,6 +38,17 @@ namespace SmallArena.Server.Sessions
+             Phase = LobbyPhase.Loading;
+             return true;
+         }
+-        public void FinishLoading() { if (Phase == LobbyPhase.Loading) Phase = LobbyPhase.Playing; }
++        public bool FinishLoading()
++        {
++            if (Phase != LobbyPhase.Loading) return false;
++            Phase = LobbyPhase.Playing;
++            return true;
++        }
++        public bool FailLoading()
++        {
++            if (Phase != LobbyPhase.Loading) return false;
++            Phase = LobbyPhase.Failed;
++            return true;
++        }
+     }
+ }
+diff --git a/Assets/_Project/Scripts/Server/Sessions/LobbyStartOperation.cs b/Assets/_Project/Scripts/Server/Sessions/LobbyStartOperation.cs
+new file mode 100644
+index 0000000..7781418
+--- /dev/null
++++ b/Assets/_Project/Scripts/Server/Sessions/LobbyStartOperation.cs
+@@ -0,0 +1,41 @@
++using System;
++
++namespace SmallArena.Server.Sessions
++{
++    /// <summary>One Start per room session. Called on the server thread, not a worker.</summary>
++    public sealed class LobbyStartOperation
++    {
++        private readonly LobbyRoom room;
++        private readonly Action beginLoad;
++        private readonly Action changed;
++        private readonly Action<Exception> failed;
++
++        public LobbyStartOperation(LobbyRoom room, Action beginLoad, Action changed, Action<Exception> failed)
++        {
++            this.room = room ?? throw new ArgumentNullException(nameof(room));
++            this.beginLoad = beginLoad ?? throw new ArgumentNullException(nameof(beginLoad));
++            this.changed = changed ?? throw new ArgumentNullException(nameof(changed));
++            this.failed = failed ?? throw new ArgumentNullException(nameof(failed));
++        }
++
++        public bool TryStart(int requester)
++        {
++            // Commit Loading before publishing or calling external code; reentrant retry is rejected.
++            if (!room.TryStart(requester)) return false;
++            changed();
++            try { beginLoad(); }
++            catch (Exception error)
++            {
++                if (room.FailLoading()) { changed(); failed(error); }
++            }
++            return true;
++        }
++
++        public bool Complete()
++        {
++            if (!room.FinishLoading()) return false;
++            changed();
++            return true;
++        }
++    }
++}
+diff --git a/Assets/_Project/Scripts/Server/Sessions/LobbyStartOperation.cs.meta b/Assets/_Project/Scripts/Server/Sessions/LobbyStartOperation.cs.meta
+new file mode 100644
+index 0000000..541b8af
+--- /dev/null
++++ b/Assets/_Project/Scripts/Server/Sessions/LobbyStartOperation.cs.meta
+@@ -0,0 +1,2 @@
++fileFormatVersion: 2
++guid: 9d13cf7c15b04030be0688897e88c06a
+diff --git a/Assets/_Project/Scripts/Server/Sessions/ServerLobbyController.cs b/Assets/_Project/Scripts/Server/Sessions/ServerLobbyController.cs
+index 0099f28..1a8553b 100644
+--- a/Assets/_Project/Scripts/Server/Sessions/ServerLobbyController.cs
++++ b/Assets/_Project/Scripts/Server/Sessions/ServerLobbyController.cs
+@@ -11,6 +11,7 @@ namespace SmallArena.Server.Sessions
+     {
+         private ArenaNetworkManager manager;
+         private readonly LobbyRoom room = new LobbyRoom();
++        private LobbyStartOperation startOperation;
+         public LobbyRoom Room => room;
+ 
+         private void OnEnable()
+@@ -39,10 +40,11 @@ namespace SmallArena.Server.Sessions
+         {
+             if (!manager.RoomEnabled) return;
+             room.Open();
++            startOperation = new LobbyStartOperation(room, manager.LoadRoomArena, Publish, error => manager.AbortRoomStart(error.Message));
+             NetworkServer.RegisterHandler<LobbyReadyRequest>(Ready);
+             NetworkServer.RegisterHandler<LobbyStartRequest>(StartMatch);
+         }
+-        private void Close() => room.Close();
++        private void Close() { startOperation = null; room.Close(); }
+         private void Join(NetworkConnectionToClient connection)
+         {
+             if (!manager.RoomEnabled) return;
+@@ -64,15 +66,12 @@ namespace SmallArena.Server.Sessions
+         }
+         private void StartMatch(NetworkConnectionToClient connection, LobbyStartRequest request)
+         {
+-            if (!room.TryStart(connection.connectionId)) return;
+-            Publish();
+-            manager.LoadRoomArena();
++            startOperation?.TryStart(connection.connectionId);
+         }
+         private void SceneLoaded(string scene)
+         {
+             if (!manager.RoomEnabled || !scene.EndsWith("Arena_MVP.unity") && scene != "Arena_MVP") return;
+-            room.FinishLoading();
+-            Publish();
++            startOperation?.Complete();
+         }
+         private void Publish()
+         {
+diff --git a/Assets/_Project/Tests/PlayMode/LobbyStartBoundaryTests.cs b/Assets/_Project/Tests/PlayMode/LobbyStartBoundaryTests.cs
+new file mode 100644
+index 0000000..ab01866
+--- /dev/null
++++ b/Assets/_Project/Tests/PlayMode/LobbyStartBoundaryTests.cs
+@@ -0,0 +1,129 @@
++#if UNITY_EDITOR
++using System;
++using System.Collections;
++using System.Linq;
++using System.Reflection;
++using Mirror;
++using NUnit.Framework;
++using SmallArena.Networking;
++using SmallArena.Server.Sessions;
++using UnityEngine;
++using UnityEngine.SceneManagement;
++using UnityEngine.TestTools;
++
++namespace SmallArena.Tests.PlayMode
++{
++    public sealed class LobbyStartBoundaryTests : LobbyTestFixture
++    {
++        private IEnumerator ReadyHost()
++        {
++            yield return Host(); Connect(2);
++            yield return Until(() => server.Room.Count == 2);
++            ReadyRemote(2, true); view.ReadyButton.onClick.Invoke();
++            yield return Until(() => server.Room.AllReady && view.StartButton.interactable);
++        }
++
++        private void Install(LobbyStartOperation operation)
++            => typeof(ServerLobbyController).GetField("startOperation", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(server, operation);
++        private void Publish()
++            => typeof(ServerLobbyController).GetMethod("Publish", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(server, null);
++
++        [UnityTest]
++        public IEnumerator T02_RealMirrorRetry_CountsActualProductionBoundaryAndNativeLoad()
++        {
++            yield return ReadyHost();
++            int boundary = 0, loads = 0, terminals = 0;
++            var room = server.Room;
++            Install(new LobbyStartOperation(room, () => { boundary++; manager.LoadRoomArena(); },
++                () => { if (room.Phase == LobbyPhase.Playing) terminals++; Publish(); },
++                error => Assert.Fail(error.Message)));
++            UnityEngine.Events.UnityAction<Scene, LoadSceneMode> loaded = (scene, mode) => { if (scene.name == "Arena_MVP") loads++; };
++            SceneManager.sceneLoaded += loaded;
++            try
++            {
++                manager.RequestRoomStart(); manager.RequestRoomStart();
++                yield return Until(() => room.Phase == LobbyPhase.Playing && NetworkClient.localPlayer != null);
++                manager.RequestRoomStart(); transport.Pump(); yield return null; yield return null;
++                Assert.That(boundary, Is.EqualTo(1), "B: production boundary calls across retries");
++                Assert.That(loads, Is.EqualTo(1), "L: Unity native sceneLoaded side effects");
++                Assert.That(terminals, Is.EqualTo(1), "S: actual room terminal transitions");
++            }
++            finally { SceneManager.sceneLoaded -= loaded; }
++        }
++
++        [UnityTest]
++        public IEnumerator T05_RealMissingScene_RetryAndLateCompleteCannotReopenFailedOperation()
++        {
++            yield return ReadyHost();
++            typeof(ArenaNetworkManager).GetField("arenaScenePath", BindingFlags.NonPublic | BindingFlags.Instance)
++                .SetValue(manager, "Assets/BT3_missing/Arena_MVP.unity");
++            int boundary = 0, loads = 0, failures = 0, terminals = 0;
++            bool retryRejected = false, lateRejected = false;
++            var room = server.Room;
++            LobbyStartOperation operation = null;
++            operation = new LobbyStartOperation(room, () => { boundary++; manager.LoadRoomArena(); },
++                () => { if (room.Phase.ToString() == "Failed" || room.Phase == LobbyPhase.Playing) terminals++; Publish(); },
++                error =>
++                {
++                    failures++;
++                    Assert.That(room.Phase.ToString(), Is.EqualTo("Failed"), "Terminal before teardown");
++                    Assert.That(error.Message, Does.Contain("unavailable"), "Real Application.CanStreamedLevelBeLoaded preflight signal");
++                    retryRejected = !operation.TryStart(0);
++                    lateRejected = !operation.Complete();
++                    Assert.That(manager.ServerCanSpawnPlayer(), Is.False);
++                    manager.AbortRoomStart(error.Message);
++                });
++            Install(operation);
++            UnityEngine.Events.UnityAction<Scene, LoadSceneMode> loaded = (scene, mode) => { if (scene.name == "Arena_MVP") loads++; };
++            SceneManager.sceneLoaded += loaded;
++            try
++            {
++                manager.RequestRoomStart(); manager.RequestRoomStart();
++                yield return Until(() => !NetworkServer.active && !MatchSessionNavigation.IsReturning);
++                Assert.That(room.Phase, Is.EqualTo(LobbyPhase.Offline), "Final session teardown state");
++                Assert.That(retryRejected && lateRejected, Is.True);
++                Assert.That(boundary, Is.EqualTo(1)); Assert.That(loads, Is.Zero);
++                Assert.That(failures, Is.EqualTo(1)); Assert.That(terminals, Is.EqualTo(1));
++            }
++            finally { SceneManager.sceneLoaded -= loaded; }
++        }
++
++        [TestCase(3)]
++        [TestCase(4)]
++        [TestCase(5)]
++        public void T13_AuthenticatedCount_RealConnectCallbackBoundary(int count)
++        {
++            // Direct integration at Mirror's authenticated callback contract, not a socket test.
++            // OnServerAuthenticated sets the incoming connection true before OnServerConnect.
++            manager.StartServer();
++            NetworkConnectionToClient incoming = null;
++            for (var id = 1; id <= count; id++)
++            {
++                incoming = new NetworkConnectionToClient(id) { isAuthenticated = true };
++                NetworkServer.connections.Add(id, incoming);
++            }
++            Assert.That(NetworkServer.connections.Values.Count(c => c.isAuthenticated), Is.EqualTo(count));
++            int admitted = 0;
++            manager.ServerConnected += _ => admitted++;
++            manager.OnServerConnect(incoming);
++            Assert.That(admitted, Is.EqualTo(count <= 4 ? 1 : 0), "Authenticated count 4 must be admitted; 5 rejected.");
++            Assert.That(incoming.isAuthenticated, Is.EqualTo(count <= 4));
++            Assert.That(server.Room.Count, Is.LessThanOrEqualTo(4));
++        }
++
++        [Test]
++        public void T14_ExistingWrongSceneIsRejectedBeforeMirrorLoad()
++        {
++            manager.StartServer();
++            Assert.That(Application.CanStreamedLevelBeLoaded("Assets/_Project/Scenes/MainMenu.unity"), Is.True);
++            typeof(ArenaNetworkManager).GetField("arenaScenePath", BindingFlags.NonPublic | BindingFlags.Instance)
++                .SetValue(manager, "Assets/_Project/Scenes/MainMenu.unity");
++            var previous = NetworkManager.loadingSceneAsync;
++            var error = Assert.Throws<InvalidOperationException>(() => manager.LoadRoomArena());
++            Assert.That(error.Message, Does.Contain("must target Arena_MVP"));
++            Assert.That(NetworkManager.loadingSceneAsync, Is.SameAs(previous));
++            Assert.That(NetworkServer.isLoadingScene, Is.False);
++        }
++    }
++}
++#endif
+diff --git a/Assets/_Project/Tests/PlayMode/LobbyStartBoundaryTests.cs.meta b/Assets/_Project/Tests/PlayMode/LobbyStartBoundaryTests.cs.meta
+new file mode 100644
+index 0000000..b6b9726
+--- /dev/null
++++ b/Assets/_Project/Tests/PlayMode/LobbyStartBoundaryTests.cs.meta
+@@ -0,0 +1,2 @@
++fileFormatVersion: 2
++guid: ca4467d58b4c46f6ab4e4c370c46908c
+diff --git a/Assets/_Project/Tests/PlayMode/LobbyStartOperationTests.cs b/Assets/_Project/Tests/PlayMode/LobbyStartOperationTests.cs
+index 1f6a8d6..4031d0b 100644
+--- a/Assets/_Project/Tests/PlayMode/LobbyStartOperationTests.cs
++++ b/Assets/_Project/Tests/PlayMode/LobbyStartOperationTests.cs
+@@ -79,7 +79,7 @@ namespace SmallArena.Tests.PlayMode
+         [Test]
+         public void T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure()
+         {
+-            var room = ReadyRoom(); int boundary = 0, fakeLoads = 0, failed = 0, terminal = 0;
++            var room = ReadyRoom(); int boundary = 0, failed = 0, terminal = 0;
+             var operation = Operation(room, () => { boundary++; throw new InvalidOperationException("startup boundary failure"); },
+                 () => { if (room.Phase.ToString() == "Failed" || room.Phase == LobbyPhase.Playing) terminal++; },
+                 error => { Assert.That(error.Message, Is.EqualTo("startup boundary failure")); failed++; });
+@@ -87,7 +87,9 @@ namespace SmallArena.Tests.PlayMode
+             Assert.That(room.Phase.ToString(), Is.EqualTo("Failed"));
+             Assert.That(Call(operation, "TryStart", 0), Is.False);
+             Assert.That(Call(operation, "Complete"), Is.False);
+-            Assert.That(boundary, Is.EqualTo(1)); Assert.That(fakeLoads, Is.Zero);
++            // This unit test observes attempts/terminal only. Native zero-load evidence
++            // comes from T05_RealMissingScene's SceneManager.sceneLoaded observer.
++            Assert.That(boundary, Is.EqualTo(1));
+             Assert.That(failed, Is.EqualTo(1)); Assert.That(terminal, Is.EqualTo(1));
+             room.Close(); Assert.That(room.Phase, Is.EqualTo(LobbyPhase.Offline));
+         }
+diff --git a/Assets/_Project/Tests/PlayMode/LobbyStartProgressTests.cs b/Assets/_Project/Tests/PlayMode/LobbyStartProgressTests.cs
+index 482fb33..296a636 100644
+--- a/Assets/_Project/Tests/PlayMode/LobbyStartProgressTests.cs
++++ b/Assets/_Project/Tests/PlayMode/LobbyStartProgressTests.cs
+@@ -83,7 +83,7 @@ namespace SmallArena.Tests.PlayMode
+             yield return ReadyHost();
+             var path = typeof(ArenaNetworkManager).GetField("arenaScenePath", BindingFlags.NonPublic | BindingFlags.Instance);
+             Assert.That(path, Is.Not.Null, "The actual load boundary must validate its configured scene before Mirror's log/return path.");
+-            path.SetValue(manager, "Assets/_Project/Scenes/BT3_missing_scene.unity");
++            path.SetValue(manager, "Assets/BT3_missing/Arena_MVP.unity");
+             int arenaLoads = 0;
+             UnityEngine.Events.UnityAction<Scene, LoadSceneMode> loaded = (scene, mode) => { if (scene.name == "Arena_MVP") arenaLoads++; };
+             SceneManager.sceneLoaded += loaded;
+@@ -115,6 +115,26 @@ namespace SmallArena.Tests.PlayMode
+             Assert.That(OverlayVisible(), Is.False);
+         }
+ 
++        [UnityTest]
++        public IEnumerator T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart()
++        {
++            yield return ReadyHost();
++            typeof(ArenaNetworkManager).GetField("arenaScenePath", BindingFlags.NonPublic | BindingFlags.Instance)
++                .SetValue(manager, "Assets/BT3_missing/Arena_MVP.unity");
++            manager.RequestRoomStart();
++            yield return Until(() => !NetworkServer.active && !MatchSessionNavigation.IsReturning);
++            Assert.That(NetworkManager.singleton != null, Is.True, "Failure teardown in MainMenu must recreate a usable manager for a new session.");
++            manager = (ArenaNetworkManager)NetworkManager.singleton;
++            server = manager.GetComponent<SmallArena.Server.Sessions.ServerLobbyController>();
++            view = Object.FindAnyObjectByType<LobbyRoomView>();
++            manager.transport.enabled = false;
++            transport = manager.gameObject.AddComponent<M1LoopbackTransport>(); manager.transport = transport; Transport.active = transport;
++            yield return ReadyHost();
++            manager.RequestRoomStart();
++            yield return Until(() => server.Room.Phase == LobbyPhase.Playing && NetworkClient.localPlayer != null);
++            Assert.That(OverlayVisible(), Is.False);
++        }
++
+         [Test]
+         public void T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn()
+         {
+@@ -126,6 +146,25 @@ namespace SmallArena.Tests.PlayMode
+             }
+             finally { Object.DestroyImmediate(root); }
+         }
++
++        [UnityTest]
++        public IEnumerator T16_TwentyRealSceneCycles_CheckTimingAndPersistentSharedState()
++        {
++            var rounds = new System.Collections.Generic.List<string>();
++            for (var round = 1; round <= 20; round++)
++            {
++                Assert.That(OverlayVisible(), Is.False, "No visible overlay carried into next session");
++                Assert.That(Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None)
++                    .Count(item => item.GetType().FullName == "SmallArena.Client.UI.ArenaLoadingOverlay"), Is.EqualTo(1), "Exactly one observer on this session root");
++                var started = Time.realtimeSinceStartup;
++                yield return T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady();
++                rounds.Add(round + "," + (Time.realtimeSinceStartup - started).ToString("F6", System.Globalization.CultureInfo.InvariantCulture) + ",Passed");
++                if (round < 20) { yield return CleanupRoom(); yield return LoadMenu(); }
++            }
++            var folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../docs/assignments/bt3-vt-066/evidence/flaky"));
++            System.IO.Directory.CreateDirectory(folder);
++            System.IO.File.WriteAllLines(System.IO.Path.Combine(folder, "real-scene-cycles.csv"), new[] { "round,seconds,result" }.Concat(rounds));
++        }
+     }
+ }
+ #endif

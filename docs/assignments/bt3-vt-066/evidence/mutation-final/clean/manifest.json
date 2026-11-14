@@ -1,0 +1,42 @@
+﻿{
+    "editor":  "C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Unity.exe",
+    "arguments":  [
+                      "-batchmode",
+                      "-nographics",
+                      "-projectPath",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\"",
+                      "-runTests",
+                      "-testPlatform",
+                      "PlayMode",
+                      "-testFilter",
+                      "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary",
+                      "-testResults",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\mutation-final\\clean\\results.xml\"",
+                      "-logFile",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\mutation-final\\clean\\unity.log\""
+                  ],
+    "startedUtc":  "2026-11-14T10:22:18.9834700Z",
+    "endedUtc":  "2026-11-14T10:22:29.3219044Z",
+    "sourceSha":  "02db6c3affce0252e60c3abf20d8bc3f48ef11e7",
+    "endSha":  "02db6c3affce0252e60c3abf20d8bc3f48ef11e7",
+    "exitCode":  0,
+    "result":  "Passed",
+    "caseCount":  3,
+    "cases":  [
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(3)",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(4)",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(5)",
+                      "result":  "Passed",
+                      "assertion":  null
+                  }
+              ]
+}

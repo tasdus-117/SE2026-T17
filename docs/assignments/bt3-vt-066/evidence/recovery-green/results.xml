@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-14 10:18:01Z" end-time="2026-11-14 10:18:02Z" duration="0.5717169">
+  <test-suite type="TestSuite" id="1366" name="Small Arena" fullname="Small Arena" runstate="Runnable" testcasecount="309" result="Passed" start-time="2026-11-14 10:18:01Z" end-time="2026-11-14 10:18:02Z" duration="0.571717" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1719" name="SmallArena.PlayMode.Tests.dll" fullname="C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066/Library/ScriptAssemblies/SmallArena.PlayMode.Tests.dll" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:18:01Z" end-time="2026-11-14 10:18:02Z" duration="0.561810" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="34320" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1720" name="SmallArena" fullname="SmallArena" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:18:01Z" end-time="2026-11-14 10:18:02Z" duration="0.560225" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1721" name="Tests" fullname="SmallArena.Tests" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:18:01Z" end-time="2026-11-14 10:18:02Z" duration="0.558805" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1722" name="PlayMode" fullname="SmallArena.Tests.PlayMode" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:18:01Z" end-time="2026-11-14 10:18:02Z" duration="0.557406" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1506" name="LobbyStartProgressTests" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-14 10:18:01Z" end-time="2026-11-14 10:18:02Z" duration="0.550263" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1511" name="T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart" methodname="T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="135179555" result="Passed" start-time="2026-11-14 10:18:01Z" end-time="2026-11-14 10:18:02Z" duration="0.537718" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Saving results to: C:/Users/tasdus_117/AppData/LocalLow/DefaultCompany/Small Arena\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

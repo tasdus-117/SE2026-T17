@@ -1,0 +1,24 @@
+﻿{
+    "sourceSha":  "c9a27babe977155c9c7b4e95c8d7c4dd2423325a",
+    "sourceFiles":  [
+                        {
+                            "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\tools\\Bt3LoadHarness.cs",
+                            "sha256":  "451422EC3C6B35B8B9E1A3E297D1B308D55651BB2E0A63DE14BE644B577D8E51"
+                        },
+                        {
+                            "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Sessions\\LobbyRoom.cs",
+                            "sha256":  "E754586E10D12B58B4006E825A53CD4CDA6DBF22893786924E4C98439765FA37"
+                        },
+                        {
+                            "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Server\\Sessions\\LobbyStartOperation.cs",
+                            "sha256":  "BF26C0D0ABEC0F31E0D4A03889B568E717AD4587DFB9BD8E9F87C0D2AFBBACB5"
+                        },
+                        {
+                            "path":  "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\Assets\\_Project\\Scripts\\Networking\\LobbyMessages.cs",
+                            "sha256":  "C546112D19DEA0741DE9676FAC7B7996932E8360141D800C4834C9C652022C19"
+                        }
+                    ],
+    "rounds":  20,
+    "exitCode":  0,
+    "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File tools/Run-Bt3Load.ps1 -Rounds 20 -Label load-barrier100"
+}

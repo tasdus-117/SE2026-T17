@@ -1,0 +1,13 @@
+﻿diff --git a/Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs b/Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs
+index bfc8bec..76a205c 100644
+--- a/Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs
++++ b/Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs
+@@ -250,7 +250,7 @@ namespace SmallArena.Networking
+ 
+         public override void OnServerConnect(NetworkConnectionToClient conn)
+         {
+-            if (roomEnabled && NetworkServer.connections.Values.Count(connection => connection.isAuthenticated) > LobbyLimits.Capacity)
++            if (roomEnabled && NetworkServer.connections.Values.Count(connection => connection.isAuthenticated) >= LobbyLimits.Capacity)
+             {
+                 RejectRoomConnection(conn, LobbyLimits.FullReason);
+                 return;

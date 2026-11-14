@@ -1,0 +1,42 @@
+﻿{
+    "editor":  "C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Unity.exe",
+    "arguments":  [
+                      "-batchmode",
+                      "-nographics",
+                      "-projectPath",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\"",
+                      "-runTests",
+                      "-testPlatform",
+                      "PlayMode",
+                      "-testFilter",
+                      "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary",
+                      "-testResults",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\mutation-final\\mutant\\results.xml\"",
+                      "-logFile",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\mutation-final\\mutant\\unity.log\""
+                  ],
+    "startedUtc":  "2026-11-14T10:22:29.7147963Z",
+    "endedUtc":  "2026-11-14T10:22:41.0728929Z",
+    "sourceSha":  "db5d5efb69c6616e07892ab0583790b7152d9131",
+    "endSha":  "db5d5efb69c6616e07892ab0583790b7152d9131",
+    "exitCode":  2,
+    "result":  "Failed(Child)",
+    "caseCount":  3,
+    "cases":  [
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(3)",
+                      "result":  "Passed",
+                      "assertion":  null
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(4)",
+                      "result":  "Failed",
+                      "assertion":  "  Authenticated count 4 must be admitted; 5 rejected.\n  Expected: 1\n  But was:  0\n"
+                  },
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(5)",
+                      "result":  "Passed",
+                      "assertion":  null
+                  }
+              ]
+}

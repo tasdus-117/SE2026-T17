@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-14 10:22:47Z" end-time="2026-11-14 10:22:48Z" duration="0.4434947">
+  <test-suite type="TestSuite" id="1366" name="Small Arena" fullname="Small Arena" runstate="Runnable" testcasecount="309" result="Passed" start-time="2026-11-14 10:22:47Z" end-time="2026-11-14 10:22:48Z" duration="0.443495" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1719" name="SmallArena.PlayMode.Tests.dll" fullname="C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066/Library/ScriptAssemblies/SmallArena.PlayMode.Tests.dll" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:22:47Z" end-time="2026-11-14 10:22:48Z" duration="0.435791" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="8196" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1720" name="SmallArena" fullname="SmallArena" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:22:47Z" end-time="2026-11-14 10:22:48Z" duration="0.431917" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1721" name="Tests" fullname="SmallArena.Tests" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:22:47Z" end-time="2026-11-14 10:22:48Z" duration="0.430780" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1722" name="PlayMode" fullname="SmallArena.Tests.PlayMode" runstate="Runnable" testcasecount="305" result="Passed" start-time="2026-11-14 10:22:47Z" end-time="2026-11-14 10:22:48Z" duration="0.429651" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1481" name="LobbyStartBoundaryTests" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-14 10:22:47Z" end-time="2026-11-14 10:22:48Z" duration="0.422983" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="1487" name="T13_AuthenticatedCount_RealConnectCallbackBoundary" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-14 10:22:47Z" end-time="2026-11-14 10:22:48Z" duration="0.419765" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1484" name="T13_AuthenticatedCount_RealConnectCallbackBoundary(3)" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(3)" methodname="T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="887543803" result="Passed" start-time="2026-11-14 10:22:47Z" end-time="2026-11-14 10:22:48Z" duration="0.253216" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Server started listening
+[TV1] Client connected: 3
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+]]></output>
+                </test-case>
+                <test-case id="1485" name="T13_AuthenticatedCount_RealConnectCallbackBoundary(4)" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(4)" methodname="T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="2132985909" result="Passed" start-time="2026-11-14 10:22:48Z" end-time="2026-11-14 10:22:48Z" duration="0.072265" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Server started listening
+[TV1] Client connected: 4
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+]]></output>
+                </test-case>
+                <test-case id="1486" name="T13_AuthenticatedCount_RealConnectCallbackBoundary(5)" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(5)" methodname="T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="1246966626" result="Passed" start-time="2026-11-14 10:22:48Z" end-time="2026-11-14 10:22:48Z" duration="0.083034" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Server started listening
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+[TV1] Client disconnected: 5
+Saving results to: C:/Users/tasdus_117/AppData/LocalLow/DefaultCompany/Small Arena\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

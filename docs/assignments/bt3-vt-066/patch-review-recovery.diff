@@ -1,0 +1,55 @@
+diff --git a/Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs b/Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs
+index 764aa39..add7d78 100644
+--- a/Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs
++++ b/Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs
+@@ -57,7 +57,9 @@ namespace SmallArena.Networking
+             yield return null; // Finish Unity destruction before resetting singleton references or creating the menu root.
+             NetworkManager.ResetStatics();
+             if (!NetworkServer.active) Transport.active = null;
+-            if (SceneManager.GetActiveScene().name != "MainMenu") yield return SceneManager.LoadSceneAsync("MainMenu");
++            // Startup may fail while MainMenu is still active. Reload it as well: the
++            // old session manager was destroyed above and the scene must create a new one.
++            yield return SceneManager.LoadSceneAsync("MainMenu");
+             Destroy(gameObject);
+         }
+ 
+diff --git a/Assets/_Project/Tests/PlayMode/LobbyStartProgressTests.cs b/Assets/_Project/Tests/PlayMode/LobbyStartProgressTests.cs
+index 75f9ed9..4ce64a8 100644
+--- a/Assets/_Project/Tests/PlayMode/LobbyStartProgressTests.cs
++++ b/Assets/_Project/Tests/PlayMode/LobbyStartProgressTests.cs
+@@ -90,7 +90,7 @@ namespace SmallArena.Tests.PlayMode
+             try
+             {
+                 manager.RequestRoomStart(); manager.RequestRoomStart();
+-                yield return Until(() => !NetworkServer.active && Object.FindAnyObjectByType<LobbyRoomView>() != null);
++                yield return Until(() => !NetworkServer.active && !MatchSessionNavigation.IsReturning && Object.FindAnyObjectByType<LobbyRoomView>() != null);
+                 yield return null;
+                 var returnedView = Object.FindAnyObjectByType<LobbyRoomView>();
+                 Assert.That(returnedView.ErrorVisible, Is.True, "Failure notice must survive destruction of session manager.");
+@@ -115,6 +115,26 @@ namespace SmallArena.Tests.PlayMode
+             Assert.That(OverlayVisible(), Is.False);
+         }
+ 
++        [UnityTest]
++        public IEnumerator T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart()
++        {
++            yield return ReadyHost();
++            typeof(ArenaNetworkManager).GetField("arenaScenePath", BindingFlags.NonPublic | BindingFlags.Instance)
++                .SetValue(manager, "Assets/BT3_missing/Arena_MVP.unity");
++            manager.RequestRoomStart();
++            yield return Until(() => !NetworkServer.active && !MatchSessionNavigation.IsReturning);
++            Assert.That(NetworkManager.singleton != null, Is.True, "Failure teardown in MainMenu must recreate a usable manager for a new session.");
++            manager = (ArenaNetworkManager)NetworkManager.singleton;
++            server = manager.GetComponent<SmallArena.Server.Sessions.ServerLobbyController>();
++            view = Object.FindAnyObjectByType<LobbyRoomView>();
++            manager.transport.enabled = false;
++            transport = manager.gameObject.AddComponent<M1LoopbackTransport>(); manager.transport = transport; Transport.active = transport;
++            yield return ReadyHost();
++            manager.RequestRoomStart();
++            yield return Until(() => server.Room.Phase == LobbyPhase.Playing && NetworkClient.localPlayer != null);
++            Assert.That(OverlayVisible(), Is.False);
++        }
++
+         [Test]
+         public void T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn()
+         {

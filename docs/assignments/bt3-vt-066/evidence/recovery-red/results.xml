@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-14 10:17:07Z" end-time="2026-11-14 10:17:07Z" duration="0.4193449">
+  <test-suite type="TestSuite" id="1366" name="Small Arena" fullname="Small Arena" runstate="Runnable" testcasecount="309" result="Failed" site="Child" start-time="2026-11-14 10:17:07Z" end-time="2026-11-14 10:17:07Z" duration="0.419345" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1719" name="SmallArena.PlayMode.Tests.dll" fullname="C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066/Library/ScriptAssemblies/SmallArena.PlayMode.Tests.dll" runstate="Runnable" testcasecount="305" result="Failed" site="Child" start-time="2026-11-14 10:17:07Z" end-time="2026-11-14 10:17:07Z" duration="0.409130" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="28880" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1720" name="SmallArena" fullname="SmallArena" runstate="Runnable" testcasecount="305" result="Failed" site="Child" start-time="2026-11-14 10:17:07Z" end-time="2026-11-14 10:17:07Z" duration="0.407375" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1721" name="Tests" fullname="SmallArena.Tests" runstate="Runnable" testcasecount="305" result="Failed" site="Child" start-time="2026-11-14 10:17:07Z" end-time="2026-11-14 10:17:07Z" duration="0.406030" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1722" name="PlayMode" fullname="SmallArena.Tests.PlayMode" runstate="Runnable" testcasecount="305" result="Failed" site="Child" start-time="2026-11-14 10:17:07Z" end-time="2026-11-14 10:17:07Z" duration="0.404670" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1506" name="LobbyStartProgressTests" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" testcasecount="7" result="Failed" site="Child" start-time="2026-11-14 10:17:07Z" end-time="2026-11-14 10:17:07Z" duration="0.397227" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1511" name="T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart" methodname="T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="2040755723" result="Failed" start-time="2026-11-14 10:17:07Z" end-time="2026-11-14 10:17:07Z" duration="0.384995" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Failure teardown in MainMenu must recreate a usable manager for a new session.
+  Expected: True
+  But was:  False
+]]></message>
+                  <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartProgressTests+<T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart>d__6.MoveNext () [0x000b9] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs:126
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__8.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@ee3fe9477490\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:52
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Saving results to: C:/Users/tasdus_117/AppData/LocalLow/DefaultCompany/Small Arena\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

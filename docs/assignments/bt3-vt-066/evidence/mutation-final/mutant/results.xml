@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Failed(Child)" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.4426433">
+  <test-suite type="TestSuite" id="1366" name="Small Arena" fullname="Small Arena" runstate="Runnable" testcasecount="309" result="Failed" site="Child" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.442643" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1719" name="SmallArena.PlayMode.Tests.dll" fullname="C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066/Library/ScriptAssemblies/SmallArena.PlayMode.Tests.dll" runstate="Runnable" testcasecount="305" result="Failed" site="Child" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.436254" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="32700" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1720" name="SmallArena" fullname="SmallArena" runstate="Runnable" testcasecount="305" result="Failed" site="Child" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.432367" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1721" name="Tests" fullname="SmallArena.Tests" runstate="Runnable" testcasecount="305" result="Failed" site="Child" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.431138" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1722" name="PlayMode" fullname="SmallArena.Tests.PlayMode" runstate="Runnable" testcasecount="305" result="Failed" site="Child" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.429962" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1481" name="LobbyStartBoundaryTests" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.423689" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="ParameterizedMethod" id="1487" name="T13_AuthenticatedCount_RealConnectCallbackBoundary" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" testcasecount="3" result="Failed" site="Child" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.420903" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1484" name="T13_AuthenticatedCount_RealConnectCallbackBoundary(3)" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(3)" methodname="T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="1573459805" result="Passed" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.254419" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Server started listening
+[TV1] Client connected: 3
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+]]></output>
+                </test-case>
+                <test-case id="1485" name="T13_AuthenticatedCount_RealConnectCallbackBoundary(4)" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(4)" methodname="T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="587111053" result="Failed" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.072334" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Authenticated count 4 must be admitted; 5 rejected.
+  Expected: 1
+  But was:  0
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary (System.Int32 count) [0x000a6] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartBoundaryTests.cs:109
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[Server started listening
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+]]></output>
+                </test-case>
+                <test-case id="1486" name="T13_AuthenticatedCount_RealConnectCallbackBoundary(5)" fullname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests.T13_AuthenticatedCount_RealConnectCallbackBoundary(5)" methodname="T13_AuthenticatedCount_RealConnectCallbackBoundary" classname="SmallArena.Tests.PlayMode.LobbyStartBoundaryTests" runstate="Runnable" seed="79169708" result="Passed" start-time="2026-11-14 10:22:36Z" end-time="2026-11-14 10:22:36Z" duration="0.083133" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Server started listening
+[TV1] Client disconnected: 1
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 3
+[TV1] Client disconnected: 4
+[TV1] Client disconnected: 5
+Saving results to: C:/Users/tasdus_117/AppData/LocalLow/DefaultCompany/Small Arena\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

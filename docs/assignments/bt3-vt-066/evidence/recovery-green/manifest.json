@@ -1,0 +1,31 @@
+﻿{
+    "editor":  "C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Unity.exe",
+    "arguments":  [
+                      "-batchmode",
+                      "-nographics",
+                      "-projectPath",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\"",
+                      "-runTests",
+                      "-testPlatform",
+                      "PlayMode",
+                      "-testFilter",
+                      "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart",
+                      "-testResults",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\recovery-green\\results.xml\"",
+                      "-logFile",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\recovery-green\\unity.log\""
+                  ],
+    "startedUtc":  "2026-11-14T10:17:55.0338631Z",
+    "endedUtc":  "2026-11-14T10:18:06.3892599Z",
+    "sourceSha":  "c4719b4e998f83c1c6eb784ea5b5c239202573d9",
+    "exitCode":  0,
+    "result":  "Passed",
+    "caseCount":  1,
+    "cases":  [
+                  {
+                      "id":  "SmallArena.Tests.PlayMode.LobbyStartProgressTests.T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart",
+                      "result":  "Passed",
+                      "assertion":  null
+                  }
+              ]
+}

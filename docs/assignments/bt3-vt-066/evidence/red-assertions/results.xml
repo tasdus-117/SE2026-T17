@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="20" result="Failed(Child)" total="20" passed="1" failed="19" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:25Z" duration="1.1112285">
+  <test-suite type="TestSuite" id="1356" name="Small Arena" fullname="Small Arena" runstate="Runnable" testcasecount="301" result="Failed" site="Child" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:25Z" duration="1.111229" total="20" passed="1" failed="19" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1699" name="SmallArena.PlayMode.Tests.dll" fullname="C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066/Library/ScriptAssemblies/SmallArena.PlayMode.Tests.dll" runstate="Runnable" testcasecount="297" result="Failed" site="Child" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:25Z" duration="1.102771" total="20" passed="1" failed="19" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="33928" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1700" name="SmallArena" fullname="SmallArena" runstate="Runnable" testcasecount="297" result="Failed" site="Child" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:25Z" duration="1.101270" total="20" passed="1" failed="19" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1701" name="Tests" fullname="SmallArena.Tests" runstate="Runnable" testcasecount="297" result="Failed" site="Child" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:25Z" duration="1.100311" total="20" passed="1" failed="19" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1702" name="PlayMode" fullname="SmallArena.Tests.PlayMode" runstate="Runnable" testcasecount="297" result="Failed" site="Child" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:25Z" duration="1.099145" total="20" passed="1" failed="19" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1471" name="LobbyStartOperationTests" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" testcasecount="15" result="Failed" site="Child" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.036709" total="15" passed="0" failed="15" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="ParameterizedMethod" id="1484" name="T01_Pairwise_AuthorityRosterAndDelivery" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" testcasecount="12" result="Failed" site="Child" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.026670" total="12" passed="0" failed="12" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1472" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;solo_ready&quot;,&quot;single&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;solo_ready&quot;,&quot;single&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1099754224" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.015709" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1473" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;two_partial&quot;,&quot;burst&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;two_partial&quot;,&quot;burst&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1540750990" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000420" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1474" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;two_ready&quot;,&quot;after_result&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;two_ready&quot;,&quot;after_result&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="672339464" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000182" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1475" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;two_partial&quot;,&quot;single&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;two_partial&quot;,&quot;single&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="899577535" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000095" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1476" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;two_ready&quot;,&quot;burst&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;two_ready&quot;,&quot;burst&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1721442910" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000083" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1477" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;four_ready&quot;,&quot;after_result&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;guest&quot;,&quot;four_ready&quot;,&quot;after_result&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="992668881" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000286" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1478" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;solo_ready&quot;,&quot;burst&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;solo_ready&quot;,&quot;burst&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="2132261897" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000092" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1479" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;two_partial&quot;,&quot;after_result&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;two_partial&quot;,&quot;after_result&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="225925519" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000079" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1480" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;two_ready&quot;,&quot;single&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;two_ready&quot;,&quot;single&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="500840840" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000259" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1481" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;four_ready&quot;,&quot;single&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;four_ready&quot;,&quot;single&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="393869800" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000131" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1482" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;four_ready&quot;,&quot;burst&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;unknown&quot;,&quot;four_ready&quot;,&quot;burst&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1599027800" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000358" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1483" name="T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;solo_ready&quot;,&quot;after_result&quot;)" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery(&quot;host&quot;,&quot;solo_ready&quot;,&quot;after_result&quot;)" methodname="T01_Pairwise_AuthorityRosterAndDelivery" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="458302722" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000198" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T01_Pairwise_AuthorityRosterAndDelivery (System.String requester, System.String roster, System.String delivery) [0x00062] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:47
+]]></stack-trace>
+                  </failure>
+                </test-case>
+              </test-suite>
+              <test-case id="1485" name="T02_T03_T04_RetryWhileLoadingAndAfterTerminal_CountsBoundaryAndCompletion" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T02_T03_T04_RetryWhileLoadingAndAfterTerminal_CountsBoundaryAndCompletion" methodname="T02_T03_T04_RetryWhileLoadingAndAfterTerminal_CountsBoundaryAndCompletion" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1711539807" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000707" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T02_T03_T04_RetryWhileLoadingAndAfterTerminal_CountsBoundaryAndCompletion () [0x00027] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:65
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1486" name="T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure" methodname="T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1723797889" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000576" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T05_FailureRetryAndLateCallback_OneAttemptZeroLoadsOneFailure () [0x00029] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:83
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1487" name="T12_NewSessionCanStart_StaleCompletionWhileWaitingIsIgnored" fullname="SmallArena.Tests.PlayMode.LobbyStartOperationTests.T12_NewSessionCanStart_StaleCompletionWhileWaitingIsIgnored" methodname="T12_NewSessionCanStart_StaleCompletionWhileWaitingIsIgnored" classname="SmallArena.Tests.PlayMode.LobbyStartOperationTests" runstate="Runnable" seed="1661410507" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.000413" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Start operation must expose guarded completion/failure at the production coordinator boundary.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartOperationTests.Operation (SmallArena.Server.Sessions.LobbyRoom room, System.Action load, System.Action changed, System.Action`1[T] failed) [0x00019] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:17
+at SmallArena.Tests.PlayMode.LobbyStartOperationTests.T12_NewSessionCanStart_StaleCompletionWhileWaitingIsIgnored () [0x00014] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartOperationTests.cs:99
+]]></stack-trace>
+                </failure>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1488" name="LobbyStartProgressTests" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:25Z" duration="1.046902" total="5" passed="1" failed="4" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1489" name="T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady" methodname="T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="577123145" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.431099" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Overlay must remain visible after RoomPanel destruction, before Mirror local-ready callback.
+  Expected: True
+  But was:  False
+]]></message>
+                  <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartProgressTests+<T08_HostRealScene_OverlaySurvivesRoomPanelThenCleansAtLocalReady>d__2.MoveNext () [0x00138] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs:55
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__8.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@ee3fe9477490\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:52
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1490" name="T09_ClientOnlyHook_ServerCallbackDoesNotCompleteGuestOverlay" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T09_ClientOnlyHook_ServerCallbackDoesNotCompleteGuestOverlay" methodname="T09_ClientOnlyHook_ServerCallbackDoesNotCompleteGuestOverlay" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="308075301" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:24Z" duration="0.112950" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Client scene-start must show local overlay.
+  Expected: True
+  But was:  False
+]]></message>
+                  <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartProgressTests+<T09_ClientOnlyHook_ServerCallbackDoesNotCompleteGuestOverlay>d__3.MoveNext () [0x0004a] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs:71
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__8.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@ee3fe9477490\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:52
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1491" name="T10_T14_RealPreflightFailure_ReturnsReadableNoticeWithoutLoading" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T10_T14_RealPreflightFailure_ReturnsReadableNoticeWithoutLoading" methodname="T10_T14_RealPreflightFailure_ReturnsReadableNoticeWithoutLoading" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="88868187" result="Failed" start-time="2026-11-14 10:04:24Z" end-time="2026-11-14 10:04:25Z" duration="0.183102" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  The actual load boundary must validate its configured scene before Mirror's log/return path.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartProgressTests+<T10_T14_RealPreflightFailure_ReturnsReadableNoticeWithoutLoading>d__4.MoveNext () [0x00075] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs:85
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__8.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@ee3fe9477490\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:52
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+]]></output>
+              </test-case>
+              <test-case id="1492" name="T11_GuestDisconnect_DoesNotFailServerLoad" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T11_GuestDisconnect_DoesNotFailServerLoad" methodname="T11_GuestDisconnect_DoesNotFailServerLoad" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="722256062" result="Passed" start-time="2026-11-14 10:04:25Z" end-time="2026-11-14 10:04:25Z" duration="0.233052" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client connected: 3
+[TV1] Client disconnected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 3
+]]></output>
+              </test-case>
+              <test-case id="1493" name="T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn" fullname="SmallArena.Tests.PlayMode.LobbyStartProgressTests.T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn" methodname="T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn" classname="SmallArena.Tests.PlayMode.LobbyStartProgressTests" runstate="Runnable" seed="278171470" result="Failed" start-time="2026-11-14 10:04:25Z" end-time="2026-11-14 10:04:25Z" duration="0.082928" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Expected: <System.InvalidOperationException>
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at SmallArena.Tests.PlayMode.LobbyStartProgressTests.T14_InactiveBoundarySignalsFailureInsteadOfSilentReturn () [0x0001c] in C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs:125
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Multiple NetworkManagers detected in the scene. Only one NetworkManager can exist at a time. The duplicate NetworkManager will be destroyed.
+Saving results to: C:/Users/tasdus_117/AppData/LocalLow/DefaultCompany/Small Arena\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

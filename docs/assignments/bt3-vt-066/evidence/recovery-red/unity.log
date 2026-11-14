@@ -1,0 +1,616 @@
+VBCSCompilerPreWarmer: watching VBCSCompiler (PID 36420)
+VBCSCompilerPreWarmer: pre-warm launched (dotnet PID 11768)
+VBCSCompiler prewarm took 9.33 ms
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.6/respin/6000.6.8f1-b6138bef9630' branch; Version is '6000.6.8f1 (237b6593792b) revision 2325349'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-tasdus_117" at "2026-11-14T10:17:00.6079175Z"
+OS: 'Windows 11  (10.0.26200) Professional' Language: 'en' Physical Memory: 32229 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-11-14T10:17:00Z
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 19300, path: "C:/Program Files/Unity Hub/UnityLicensingClient_V1/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              ff5be139d65644d8b874edacec6a52de
+  Correlation Id:          8e8d7bdace6d4419d34cea2dc1f51a85
+  External correlation Id: 364984353173572221
+  Machine Id:              EtfUn/kQiap61hbW6Fwki5oGnys=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-tasdus_117" (connect: 0.00s, validation: 0.00s, handshake: 0.02s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-tasdus_117-notifications" at "2026-11-14T10:17:00.6300621Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-RYDU-Y48P-XHA3-M9TJ-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: 2026-12-21T11:16:30Z
+[Licensing::Module] License group:
+  Id: 18968509799746-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Module] Licensing Background thread has ended after 0.02s
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.6.8f1\Editor\Unity.exe
+-batchmode
+-nographics
+-projectPath
+C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066
+-runTests
+-testPlatform
+PlayMode
+-testFilter
+SmallArena.Tests.PlayMode.LobbyStartProgressTests.T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart
+-testResults
+C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\docs\assignments\bt3-vt-066\evidence\recovery-red\results.xml
+-logFile
+C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\docs\assignments\bt3-vt-066\evidence\recovery-red\unity.log
+Successfully changed project path to: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066
+C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-remapper-allocator-initial-capacity=32768"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-main-allocator-mimalloc-enabled=1"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+Logging is directed to a specific file, skipping project log.
+Player connection [25688]  Target information:
+
+Player connection [25688]  * "[IP] 192.168.89.107 [Port] 55505 [Flags] 2 [Guid] 1244668087 [EditorId] 1244668087 [Version] 1048832 [Id] WindowsEditor(7,KIUCHANGCUTI) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [25688] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [25688] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-28880" after 0.2 seconds.
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-RYDU-Y48P-XHA3-M9TJ-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: 2026-12-21T11:16:30Z
+[Licensing::Module] License group:
+  Id: 18968509799746-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Library Redirect Path: Library/
+Launching Unity Data Store - C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Data/Tools/Unity.DataStore.exe 
+Unity Data Store artifact dir = Library/DataStore, working dir = C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066Unity Data Store running and initialised
+[Physics::Module] Selected backend (deferred post-plugins).
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Initialize engine version: 6000.6.8f1 (237b6593792b)
+[EntityIdStore] init: VM path (explicit commit), pageSize=4096, blockCount=262144, entitiesPerBlock=1024, blocksPerSlotPage=0, slots reserved=4294967296 bytes
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Data/BCLExtensions/runtime/netstandard2.1'
+Mono path[2] = 'C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56880
+CodeReloadManager initialized
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.001020 seconds.
+Native extension for WindowsStandalone target not found
+Package Manager log level set to [2]
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:False
+Scripting: successfully reloaded assembly
+- Finished resetting the current domain, in  0.559 seconds
+Domain Reload Profiling: 984ms
+	BeginReloadAssembly (114ms)
+		CreateAndSetChildDomain (18ms)
+	RebuildCommonClasses (4ms)
+	RebuildNativeTypeToScriptingClass (11ms)
+	initialDomainReloadingComplete (48ms)
+	LoadAllAssembliesAndSetupDomain (247ms)
+		LoadAssemblies (95ms)
+		TypeCache.Refresh (169ms)
+			TypeCache.ScanAssembly (156ms)
+		AnalyzeDomain (1ms)
+	FinalizeReload (560ms)
+		SetupLoadedEditorAssemblies (0ms)
+			BeforeProcessingInitializeOnLoad (80ms)
+			ProcessInitializeOnLoadAttributes (126ms)
+			ProcessInitializeOnLoadMethodAttributes (160ms)
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-RYDU-Y48P-XHA3-M9TJ-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: 2026-12-21T11:18:56Z
+[Licensing::Module] License group:
+  Id: 18968509799746-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 30 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.inputsystem@1.20.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.inputsystem@7a4e1a2a8194)
+    com.unity.nuget.newtonsoft-json@3.2.2 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64)
+    com.unity.searcher@4.9.5 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.searcher@a463122f2c00)
+    com.unity.profiling.core@1.0.3 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.profiling.core@8a49f7027d06)
+    com.unity.nuget.mono-cecil@1.11.6 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+  Built-in packages:
+    com.unity.render-pipelines.universal@17.6.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.render-pipelines.universal@66a8e36658da)
+    com.unity.test-framework@1.8.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.test-framework@ee3fe9477490)
+    com.unity.ugui@2.6.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.ugui@fd16ebf174c6)
+    com.unity.modules.physics@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.ai@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.terrain@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.ui@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.imgui@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.audio@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.ext.nunit@2.1.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.ext.nunit@0198eae3b53e)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.render-pipelines.core@17.6.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.render-pipelines.core@74b1c5924895)
+    com.unity.shadergraph@17.6.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.shadergraph@807b608040c3)
+    com.unity.render-pipelines.universal-config@17.6.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.render-pipelines.universal-config@561422b74439)
+    com.unity.modules.uielements@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.physicscore2d@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.physicscore2d)
+    com.unity.graph-authoring@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.graph-authoring@cfd2588851ee)
+    com.unity.burst@2.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.burst@626e66ab421b)
+    com.unity.collections@6.6.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.collections@4920e8897b5a)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.modules.animation@1.0.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.modules.animation)
+    com.unity.test-framework.performance@6.6.0 (location: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\Library\PackageCache\com.unity.test-framework.performance@e8b39e3ef3d9)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.01 seconds
+[ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
+Starting: C:\Program Files\Unity\Hub\Editor\6000.6.8f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066
+DisplayProgressbar: Compiling Scripts
+ExitCode: 0 Duration: 1s177ms
+[724/939    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[935/939    0s] Csc Library/Bee/artifacts/1900b0aE.dag/SmallArena.PlayMode.Tests.dll (+2 others)
+Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs(21,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs(21,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs(157,69): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs(157,29): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+[936/939    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/SmallArena.PlayMode.Tests.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/SmallArena.PlayMode.Tests.dll, with 157 defines and 278 references
+
+processors: Mirror.Weaver.ILPostProcessorHook, Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+1 processor(s) skipped this assembly
+
+running Mirror.Weaver.ILPostProcessorHook
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+[937/939    0s] CopyFiles Library/ScriptAssemblies/SmallArena.PlayMode.Tests.pdb
+[938/939    0s] CopyFiles Library/ScriptAssemblies/SmallArena.PlayMode.Tests.dll
+*** Tundra build success (1.15 seconds), 5 items updated, 939 evaluated
+Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs(21,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs(21,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs(157,69): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Project\Tests\PlayMode\LobbyStartProgressTests.cs(157,29): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+AssetDatabase: script compilation time: 1.583803s
+Begin MonoManager ReloadAssembly
+Total cache size 267561328
+Total cache size after purge 267561328, took 00:00:00.1897361
+'Packages/com.unity.render-pipelines.core/Editor/Deprecated.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Packages/com.unity.render-pipelines.core/Editor/Deprecated.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+Native extension for WindowsStandalone target not found
+Moved ScriptTemplates to Assets folder.
+Moved ScriptTemplates to Assets folder.
+Mirror | mirror-networking.com | discord.gg/N9QVxbM
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:False
+Scripting: successfully reloaded assembly
+- Finished resetting the current domain, in  0.749 seconds
+Domain Reload Profiling: 1540ms
+	BeginReloadAssembly (242ms)
+		DisableScriptedObjects (46ms)
+		CreateAndSetChildDomain (42ms)
+	RebuildCommonClasses (9ms)
+	RebuildNativeTypeToScriptingClass (14ms)
+	initialDomainReloadingComplete (57ms)
+	LoadAllAssembliesAndSetupDomain (468ms)
+		LoadAssemblies (292ms)
+		TypeCache.Refresh (105ms)
+			TypeCache.ScanAssembly (93ms)
+		AnalyzeDomain (43ms)
+			BuildScriptInfoCaches (34ms)
+			ResolveRequiredComponents (7ms)
+	FinalizeReload (751ms)
+		SetupLoadedEditorAssemblies (0ms)
+			BeforeProcessingInitializeOnLoad (97ms)
+			ProcessInitializeOnLoadAttributes (193ms)
+			ProcessInitializeOnLoadMethodAttributes (93ms)
+			AfterProcessingInitializeOnLoad (5ms)
+		AwakeInstancesAfterBackupRestoration (23ms)
+Starting new worker id: 0 with log in C:/Users/tasdus_117/Desktop/SE2026-T17/.worktrees/bt3-vt-066/Logs/AssetImportWorkerHW0.log
+
+Asset Pipeline Refresh (id=b8ad03c6f9aeb904cbe8eda046cad0d9): Total: 3.629 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	(Values over 0.05ms)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=1038 ms
+		Asset DB Callback time: managed=125 ms, native=10 ms
+		Scripting: domain reloads=1, domain reload time=839 ms, compile time=1586 ms, other=27 ms
+		Project Asset Count: scripts=1162, non-scripts=2116
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokePackagesCallback: 10.302ms
+	ApplyChangesToAssetFolders: 0.403ms
+	Scan: 47.341ms
+	Collect global state as custom dependencies: 15.497ms
+	OnSourceAssetsModified: 0.555ms
+	CategorizeScriptCompilationAssets: 12.390ms
+	ProcessAssetsWithTransientArtifactChanges: 47.746ms
+	CategorizeAssets: 45.510ms
+	CompileScripts: 1585.955ms
+	ImportOutOfDateAssets: 762.673ms (753.732ms without children)
+		ReloadNativeAssets: 0.074ms
+		UnloadImportedAssets: 1.413ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.522ms
+		ImportSchedulerStart: 6.929ms
+	PostProcessAllAssets: 126.683ms
+		VCAutoAddAssetPostprocess 0.834ms
+		XRBuildSystem.XRAssetImported 0.110ms
+		MonoPostProcessAllAssets: 125.358ms
+			AssetPostprocessor.OnPostprocessAllAssets 64.239ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 15.989ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 13.873ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 5.036ms
+			AssetChangedListener.OnPostprocessAllAssets 2.049ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.855ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 1.830ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 1.596ms
+			SyncVS.PostprocessSyncProject 1.441ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.281ms
+			EditModeScopePostprocessor.OnPostprocessAllAssets 0.922ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.699ms
+			MaterialPostprocessor.OnPostprocessAllAssets 0.686ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.579ms
+			ShaderReflectionAssetPostProcessor.OnPostprocessAllAssets 0.491ms
+			PostProcessor.OnPostprocessAllAssets 0.397ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.380ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.348ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.332ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.309ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.291ms
+			AssetEvents.OnPostprocessAllAssets 0.268ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.254ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.217ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.189ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.187ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.173ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.164ms
+			ThemePostprocessor.OnPostprocessAllAssets 0.123ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.104ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.075ms
+	PostAssetChangesProfiler: 0.991ms
+	UnloadStreamsBegin: 1.589ms
+	PersistCurrentRevisions: 0.099ms
+	GenerateScriptTypeHashes: 4.064ms
+	GenerateScriptTypeSerializationHashes: 6.479ms
+	Untracked: 949.355ms
+
+Application.AssetDatabase Initial Refresh End
+Shader Hidden/ChartRasterizerHardware is not supported: GPU does not support conservative rasterization
+Shader Hidden/ChartRasterizerHardware is not supported: GPU does not support conservative rasterization
+Scanning for USB devices : 2.597ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Small Arena
+Unloading 28 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 4274 unused Assets / (2.7 MB). Loaded Objects now: 5304.
+Memory consumption went from 353.0 MB to 350.3 MB.
+Total: 6.851700 ms (FindLiveObjects: 0.517300 ms CreateObjectMapping: 0.191200 ms MarkObjects: 5.079300 ms  DeleteObjects: 0.874900 ms)
+
+Microsoft Media Foundation video decoding to texture disabled: graphics device is Null, only Direct3D 11 and Direct3D 12 (only on desktop) are supported for hardware-accelerated video decoding.
+[Project] Loading completed in 5.526 seconds
+	Project init time: 				5.187 seconds
+		Template init time: 		0.000 seconds
+		Package Manager init time: 		0.162 seconds
+		Asset Database init time: 		0.143 seconds
+		Global illumination init time: 	0.003 seconds
+		Assemblies load time: 			1.016 seconds
+		Unity extensions init time: 	0.011 seconds
+		Asset Database refresh time: 	3.629 seconds
+	Scene opening time: 			0.113 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1794651426115,"processId":28880,"projectLoad":5.5259656,"projectInit":5.1873681,"templateInit":0.0,"packageManagerInit":0.1615424,"assetDatabaseInit":0.1426732,"globalIlluminationInit":0.0028109,"assembliesLoad":1.0164604,"unityExtensionsInit":0.0109347,"assetDatabaseRefresh":3.628716,"sceneOpening":0.1128447}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1794651426115,"processId":28880,"editorVersion":"6000.6.8f1 (237b6593792b)","branch":"6000.6/respin/6000.6.8f1-b6138bef9630","buildType":"Release","platform":"Windows"}
+[Licensing::Client] Successfully resolved entitlement details
+Running tests for ExecutionSettings with details:
+targetPlatform = 
+playerHeartbeatTimeout = 600
+filters[0] = 
+   Filter with settings:
+   testMode = PlayMode
+   targetPlatform = 
+   testNames = null
+   groupNames = SmallArena.Tests.PlayMode.LobbyStartProgressTests.T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart
+   categoryNames = null
+   assemblyNames = null
+ignoreTests = {}
+featureFlags = null
+
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:InitializeAndExecuteRun (string[]) (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/CommandLineTest/Executer.cs:53)
+UnityEditor.TestTools.TestRunner.CommandLineTest.TestStarter:InitializeAndExecuteRun () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/CommandLineTest/TestStarter.cs:64)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 53)
+
+[UnityConnectServicesConfig] config is NOT valid, switching to default
+Created GICache directory at C:/Users/tasdus_117/AppData/LocalLow/Unity/Caches/GiCache. Took: 0.010s, timestamps: [5.528 - 5.538]
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 0 unused Assets / (0 B). Loaded Objects now: 5457.
+Memory consumption went from 358.4 MB to 358.4 MB.
+Total: 6.342200 ms (FindLiveObjects: 0.345900 ms CreateObjectMapping: 0.065000 ms MarkObjects: 5.738500 ms  DeleteObjects: 0.010600 ms)
+
+Importing 'GUID: f50a024fb668a3942b8419bd9a2785e7 - Path: Assets/InitTestScenea2131d0e-931f-4b3b-8554-339df06f8fc2.unity' with importer (DefaultImporter)
+Imported 'GUID: f50a024fb668a3942b8419bd9a2785e7' -> (Import Result ID: '8ddf5b6341570bcb7131a70c887806c7') in 0.004 seconds [static dependencies only]. Details - ImportResultOutputID=d3e113cc9929636b1f382f63fc9644d9 DependenciesID=2fd387b0b1264d9f859a0cfdb0b96365 StaticDependenciesID=e84d46517eef0f9d1ac8380ae2f66d1a 
+Asset Pipeline Refresh (id=5028c764563fb72478edb8caec6413f4): Total: 0.060 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Executing IPrebuildSetup for: Unity.PerformanceTesting.Editor.TestRunBuilder.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1/<ExecuteMethods>d__8<UnityEngine.TestTools.IPrebuildSetup>:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:48)
+UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1/<Execute>d__7<UnityEngine.TestTools.IPrebuildSetup>:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:34)
+UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner:ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:194)
+UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner:ExecuteCallback () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:129)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs Line: 48)
+
+Entering Playmode with Reload Domain disabled.
+If you experience any issues, please disable "Enter Play Mode Options" in Editor Settings
+Loaded scene 'Temp/__Backupscenes/0.backup'
+	Deserialize:            0.876 ms
+	Integration:            70.446 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.013 ms
+	Total Operation Time:   71.336 ms
+Worker ready: AssetImportWorkerHW0 0
+Unloading 36 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 0.118100 ms
+Loaded scene 'Assets/_Project/Scenes/MainMenu.unity'
+	Deserialize:            38.736 ms
+	Integration:            48.324 ms
+	Integration of assets:  13.741 ms
+	Thread Wait Time:       1.785 ms
+	Total Operation Time:   102.585 ms
+Unloading 168 unused Assets / (1.1 MB). Loaded Objects now: 5794.
+Memory consumption went from 380.8 MB to 379.7 MB.
+Total: 7.708400 ms (FindLiveObjects: 0.447100 ms CreateObjectMapping: 0.096900 ms MarkObjects: 6.385100 ms  DeleteObjects: 0.596900 ms)
+
+Server started listening
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+Mirror.NetworkServer:Listen (int) (at Assets/Mirror/Core/NetworkServer.cs:165)
+Mirror.NetworkManager:SetupServer () (at Assets/Mirror/Core/NetworkManager.cs:305)
+Mirror.NetworkManager:StartHost () (at Assets/Mirror/Core/NetworkManager.cs:471)
+SmallArena.Networking.ArenaNetworkManager:HostRoom () (at Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs:54)
+SmallArena.Client.UI.LobbyRoomController:Host () (at Assets/_Project/Scripts/Client/UI/LobbyRoomController.cs:73)
+UnityEngine.Events.InvokableCall:Invoke ()
+UnityEngine.Events.UnityEvent:Invoke ()
+SmallArena.Tests.PlayMode.LobbyTestFixture/<Host>d__8:MoveNext () (at Assets/_Project/Tests/PlayMode/LobbyRoomManagementTests.cs:75)
+UnityEngine.TestTools.TestEnumerator/<Execute>d__8:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:52)
+UnityEngine.TestTools.EnumerableTestMethodCommand/<ExecuteEnumerableAndRecordExceptions>d__4:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEngine.TestRunner/NUnitExtensions/Commands/EnumerableTestMethodCommand.cs:85)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+(Filename: Assets/Mirror/Core/NetworkServer.cs Line: 165)
+
+[TV1] Client connected: 0
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SmallArena.Networking.ArenaNetworkManager:OnServerConnect (Mirror.NetworkConnectionToClient) (at Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs:260)
+Mirror.NetworkManager:OnServerAuthenticated (Mirror.NetworkConnectionToClient) (at Assets/Mirror/Core/NetworkManager.cs:1163)
+Mirror.NetworkManager:OnServerConnectInternal (Mirror.NetworkConnectionToClient) (at Assets/Mirror/Core/NetworkManager.cs:1140)
+Mirror.NetworkServer:OnConnected (Mirror.NetworkConnectionToClient) (at Assets/Mirror/Core/NetworkServer.cs:732)
+Mirror.HostMode:InvokeOnConnected () (at Assets/Mirror/Core/HostMode.cs:31)
+Mirror.NetworkManager:FinishStartHost () (at Assets/Mirror/Core/NetworkManager.cs:557)
+Mirror.NetworkManager:StartHost () (at Assets/Mirror/Core/NetworkManager.cs:486)
+SmallArena.Networking.ArenaNetworkManager:HostRoom () (at Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs:54)
+SmallArena.Client.UI.LobbyRoomController:Host () (at Assets/_Project/Scripts/Client/UI/LobbyRoomController.cs:73)
+UnityEngine.Events.InvokableCall:Invoke ()
+UnityEngine.Events.UnityEvent:Invoke ()
+SmallArena.Tests.PlayMode.LobbyTestFixture/<Host>d__8:MoveNext () (at Assets/_Project/Tests/PlayMode/LobbyRoomManagementTests.cs:75)
+UnityEngine.TestTools.TestEnumerator/<Execute>d__8:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:52)
+UnityEngine.TestTools.EnumerableTestMethodCommand/<ExecuteEnumerableAndRecordExceptions>d__4:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEngine.TestRunner/NUnitExtensions/Commands/EnumerableTestMethodCommand.cs:85)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+(Filename: Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs Line: 260)
+
+[TV1] Client connected: 2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SmallArena.Networking.ArenaNetworkManager:OnServerConnect (Mirror.NetworkConnectionToClient) (at Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs:260)
+Mirror.NetworkManager:OnServerAuthenticated (Mirror.NetworkConnectionToClient) (at Assets/Mirror/Core/NetworkManager.cs:1163)
+Mirror.NetworkManager:OnServerConnectInternal (Mirror.NetworkConnectionToClient) (at Assets/Mirror/Core/NetworkManager.cs:1140)
+Mirror.NetworkServer:OnConnected (Mirror.NetworkConnectionToClient) (at Assets/Mirror/Core/NetworkServer.cs:732)
+Mirror.NetworkServer:OnTransportConnectedWithAddress (int,string) (at Assets/Mirror/Core/NetworkServer.cs:678)
+SmallArena.Tests.PlayMode.M1LoopbackTransport/<>c__DisplayClass34_0:<ConnectVirtual>b__0 () (at Assets/_Project/Tests/PlayMode/MultiClientIntegrationTests.cs:379)
+SmallArena.Tests.PlayMode.M1LoopbackTransport:Pump () (at Assets/_Project/Tests/PlayMode/MultiClientIntegrationTests.cs:461)
+SmallArena.Tests.PlayMode.M1LoopbackTransport:ServerEarlyUpdate () (at Assets/_Project/Tests/PlayMode/MultiClientIntegrationTests.cs:464)
+Mirror.NetworkServer:NetworkEarlyUpdate () (at Assets/Mirror/Core/NetworkServer.cs:2047)
+Mirror.NetworkLoop:NetworkEarlyUpdate () (at Assets/Mirror/Core/NetworkLoop.cs:192)
+
+(Filename: Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs Line: 260)
+
+[TV1] Client disconnected: 0
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SmallArena.Networking.ArenaNetworkManager:OnServerDisconnect (Mirror.NetworkConnectionToClient) (at Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs:350)
+Mirror.NetworkManager:StopClient () (at Assets/Mirror/Core/NetworkManager.cs:622)
+Mirror.NetworkManager:StopHost () (at Assets/Mirror/Core/NetworkManager.cs:566)
+SmallArena.Networking.MatchSessionNavigation/<Return>d__8:MoveNext () (at Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs:38)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+(Filename: Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs Line: 350)
+
+[TV1] Client disconnected: 2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SmallArena.Networking.ArenaNetworkManager:OnServerDisconnect (Mirror.NetworkConnectionToClient) (at Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs:350)
+Mirror.NetworkServer:OnTransportDisconnected (int) (at Assets/Mirror/Core/NetworkServer.cs:893)
+Mirror.NetworkServer:DisconnectAll () (at Assets/Mirror/Core/NetworkServer.cs:1060)
+Mirror.NetworkServer:Shutdown () (at Assets/Mirror/Core/NetworkServer.cs:230)
+Mirror.NetworkManager:StopServer () (at Assets/Mirror/Core/NetworkManager.cs:596)
+Mirror.NetworkManager:StopHost () (at Assets/Mirror/Core/NetworkManager.cs:567)
+SmallArena.Networking.MatchSessionNavigation/<Return>d__8:MoveNext () (at Assets/_Project/Scripts/Networking/MatchSessionNavigation.cs:38)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+(Filename: Assets/_Project/Scripts/Networking/ArenaNetworkManager.cs Line: 350)
+
+Saving results to: C:/Users/tasdus_117/AppData/LocalLow/DefaultCompany/Small Arena\TestResults.xml
+Saving results to: C:\Users\tasdus_117\Desktop\SE2026-T17\.worktrees\bt3-vt-066\docs\assignments\bt3-vt-066\evidence\recovery-red\results.xml
+Unloading 7 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Temp/__Backupscenes/0.backup'
+	Deserialize:            0.523 ms
+	Integration:            7.021 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.008 ms
+	Total Operation Time:   7.553 ms
+Unloading 11 unused Assets / (7.5 KB). Loaded Objects now: 5532.
+Memory consumption went from 376.7 MB to 376.7 MB.
+Total: 7.513900 ms (FindLiveObjects: 0.393900 ms CreateObjectMapping: 0.142600 ms MarkObjects: 6.753800 ms  DeleteObjects: 0.031900 ms)
+
+Executing IPostBuildCleanup for: Unity.PerformanceTesting.Editor.TestRunBuilder.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1/<ExecuteMethods>d__8<UnityEngine.TestTools.IPostBuildCleanup>:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:48)
+UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1/<Execute>d__7<UnityEngine.TestTools.IPostBuildCleanup>:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:34)
+UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner:ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:194)
+UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner:ExecuteCallback () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:129)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs Line: 48)
+
+Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 0 unused Assets / (Unknown). Loaded Objects now: 5537.
+Memory consumption went from 376.9 MB to 376.9 MB.
+Total: 8.006100 ms (FindLiveObjects: 0.336400 ms CreateObjectMapping: 0.087700 ms MarkObjects: 7.380800 ms  DeleteObjects: 0.008400 ms)
+
+Asset Pipeline Refresh (id=f2b2bbae3897d494da8fabf10732655e): Total: 0.044 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+DisplayProgressbar: Undo
+Test run completed. Exiting with code 2 (Failed). One or more tests failed.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:ExitApplication (UnityEditor.TestTools.TestRunner.CommandLineTest.Executer/ReturnCodes,string) (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/CommandLineTest/Executer.cs:81)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:ExitIfRunIsCompleted () (at ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/CommandLineTest/Executer.cs:74)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@ee3fe9477490/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 81)
+
+MonoPathRemapper: Attempts to remap: 12263; Successful remaps: 336
+Serialized file version minimum: 22, current 23
+Importing 'GUID: 00000000000000004000000000000000 - Path: ProjectSettings/ProjectSettings.asset' with importer (LibraryAssetImporter)
+Imported 'GUID: 00000000000000004000000000000000' -> (Import Result ID: '69c1e4fc9e92f3a284d2e0bd8fbdb21c') in 0.002 seconds [static dependencies only]. Details - ImportResultOutputID=054c890a8f4b6dddbea933bc5e4b7df4 DependenciesID=f4487bd01ce97ed87c08aa8915a55fbf StaticDependenciesID=dc5d689e42598d3c00f7f170990a55e1 
+Asset Pipeline Refresh (id=6bcd3d68b2f18144bbf0279edb22770a): Total: 0.013 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input Polling Thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-tasdus_117-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-tasdus_117 channel disconnected successfully.
+Lingering sessions upon destruction of worker manager
+Unity Data Store service was successfully shut down
+UDS shutting down local client system
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+CodeReloadManager destroyed
+VBCSCompilerPreWarmer: requested VBCSCompiler shutdown
+Checking for leaked weakptr:
+  Found no leaked weakptrs.
+[Package Manager] Server process was shutdown
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1794651430964,"processId":28880,"allocatedMemory":15201425,"memoryLabels":[{"Default":199822},{"Permanent":15516},{"NewDelete":69647},{"Thread":4197944},{"Manager":38013},{"VertexData":8},{"Geometry":824},{"Texture":24},{"Shader":840524},{"Material":132},{"GfxDevice":55968},{"Animation":952},{"Audio":696},{"FreeType":8},{"FontEngine":736},{"Physics":1970},{"Physics2D":16},{"Serialization":17056},{"Input":42840},{"JobScheduler":256},{"TextLib":336},{"Mono":48},{"MonoCode":64},{"ScriptingNativeRuntime":1292664},{"BaseObject":49008},{"Resource":1444},{"Renderer":2504},{"Transform":4781},{"File":16292},{"WebCam":616},{"Culling":32},{"Terrain":11442},{"Wind":24},{"STL":40},{"String":474362},{"StaticString":3808},{"Utility":2675894},{"Curl":2696},{"PoolAlloc":2264},{"AI":80},{"TypeTree":14869},{"ScriptManager":12656},{"CodeReload":448},{"RuntimeInitializeOnLoadManager":64},{"Sprites":102},{"SpriteAtlas":120},{"GI":7816},{"Director":8296},{"CloudService":288},{"WebRequest":552},{"VR":49650},{"SceneManager":608},{"Video":64},{"LazyScriptCache":32},{"Camera":729},{"Secure":2377},{"SerializationCache":9256},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57888},{"StaticSafetyDebugInfo":278528},{"Analytics":464},{"Hierarchy":1188},{"UIElements":40},{"CoreStats":14456},{"Identifiers":7152},{"EntityIdStore":33088},{"Gui":128},{"EditorUtility":115876},{"VersionControl":8},{"Undo":931},{"AssetDatabase":4482478},{"AssetImporter":40},{"EditorGi":328},{"UnityConnect":40465},{"Upm":1912},{"UpmDiagnostics":8},{"AssetCompliance":96},{"DrivenProperties":72},{"LocalIPC":270},{"ProfilerEditor":9746},{"CoreBusinessMetrics":3232},{"Windowing":456},{"Licensing":12577},{"AssetReference":32},{"IPCStream":32}]}
