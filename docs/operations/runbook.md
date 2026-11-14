@@ -19,7 +19,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/Verify-ArenaLayout.ps1
 
 Multiplayer hiện vào [phòng hosted M2](../architecture/m2-lobby-rooms.md) ngay từ MainMenu: Host Room hoặc nhập IP rồi Join Room, mọi người Ready và host Start. Cùng máy dùng localhost; máy khác dùng IP của host và cho phép UDP cổng cấu hình (mặc định 7777). [Kết quả M2](../testing/m2-lobby-results.md) gồm test native và hai standalone process KCP. Công cụ Run-LobbyStandaloneSmoke.ps1 chỉ dùng với build instrument theo hướng dẫn báo cáo, không phải điều kiện chạy PlayMode.
 
-Các mục scripts/CI bên dưới vẫn là kế hoạch. Script cục bộ không phải workflow CI.
+Xem [Unity CI](../../.github/workflows/README.md) để thiết lập license và xem kết quả kiểm thử trên GitHub.
 
 ## Cấu hình
 
@@ -40,11 +40,9 @@ Settings trong Assets là Unity asset; config bên ngoài là tham số triển 
 
 Chưa có script build/chạy server trong các thư mục `scripts/` nêu trên; các script kiểm tra cục bộ hiện có ở `tools/`. Khi thêm script build/chạy phải trả mã lỗi phù hợp để CI phát hiện thất bại.
 
-## Pipeline CI dự kiến
+## CI và build
 
-Checkout → chuẩn bị Unity và dependency → kiểm thử EditMode/PlayMode phù hợp → build server → build client → thu log, kết quả và bản build.
-
-Chỉ thêm workflow YAML khi chốt phiên bản Unity, nền tảng, runner và phương án giấy phép cho môi trường CI. Không lưu giấy phép hoặc credentials trong Git. Có thể cache Library trong CI nhưng không commit nó vào repository.
+[Workflow kiểm thử](../../.github/workflows/unity-ci.yml) chạy EditMode và PlayMode khi có PR vào `main` và khi `main` nhận commit. Build tự động cho server và client vẫn là phần tiếp theo.
 
 ## Git
 
