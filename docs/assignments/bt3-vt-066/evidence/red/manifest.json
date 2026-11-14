@@ -1,0 +1,27 @@
+﻿{
+    "editor":  "C:/Program Files/Unity/Hub/Editor/6000.6.8f1/Editor/Unity.exe",
+    "arguments":  [
+                      "-batchmode",
+                      "-nographics",
+                      "-projectPath",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\"",
+                      "-runTests",
+                      "-testPlatform",
+                      "PlayMode",
+                      "-testFilter",
+                      "SmallArena.Tests.PlayMode.LobbyStartOperationTests;SmallArena.Tests.PlayMode.LobbyStartProgressTests",
+                      "-testResults",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\red\\results.xml\"",
+                      "-logFile",
+                      "\"C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\docs\\assignments\\bt3-vt-066\\evidence\\red\\unity.log\""
+                  ],
+    "startedUtc":  "2026-11-14T10:03:37.5522769Z",
+    "endedUtc":  "2026-11-14T10:03:42.5973466Z",
+    "sourceSha":  "267bbca668c50975556780662787ad7760c4d177",
+    "exitCode":  1,
+    "result":  "NoXml",
+    "caseCount":  0,
+    "cases":  [
+
+              ]
+}

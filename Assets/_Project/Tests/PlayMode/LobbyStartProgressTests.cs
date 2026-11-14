@@ -41,7 +41,7 @@ namespace SmallArena.Tests.PlayMode
             var panel = GameObject.Find("RoomPanel");
             Assert.That(panel, Is.Not.Null);
             int actualArenaLoads = 0; bool survived = false;
-            Action<Scene, LoadSceneMode> loaded = (scene, mode) =>
+            UnityEngine.Events.UnityAction<Scene, LoadSceneMode> loaded = (scene, mode) =>
             {
                 if (scene.name != "Arena_MVP") return;
                 actualArenaLoads++;
@@ -85,7 +85,7 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(path, Is.Not.Null, "The actual load boundary must validate its configured scene before Mirror's log/return path.");
             path.SetValue(manager, "Assets/_Project/Scenes/BT3_missing_scene.unity");
             int arenaLoads = 0;
-            Action<Scene, LoadSceneMode> loaded = (scene, mode) => { if (scene.name == "Arena_MVP") arenaLoads++; };
+            UnityEngine.Events.UnityAction<Scene, LoadSceneMode> loaded = (scene, mode) => { if (scene.name == "Arena_MVP") arenaLoads++; };
             SceneManager.sceneLoaded += loaded;
             try
             {
