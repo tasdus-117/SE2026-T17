@@ -1,0 +1,23 @@
+{
+  "verified": true,
+  "url": "https://github.com/tasdus-117/SE2026-T17/tree/codex/bt3-vt-066",
+  "sha": "1fa80caee231906bf39bec00c895712cd138b0d0",
+  "publicFilesVerified": [
+    "Assets/_Project/Scripts/Server/Sessions/LobbyStartOperation.cs",
+    "Assets/_Project/Tests/PlayMode/LobbyStartBoundaryTests.cs",
+    "docs/assignments/bt3-vt-066/README.md",
+    "docs/assignments/bt3-vt-066/traceability.md",
+    "docs/assignments/bt3-vt-066/evidence/load-barrier100/raw.csv",
+    "docs/assignments/bt3-vt-066/evidence/baseline/combined.xml",
+    "docs/assignments/bt3-vt-066/evidence/red-assertions/results.xml",
+    "docs/assignments/bt3-vt-066/evidence/green-attempt1/results.xml",
+    "docs/assignments/bt3-vt-066/evidence/regression/results.xml",
+    "docs/assignments/bt3-vt-066/evidence/regression-reviewed/results.xml",
+    "docs/assignments/bt3-vt-066/evidence/recovery-red/results.xml",
+    "docs/assignments/bt3-vt-066/evidence/recovery-green/results.xml",
+    "docs/assignments/bt3-vt-066/evidence/final-regression/results.xml",
+    "docs/assignments/bt3-vt-066/evidence/mutation-final/clean/results.xml",
+    "docs/assignments/bt3-vt-066/evidence/mutation-final/mutant/results.xml",
+    "docs/assignments/bt3-vt-066/evidence/mutation-final/restored/results.xml"
+  ]
+}

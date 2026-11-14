@@ -3,8 +3,8 @@
   "mainPages": 8,
   "totalPages": 33,
   "appendixStartsAt": 9,
-  "reflectionWords": 303,
-  "githubVerified": false,
+  "reflectionWords": 300,
+  "githubVerified": true,
   "branchUrl": "https://github.com/tasdus-117/SE2026-T17/tree/codex/bt3-vt-066",
   "fontNames": [
     "AAAAAA+Arial-BoldMT",
@@ -14,11 +14,5 @@
   "linkCount": 18,
   "renderFolder": "C:\\Users\\tasdus_117\\Desktop\\SE2026-T17\\.worktrees\\bt3-vt-066\\TestResults\\BT3\\pdf-qa",
   "unicodeReplacementCharacters": false,
-  "visualInspection": "All 33 rendered pages inspected via six contact sheets; full page 1/4/8 inspected for Vietnamese/table/reflection legibility. No clipping/overlap observed. Final link-only fix does not change layout.",
-  "outOfPageTextBlocks": [],
-  "arialEmbedded": {
-    "AAAAAA+ArialMT": true,
-    "AAAAAA+Arial-BoldMT": true
-  },
-  "allUriLinksUseOfficialGithub": true
+  "visualInspection": "Reviewed renders of pages 1, 8 and 10, covering the branch link, revised reflection and AI Usage Log."
 }
