@@ -90,7 +90,7 @@ namespace SmallArena.Tests.PlayMode
             try
             {
                 manager.RequestRoomStart(); manager.RequestRoomStart();
-                yield return Until(() => !NetworkServer.active && Object.FindAnyObjectByType<LobbyRoomView>() != null);
+                yield return Until(() => !NetworkServer.active && !MatchSessionNavigation.IsReturning && Object.FindAnyObjectByType<LobbyRoomView>() != null);
                 yield return null;
                 var returnedView = Object.FindAnyObjectByType<LobbyRoomView>();
                 Assert.That(returnedView.ErrorVisible, Is.True, "Failure notice must survive destruction of session manager.");
@@ -112,6 +112,26 @@ namespace SmallArena.Tests.PlayMode
             yield return Until(() => server.Room.Phase == LobbyPhase.Playing && NetworkClient.localPlayer != null);
             Assert.That(NetworkServer.active, Is.True);
             Assert.That(server.Room.Members.Any(member => member.ConnectionId == 3), Is.True);
+            Assert.That(OverlayVisible(), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator T12_StartupFailure_RecreatesMenuManagerAndAllowsNewSessionStart()
+        {
+            yield return ReadyHost();
+            typeof(ArenaNetworkManager).GetField("arenaScenePath", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(manager, "Assets/BT3_missing/Arena_MVP.unity");
+            manager.RequestRoomStart();
+            yield return Until(() => !NetworkServer.active && !MatchSessionNavigation.IsReturning);
+            Assert.That(NetworkManager.singleton != null, Is.True, "Failure teardown in MainMenu must recreate a usable manager for a new session.");
+            manager = (ArenaNetworkManager)NetworkManager.singleton;
+            server = manager.GetComponent<SmallArena.Server.Sessions.ServerLobbyController>();
+            view = Object.FindAnyObjectByType<LobbyRoomView>();
+            manager.transport.enabled = false;
+            transport = manager.gameObject.AddComponent<M1LoopbackTransport>(); manager.transport = transport; Transport.active = transport;
+            yield return ReadyHost();
+            manager.RequestRoomStart();
+            yield return Until(() => server.Room.Phase == LobbyPhase.Playing && NetworkClient.localPlayer != null);
             Assert.That(OverlayVisible(), Is.False);
         }
 

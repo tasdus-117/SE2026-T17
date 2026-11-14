@@ -11,6 +11,7 @@ $bt3XmlPath = Join-Path $bt3Out 'results.xml'
 if (Test-Path -LiteralPath $bt3XmlPath) { throw "Preserve existing output: $bt3XmlPath" }
 $bt3Args = @('-batchmode','-nographics','-projectPath',('"'+$bt3Root+'"'),'-runTests','-testPlatform','PlayMode','-testFilter',$Filter,'-testResults',('"'+$bt3XmlPath+'"'),'-logFile',('"'+(Join-Path $bt3Out 'unity.log')+'"'))
 $bt3Start = [DateTime]::UtcNow.ToString('o')
+$bt3SourceSha = git -C $bt3Root rev-parse HEAD
 $bt3SourceHashes = @(Get-ChildItem -LiteralPath (Join-Path $bt3Root 'Assets/_Project/Scripts'),(Join-Path $bt3Root 'Assets/_Project/Tests') -Filter '*.cs' -Recurse | Sort-Object FullName | ForEach-Object { [pscustomobject]@{path=$_.FullName; sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash} })
 $bt3SourceHashes | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $bt3Out 'source-hashes.json') -Encoding UTF8
 git -C $bt3Root diff HEAD -- Assets/_Project/Scripts Assets/_Project/Tests | Set-Content -LiteralPath (Join-Path $bt3Out 'source.diff') -Encoding UTF8
@@ -21,7 +22,7 @@ if (Test-Path -LiteralPath $bt3XmlPath) {
     $bt3Result = $bt3Xml.'test-run'.result
     $bt3Cases = @($bt3Xml.SelectNodes('//test-case'))
 }
-[pscustomobject]@{ editor=$Editor; arguments=$bt3Args; startedUtc=$bt3Start; endedUtc=[DateTime]::UtcNow.ToString('o'); sourceSha=(git -C $bt3Root rev-parse HEAD); exitCode=$bt3Process.ExitCode; result=$bt3Result; caseCount=$bt3Cases.Count; cases=@($bt3Cases | ForEach-Object { [pscustomobject]@{id=$_.fullname; result=$_.result; assertion=$_.failure.message.InnerText} }) } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $bt3Out 'manifest.json') -Encoding UTF8
+[pscustomobject]@{ editor=$Editor; arguments=$bt3Args; startedUtc=$bt3Start; endedUtc=[DateTime]::UtcNow.ToString('o'); sourceSha=$bt3SourceSha; endSha=(git -C $bt3Root rev-parse HEAD); exitCode=$bt3Process.ExitCode; result=$bt3Result; caseCount=$bt3Cases.Count; cases=@($bt3Cases | ForEach-Object { [pscustomobject]@{id=$_.fullname; result=$_.result; assertion=$_.failure.message.InnerText} }) } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $bt3Out 'manifest.json') -Encoding UTF8
 Write-Output "$Label : exit=$($bt3Process.ExitCode), result=$bt3Result, cases=$($bt3Cases.Count)"
 if ($bt3Cases.Count -eq 0) { exit 2 }
 exit $bt3Process.ExitCode

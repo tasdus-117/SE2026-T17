@@ -57,7 +57,9 @@ namespace SmallArena.Networking
             yield return null; // Finish Unity destruction before resetting singleton references or creating the menu root.
             NetworkManager.ResetStatics();
             if (!NetworkServer.active) Transport.active = null;
-            if (SceneManager.GetActiveScene().name != "MainMenu") yield return SceneManager.LoadSceneAsync("MainMenu");
+            // Startup may fail while MainMenu is still active. Reload it as well: the
+            // old session manager was destroyed above and the scene must create a new one.
+            yield return SceneManager.LoadSceneAsync("MainMenu");
             Destroy(gameObject);
         }
 
