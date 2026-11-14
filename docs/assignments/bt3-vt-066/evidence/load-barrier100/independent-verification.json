@@ -1,0 +1,150 @@
+{
+  "method": "Independent CSV parse and nearest-rank calculation; rounded raw values compared at 1e-5 ms tolerance",
+  "operations": 2000,
+  "distinctIdentities": 2000,
+  "requests": 6000,
+  "expectedFailures": 200,
+  "duplicateBoundaryOrFakeLoadOrTerminal": 0,
+  "rounds": [
+    {
+      "round": 1,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 32.1951,
+      "matchesSummary": true
+    },
+    {
+      "round": 2,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 26.0288,
+      "matchesSummary": true
+    },
+    {
+      "round": 3,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.7509,
+      "matchesSummary": true
+    },
+    {
+      "round": 4,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 31.1715,
+      "matchesSummary": true
+    },
+    {
+      "round": 5,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.6338,
+      "matchesSummary": true
+    },
+    {
+      "round": 6,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.3015,
+      "matchesSummary": true
+    },
+    {
+      "round": 7,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.2906,
+      "matchesSummary": true
+    },
+    {
+      "round": 8,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 31.2132,
+      "matchesSummary": true
+    },
+    {
+      "round": 9,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 31.1675,
+      "matchesSummary": true
+    },
+    {
+      "round": 10,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.7714,
+      "matchesSummary": true
+    },
+    {
+      "round": 11,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.9525,
+      "matchesSummary": true
+    },
+    {
+      "round": 12,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.6474,
+      "matchesSummary": true
+    },
+    {
+      "round": 13,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.3609,
+      "matchesSummary": true
+    },
+    {
+      "round": 14,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.2202,
+      "matchesSummary": true
+    },
+    {
+      "round": 15,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 31.1945,
+      "matchesSummary": true
+    },
+    {
+      "round": 16,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 31.1425,
+      "matchesSummary": true
+    },
+    {
+      "round": 17,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.2977,
+      "matchesSummary": true
+    },
+    {
+      "round": 18,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 30.5516,
+      "matchesSummary": true
+    },
+    {
+      "round": 19,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 31.599,
+      "matchesSummary": true
+    },
+    {
+      "round": 20,
+      "samples": 100,
+      "nearestRank": 95,
+      "p95MsFromRaw": 29.9901,
+      "matchesSummary": true
+    }
+  ]
+}
