@@ -114,7 +114,7 @@ namespace SmallArena.Tests.PlayMode
                 Assert.That(health.CurrentHealth, Is.EqualTo(10 - punch));
                 Assert.That(hpText.text, Is.EqualTo($"Bot HP: {10 - punch} / 10"));
                 SetKeys();
-                for (var frame = 0; frame < 32; frame++) yield return null;
+                for (var frame = 0; frame < 64; frame++) yield return null;
             }
             Assert.That(manager.CurrentState, Is.EqualTo(MatchState.Victory));
             Assert.That(banner.activeInHierarchy, Is.True);
@@ -162,7 +162,7 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(pickup.TryCollect(combat, pickup.transform.position), Is.False);
             combat.SetDamage(99);
             SetKeys(Key.W, Key.Space, Key.J, Key.E);
-            for (var frame = 0; frame < 40; frame++) yield return null;
+            for (var frame = 0; frame < 70; frame++) yield return null;
             Assert.That(player.transform.position, Is.EqualTo(position));
             Assert.That(player.GetComponent<PlayerInputHandler>().enabled, Is.False);
             Assert.That(player.GetComponent<PlayerController>().enabled, Is.False);

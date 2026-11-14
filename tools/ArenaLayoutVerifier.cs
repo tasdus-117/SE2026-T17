@@ -179,9 +179,9 @@ internal static class ArenaLayoutVerifier
         Near(Number(health.Data, "maxHealth"), 10); Near(Number(health.Data, "currentHealth"), 10);
         Check(Id(Field(combat.Data, "inputHandler")) == inputAdapter.Id, "Combat input reference is not wired.");
         Check(Number(Map(Field(combat.Data, "targetLayerMask")), "m_Bits") == (1 << expectedLayers["Bot"]), "Punches must target only the Bot layer.");
-        Near(Number(combat.Data, "punchCooldown"), 0.5); Near(Number(combat.Data, "punchDamage"), 1);
-        Near(Number(combat.Data, "hitSphereRadius"), 0.6);
-        Check(Vector(combat.Data, "hitSphereOffset") == new Vector3(0, 1, 0.8f), "Unexpected punch sphere offset.");
+        Near(Number(combat.Data, "punchCooldown"), 1); Near(Number(combat.Data, "punchDamage"), 1);
+        Near(Number(combat.Data, "hitSphereRadius"), 1.2);
+        Check(Vector(combat.Data, "hitSphereOffset") == new Vector3(0, 0.25f, 0.5f), "Unexpected punch sphere offset.");
         Check(!bot.OfType("Rigidbody").Any(), "Bot collider must be static.");
         var botCollider = bot.Only("CapsuleCollider");
         Check(Number(botCollider.Data, "m_IsTrigger") == 0 && Number(botCollider.Data, "m_Enabled") == 1, "Bot collider must be solid.");

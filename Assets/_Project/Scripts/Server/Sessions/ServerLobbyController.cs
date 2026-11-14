@@ -48,8 +48,8 @@ namespace SmallArena.Server.Sessions
             if (!manager.RoomEnabled) return;
             if (!room.TryJoin(connection.connectionId, connection == NetworkServer.localConnection))
             {
-                connection.Send(new LobbyRejection { Reason = "Room is full or the match has already started." });
-                connection.Disconnect();
+                manager.RejectRoomConnection(connection, room.Count >= LobbyRoom.Capacity
+                    ? LobbyLimits.FullReason : "The match has already started.");
                 return;
             }
             Publish();
@@ -80,7 +80,7 @@ namespace SmallArena.Server.Sessions
             var members = room.Members;
             foreach (var connection in NetworkServer.connections.Values)
                 if (connection.isAuthenticated)
-                    connection.Send(new LobbySnapshot { Phase = room.Phase, LocalConnectionId = connection.connectionId, Members = members });
+                    connection.Send(new LobbySnapshot { Phase = room.Phase, LocalConnectionId = connection.connectionId, CanStart = room.CanStart, Members = members });
         }
     }
 }

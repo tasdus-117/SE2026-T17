@@ -140,7 +140,7 @@ namespace SmallArena.Tests.PlayMode
             SetKeys(Key.J);
             yield return null;
             Assert.That(health.CurrentHealth, Is.EqualTo(9));
-            for (var frame = 0; frame < 40; frame++) yield return null;
+            for (var frame = 0; frame < 70; frame++) yield return null;
             Assert.That(combat.CanPunch, Is.True);
             Assert.That(health.CurrentHealth, Is.EqualTo(9), "Holding J past the cooldown must not punch again.");
             SetKeys();
@@ -165,7 +165,7 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(health.CurrentHealth, Is.EqualTo(9));
             Assert.That(combat.CanPunch, Is.False);
             SetKeys();
-            for (var frame = 0; frame < 40; frame++) yield return null;
+            for (var frame = 0; frame < 70; frame++) yield return null;
             Assert.That(combat.CanPunch, Is.True);
             Assert.That(health.CurrentHealth, Is.EqualTo(9), "Rejected input must not run when the cooldown expires.");
             SetKeys(Key.J);
@@ -247,7 +247,7 @@ namespace SmallArena.Tests.PlayMode
                 yield return null;
                 Assert.That(health.CurrentHealth, Is.EqualTo(Mathf.Max(0, 10 - punch)));
                 SetKeys();
-                for (var frame = 0; frame < 32; frame++) yield return null;
+                for (var frame = 0; frame < 64; frame++) yield return null;
             }
             Assert.That(deaths, Is.EqualTo(1));
             Assert.That(health.IsDead, Is.True);

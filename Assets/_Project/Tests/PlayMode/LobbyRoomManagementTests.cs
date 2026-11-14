@@ -18,12 +18,12 @@ using Object = UnityEngine.Object;
 
 namespace SmallArena.Tests.PlayMode
 {
-    public sealed class LobbyRoomManagementTests : InputTestFixture
+    public abstract class LobbyTestFixture : InputTestFixture
     {
-        private ArenaNetworkManager manager;
-        private ServerLobbyController server;
-        private LobbyRoomView view;
-        private M1LoopbackTransport transport;
+        protected ArenaNetworkManager manager;
+        protected ServerLobbyController server;
+        protected LobbyRoomView view;
+        protected M1LoopbackTransport transport;
 
         [UnitySetUp]
         public IEnumerator LoadMenu()
@@ -62,22 +62,26 @@ namespace SmallArena.Tests.PlayMode
             if (scene.IsValid() && scene.isLoaded) yield return SceneManager.UnloadSceneAsync(scene);
         }
 
-        private static IEnumerator Until(Func<bool> condition)
+        protected static IEnumerator Until(Func<bool> condition)
         {
             var deadline = Time.realtimeSinceStartup + 15;
             while (!condition() && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.That(condition(), Is.True, "Timed out waiting for lobby protocol/scene transition.");
         }
-        private void OpenPanel() => Object.FindAnyObjectByType<MainMenuController>().OnMultiplayerClicked();
-        private IEnumerator Host()
+        protected void OpenPanel() => Object.FindAnyObjectByType<MainMenuController>().OnMultiplayerClicked();
+        protected IEnumerator Host()
         {
             OpenPanel();
             view.HostButton.onClick.Invoke();
             yield return Until(() => manager.CurrentRoom.Members?.Length == 1);
         }
-        private void Connect(int id) => transport.ConnectVirtual(id);
-        private void ReadyRemote(int id, bool ready) => transport.SendFromVirtual(id, new LobbyReadyRequest { IsReady = ready });
+        protected void Connect(int id) => transport.ConnectVirtual(id);
+        protected void ReadyRemote(int id, bool ready) => transport.SendFromVirtual(id, new LobbyReadyRequest { IsReady = ready });
 
+    }
+
+    public sealed class LobbyRoomManagementTests : LobbyTestFixture
+    {
         [UnityTest]
         public IEnumerator MultiplayerButton_OpensConnectionPanel_AndBackRestoresOfflineMenu()
         {
@@ -116,10 +120,9 @@ namespace SmallArena.Tests.PlayMode
             Connect(2); Connect(3); Connect(4);
             yield return Until(() => server.Room.Count == 4 && manager.CurrentRoom.Members.Length == 4);
             Assert.That(NetworkServer.connections.Count, Is.EqualTo(4));
-            LogAssert.Expect(LogType.Error, new Regex("Server full, client connectionId=5 .*will be kicked"));
             Connect(5);
-            yield return null;
-            yield return null;
+            yield return Until(() => transport.RejectionTo(5) == LobbyLimits.FullReason);
+            yield return Until(() => !NetworkServer.connections.ContainsKey(5));
             Assert.That(NetworkServer.connections.ContainsKey(5), Is.False);
             Assert.That(server.Room.Count, Is.EqualTo(4));
             Assert.That(server.Room.TryJoin(99, false), Is.False, "Room rules also reject a bypass of the transport limit.");
@@ -249,6 +252,9 @@ namespace SmallArena.Tests.PlayMode
         public IEnumerator ArenaReturn_CreatesFreshMenuManager_AndCanHostAgain()
         {
             yield return Host();
+            Connect(2);
+            yield return Until(() => server.Room.Count == 2);
+            ReadyRemote(2, true);
             view.ReadyButton.onClick.Invoke();
             yield return Until(() => view.StartButton.interactable);
             view.StartButton.onClick.Invoke();

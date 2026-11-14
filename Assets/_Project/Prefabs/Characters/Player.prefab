@@ -173,10 +173,10 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   inputHandler: {fileID: 1006}
-  punchCooldown: 0.5
+  punchCooldown: 1
   punchDamage: 1
-  hitSphereRadius: 0.6
-  hitSphereOffset: {x: 0, y: 1, z: 0.8}
+  hitSphereRadius: 1.2
+  hitSphereOffset: {x: 0, y: 0.25, z: 0.5}
   targetLayerMask:
     serializedVersion: 2
     m_Bits: 256

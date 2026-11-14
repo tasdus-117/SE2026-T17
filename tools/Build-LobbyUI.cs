@@ -105,6 +105,7 @@ namespace SmallArena.Tools
             canvas.SetActive(true);
             if (!EditorSceneManager.SaveScene(scene)) throw new InvalidOperationException("Cannot save MainMenu lobby wiring.");
             AssetDatabase.SaveAssets();
+            LobbyGovernanceSceneBuilder.Build();
             Debug.Log("M2 lobby UI and ArenaNetworkRoot prefab saved; Bootstrap/Arena/build order preserved.");
         }
         private static TextMeshProUGUI Text(string name, Transform parent, TMP_FontAsset font, string value, float size, float y, float width, float height)

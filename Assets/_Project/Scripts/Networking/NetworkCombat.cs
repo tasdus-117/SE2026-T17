@@ -9,14 +9,14 @@ namespace SmallArena.Networking
     [DisallowMultipleComponent, RequireComponent(typeof(NetworkHealth))]
     public sealed class NetworkCombat : NetworkBehaviour
     {
-        public const float Cooldown = 0.5f;
+        public const float Cooldown = MeleeHitGeometry.Cooldown;
         public const int UnarmedDamage = 1;
         [SyncVar(hook = nameof(DamageChanged))] private int attackDamage = UnarmedDamage;
         public int CurrentDamage => attackDamage;
         public bool CanReceiveWeapon => isServer && health != null && health.CanAct && attackDamage == UnarmedDamage;
         public event Action<int> OnDamageChanged;
-        private static readonly Vector3 Offset = new Vector3(0, 1, 0.8f);
-        private const float Radius = 0.6f;
+        private static readonly Vector3 Offset = MeleeHitGeometry.Offset;
+        private const float Radius = MeleeHitGeometry.Radius;
         private double nextAttackTime;
         private NetworkHealth health;
         private readonly HashSet<NetworkHealth> damaged = new HashSet<NetworkHealth>();
@@ -39,16 +39,17 @@ namespace SmallArena.Networking
                 || aimDirection.sqrMagnitude < 0.99f || aimDirection.sqrMagnitude > 1.01f
                 || Vector3.Dot(aimDirection, Vector3.forward) < 0.99f || NetworkTime.localTime < nextAttackTime) return;
             nextAttackTime = NetworkTime.localTime + Cooldown;
-            var center = transform.position + Offset;
-            var hits = Physics.OverlapSphere(center, Radius, 1 << 7, QueryTriggerInteraction.Ignore);
+            var center = MeleeHitGeometry.Center(transform, Offset);
+            var hits = Physics.OverlapSphere(center, MeleeHitGeometry.CandidateRadius(Radius), (1 << 7) | (1 << 8), QueryTriggerInteraction.Ignore);
             damaged.Clear();
             foreach (var hit in hits)
             {
                 if (!health.CanAct) break;
-                if (hit == null) continue;
+                if (hit == null || !MeleeHitGeometry.InReach(transform.position, Vector3.forward, hit.bounds.center)
+                    || !MeleeHitGeometry.TouchesSphere(hit, center, Radius)) continue;
                 var target = hit.GetComponentInParent<NetworkHealth>();
                 if (target == null || target == health || !target.isServer || !target.CanAct || !damaged.Add(target)) continue;
-                if (Physics.Linecast(transform.position + Vector3.up, hit.bounds.center, 1 << 6, QueryTriggerInteraction.Ignore)) continue;
+                if (Physics.Linecast(center - Vector3.forward * Offset.z, hit.bounds.center, 1 << 6, QueryTriggerInteraction.Ignore)) continue;
                 target.TakeDamage(attackDamage);
             }
         }

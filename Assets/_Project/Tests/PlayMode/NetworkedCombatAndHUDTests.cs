@@ -46,7 +46,7 @@ namespace SmallArena.Tests.PlayMode
             yield return Until(() => other.CurrentHealth == 9);
             yield return Click(); yield return Click();
             Assert.That(otherServer.GetComponent<NetworkHealth>().CurrentHealth, Is.EqualTo(9));
-            yield return new WaitForSecondsRealtime(0.55f);
+            yield return new WaitForSecondsRealtime(1.05f);
             yield return Click();
             yield return Until(() => other.CurrentHealth == 8);
             Assert.That(owner.CurrentHealth, Is.EqualTo(10));
@@ -59,7 +59,7 @@ namespace SmallArena.Tests.PlayMode
             NetworkClient.localPlayer.GetComponent<NetworkCombatInput>().enabled = true;
             Press(mouse.leftButton); InputSystem.Update();
             yield return Until(() => other.CurrentHealth == 9);
-            yield return new WaitForSecondsRealtime(0.65f);
+            yield return new WaitForSecondsRealtime(1.15f);
             Assert.That(other.CurrentHealth, Is.EqualTo(9));
         }
         [UnityTest]
@@ -187,7 +187,7 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(hud.HealthView.HealthText, Is.EqualTo("HP: 10/10"));
             Assert.That(owner.GetComponentInChildren<NetworkHealthBarView>(), Is.Null);
             bar.gameObject.SetActive(false);
-            yield return new WaitForSecondsRealtime(0.55f);
+            yield return new WaitForSecondsRealtime(1.05f);
             AttackOwner(Vector3.forward);
             yield return Until(() => other.CurrentHealth == 8);
             bar.gameObject.SetActive(true);

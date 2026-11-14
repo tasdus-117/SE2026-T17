@@ -346,6 +346,10 @@ namespace SmallArena.Tests.PlayMode
         private readonly Dictionary<int, Dictionary<uint, int>> states = new Dictionary<int, Dictionary<uint, int>>();
         private bool server;
         private bool client;
+        private readonly Dictionary<int, LobbySnapshot> lobbySnapshots = new Dictionary<int, LobbySnapshot>();
+        private readonly Dictionary<int, string> lobbyRejections = new Dictionary<int, string>();
+        public LobbySnapshot SnapshotTo(int id) => lobbySnapshots.TryGetValue(id, out var value) ? value : default;
+        public string RejectionTo(int id) => lobbyRejections.TryGetValue(id, out var value) ? value : null;
         public CommandMessage? MovementTemplate { get; private set; }
         public CommandMessage? AttackTemplate { get; private set; }
         public CommandMessage? PickupTemplate { get; private set; }
@@ -413,7 +417,13 @@ namespace SmallArena.Tests.PlayMode
                 pending.Enqueue(() => { if (client) OnClientDataReceived.Invoke(new ArraySegment<byte>(copy), channelId); });
             else if (visible.ContainsKey(connectionId)) ReadMessages(new ArraySegment<byte>(copy), (id, reader) =>
             {
-                if (id == NetworkMessages.GetId<SpawnMessage>()) visible[connectionId].Add(reader.Read<SpawnMessage>().netId);
+                if (id == NetworkMessages.GetId<LobbySnapshot>()) lobbySnapshots[connectionId] = reader.Read<LobbySnapshot>();
+                else if (id == NetworkMessages.GetId<LobbyRejection>())
+                {
+                    lobbyRejections[connectionId] = reader.Read<LobbyRejection>().Reason;
+                    SendFromVirtual(connectionId, new LobbyRejectionAcknowledged());
+                }
+                else if (id == NetworkMessages.GetId<SpawnMessage>()) visible[connectionId].Add(reader.Read<SpawnMessage>().netId);
                 else if (id == NetworkMessages.GetId<ObjectDestroyMessage>()) visible[connectionId].Remove(reader.Read<ObjectDestroyMessage>().netId);
                 else if (id == NetworkMessages.GetId<ObjectHideMessage>()) visible[connectionId].Remove(reader.Read<ObjectHideMessage>().netId);
                 else if (id == NetworkMessages.GetId<EntityStateMessage>())

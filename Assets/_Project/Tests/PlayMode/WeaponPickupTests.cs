@@ -226,7 +226,7 @@ namespace SmallArena.Tests.PlayMode
             AssertCollected();
             Assert.That(botHealth.CurrentHealth, Is.EqualTo(9));
             Assert.That(combat.CanPunch, Is.False);
-            for (var frame = 0; frame < 32; frame++) yield return null;
+            for (var frame = 0; frame < 64; frame++) yield return null;
             SetKeys(Key.J);
             yield return null;
             Assert.That(botHealth.CurrentHealth, Is.EqualTo(7));

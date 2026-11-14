@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System;
 using Mirror;
+using SmallArena.Networking;
 using SmallArena.Domain;
 using SmallArena.Protocol;
 using SmallArena.Pickups;
@@ -14,10 +15,10 @@ namespace SmallArena.Player
     public sealed class CombatController : MonoBehaviour, IDamageSource, IMatchEndParticipant
     {
         [SerializeField] private MonoBehaviour inputHandler = null;
-        [SerializeField] private float punchCooldown = 0.5f;
+        [SerializeField] private float punchCooldown = MeleeHitGeometry.Cooldown;
         [SerializeField] private int punchDamage = 1;
-        [SerializeField] private float hitSphereRadius = 0.6f;
-        [SerializeField] private Vector3 hitSphereOffset = new Vector3(0f, 1f, 0.8f);
+        [SerializeField] private float hitSphereRadius = MeleeHitGeometry.Radius;
+        [SerializeField] private Vector3 hitSphereOffset = MeleeHitGeometry.Offset;
         [SerializeField] private LayerMask targetLayerMask = 1 << 8;
 
         private float lastPunchTime = -999f;
@@ -66,13 +67,15 @@ namespace SmallArena.Player
             if (!inputSource.ConsumePunchPressed() || !CanPunch) return;
 
             lastPunchTime = Time.time;
-            var center = transform.position + transform.rotation * hitSphereOffset;
-            var hits = Physics.OverlapSphere(center, hitSphereRadius, targetLayerMask, QueryTriggerInteraction.Ignore);
+            var center = MeleeHitGeometry.Center(transform, hitSphereOffset);
+            var hits = Physics.OverlapSphere(center, MeleeHitGeometry.CandidateRadius(hitSphereRadius), targetLayerMask, QueryTriggerInteraction.Ignore);
             damagedTargets.Clear();
             foreach (var hit in hits)
             {
                 if (matchEnded) break;
-                if (hit.transform.IsChildOf(transform)) continue;
+                if (hit.transform.IsChildOf(transform)
+                    || !MeleeHitGeometry.InReach(transform.position, transform.forward, hit.bounds.center)
+                    || !MeleeHitGeometry.TouchesSphere(hit, center, hitSphereRadius)) continue;
                 var health = hit.GetComponentInParent<Health>();
                 if (health != null && damagedTargets.Add(health)) health.TakeDamage(punchDamage);
             }
