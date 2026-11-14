@@ -1,6 +1,6 @@
 {
-  "wordCountWhitespace": 303,
-  "author": "Nguyễn Chí Hoàng Tú",
-  "normalization": "Only trailing chat timestamp 5:29 PM and surrounding whitespace excluded from PDF; all three body paragraphs unchanged. Full raw reply retained.",
+  "wordCountWhitespace": 300,
+  "author": "Codex (AI-assisted draft in the first person)",
+  "provenance": "Bản trước trùng với bản nháp do Codex soạn và sinh viên chuyển lại. Bản hiện tại do Codex viết lại theo yêu cầu của sinh viên, dựa trên bằng chứng thực thi.",
   "within250to350": true
 }

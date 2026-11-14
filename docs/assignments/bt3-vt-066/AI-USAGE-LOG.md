@@ -35,12 +35,12 @@ Prompt đang có: user yêu cầu tiếp tục Câu 3 sau xóa T17/T18, dùng Un
 
 RoomPanel label/fixed sleep và bool-only retry bị sinh viên xóa (T18/T17). Constant fakeLoads unit assertion bị AI bỏ, thay evidence bằng integration native sceneLoaded. Recovery UI-readable chưa đủ AC phiên mới: test thật fail trước fix navigation. Matrix data coverage 32/32 không được dùng thay runtime coverage. Guest local hook không được gọi là native guest E2E.
 
-## Trạng thái ownership
+## Review và bàn giao
 
-Plan đã chốt, test cases có user trực tiếp xóa, local production/recovery có user duyệt. Sinh viên đã gửi reflection 303 từ và xác nhận nguyên văn “Xác nhận đưa cam kết”. Sinh viên trả lời nguyên văn “Chưa cho phép push”; không push/PR/merge.
+Sinh viên trực tiếp quyết định xóa T17/T18, duyệt patch local v2 và recovery, rồi xác nhận cam kết ở trang đầu. Quyết định công bố sau cùng cho phép push nhánh riêng codex/bt3-vt-066. Bản ghi phê duyệt nằm trong submission-approval.json.
 
 ## PDF và reflection
 
-Reflection do sinh viên tự viết, lưu toàn bộ raw reply ở reflection-user-raw.txt. PDF giữ nguyên ba đoạn, chỉ bỏ timestamp chat 5:29 PM và khoảng trắng bao quanh; 303 từ theo khoảng trắng. Metadata và consent ở reflection-metadata.json / submission-approval.json.
+Bản trước dùng đoạn nháp do Codex soạn và được sinh viên chuyển lại. Bản cuối do Codex viết lại theo yêu cầu của sinh viên, ở ngôi thứ nhất, dựa trên kết quả RED → GREEN, regression, mutation và dữ liệu tải đã lưu. Đây là phần có AI hỗ trợ soạn thảo. reflection-user-raw.txt lưu phản hồi lịch sử. reflection-user.txt và reflection-metadata.json lưu nội dung cùng nguồn gốc bản hiện tại.
 
-PDF do ReportLab tạo, Arial Unicode nhúng; PyMuPDF render toàn bộ trang. Bản review có 8 trang chính, phụ lục AI Usage Log chứa nguyên plan/input/output/case review và log/assertions. Vì chưa có quyền push, URL branch dự kiến được ghi rõ chưa xuất bản/chưa xác minh; không giả lập link verified. tools/Build-Bt3Pdf.py và pdf-qa.json lưu quy trình/kiểm tra.
+ReportLab tạo PDF với Arial Unicode. PyMuPDF render và kiểm số trang, font và link. tools/Build-Bt3Pdf.py dựng lại báo cáo từ bằng chứng trong nhánh bài tập. github-verified.json lưu mốc GitHub đã kiểm để hiển thị trong bản bàn giao.

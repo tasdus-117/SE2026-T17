@@ -1,7 +1,7 @@
 """Build the reviewed Vietnamese submission and render every page for QA.
 
 Prerequisites: python -m pip install --target TestResults/BT3/pdf-deps reportlab
-The user's reflection and consent are inputs, never generated here.
+The reflection, its provenance, and consent are read from the assignment records.
 """
 from pathlib import Path
 import argparse
@@ -124,7 +124,8 @@ def main():
     approval = js('submission-approval.json')
     assert approval['commitmentConfirmed'] is True
     reflection = (DOC / 'reflection-user.txt').read_text(encoding='utf-8').strip()
-    assert 250 <= len(reflection.split()) <= 350
+    reflection_words = len(reflection.split())
+    assert 250 <= reflection_words <= 350
     verification = js('github-verified.json') if (DOC / 'github-verified.json').exists() else None
     verified = verification is not None and verification.get('verified') is True
     branch = verification['url'] if verified else approval['plannedBranchUrl']
@@ -275,11 +276,11 @@ def main():
     add('Ít nhất hai điểm AI cần kiểm chứng', 'h2')
     add('1. Label trong RoomPanel + fixed2s trông hợp lý nhưng sai vòng đời; sinh viên xóa T18. T08 native từng RED rồi GREEN quan sát đúng khoảng sau RoomPanel destruction.\n2. TryStart=false không chứng minh side effect chỉ một lần; sinh viên xóa T17. T02/T05 đo B/native L/terminal; mutation chỉ kiểm capacity.\n3. Constant fakeLoads=0 assertion bị bỏ; native SceneManager observer thay thế.\n4. UI lỗi đọc được chưa đủ recovery: test mới RED vì mất manager, sửa navigation rồi GREEN phiên mới.', 'small')
     add('Điều chưa chứng minh và test tiếp theo', 'h2')
-    add('Guest process riêng qua scene, native hang/crash sau startup, Internet/reconnect, real arena p95 và randomized suite order còn thiếu evidence. Không dùng virtual guest hoặc fake-delay load để kết luận các phần đó. Reflection nguyên văn sinh viên ở trang tiếp theo ưu tiên host/guest hai process và làm guest tải chậm hơn host.', 'small')
+    add('Guest process riêng qua scene, native hang/crash sau startup, Internet/reconnect, real arena p95 và randomized suite order còn thiếu evidence. Không dùng virtual guest hoặc fake-delay load để kết luận các phần đó. Reflection ở trang tiếp theo ưu tiên host/guest hai process và làm guest tải chậm hơn host.', 'small')
     add('[README tái lập]('+branch.replace('/tree/','/blob/')+'/docs/assignments/bt3-vt-066/README.md) · [Traceability]('+branch.replace('/tree/','/blob/')+'/docs/assignments/bt3-vt-066/traceability.md)', 'small')
     next_page()
-    add('Câu 5. Reflection của sinh viên', 'h1')
-    add('Nguyễn Chí Hoàng Tú · 303 từ theo khoảng trắng · nguyên văn ba đoạn do sinh viên gửi; bỏ riêng timestamp giao diện chat khỏi nội dung bài.', 'small')
+    add('Câu 5. Reflection', 'h1')
+    add(f'{reflection_words} từ theo khoảng trắng. Codex hỗ trợ viết lại ở ngôi thứ nhất dựa trên bằng chứng thực thi. Chi tiết trong AI Usage Log.', 'small')
     for paragraph in reflection.split('\n\n'): add(paragraph)
     add('Cam kết đã được sinh viên xác nhận', 'h2')
     add(approval['commitment'])
@@ -343,11 +344,11 @@ def main():
     for i,p in enumerate(pdf): p.get_pixmap(matrix=fitz.Matrix(1.25,1.25),alpha=False).save(qa/f'page-{i+1:02}.png')
     texts = [p.get_text() for p in pdf]
     assert all(name in texts[0] for name in ['Nguyễn Chí Hoàng Tú','23001947','VT-066',baseline])
-    assert all(term in '\n'.join(texts) for term in ['AC1','AC2','AC3','AC4','AC5','303','32.1951'])
+    assert all(term in '\n'.join(texts) for term in ['AC1','AC2','AC3','AC4','AC5',str(reflection_words),'32.1951'])
     assert not any('\ufffd' in t for t in texts)
     links = [l.get('uri') for p in pdf for l in p.get_links() if l.get('uri')]
     report_qa = {'output':str(output),'mainPages':document.main_page_count,'totalPages':len(pdf),'appendixStartsAt':9,
-                 'reflectionWords':len(reflection.split()),'githubVerified':verified,'branchUrl':branch,
+                 'reflectionWords':reflection_words,'githubVerified':verified,'branchUrl':branch,
                  'fontNames':sorted({f[3] for p in pdf for f in p.get_fonts()}),'linkCount':len(links),
                  'renderFolder':str(qa),'unicodeReplacementCharacters':False,'visualInspection':'Pending model inspection of rendered PNGs'}
     (DOC/'pdf-qa.json').write_text(json.dumps(report_qa,ensure_ascii=False,indent=2),encoding='utf-8')
