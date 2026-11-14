@@ -1,0 +1,10 @@
+{
+  "line-rate": "0.9836",
+  "branch-rate": "0.9074",
+  "version": "1.9",
+  "timestamp": "1794662921",
+  "lines-covered": "60",
+  "lines-valid": "61",
+  "branches-covered": "49",
+  "branches-valid": "54"
+}

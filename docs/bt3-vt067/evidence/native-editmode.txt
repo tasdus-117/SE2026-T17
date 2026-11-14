@@ -1,0 +1,50 @@
+native-editmode: {'total': '165', 'passed': '165', 'failed': '0', 'skipped': '0'}
+TC01_NormalSave_PublicReadReturnsCompleteDraft Passed
+
+TC02_NewerRevision_ReplacesPayload_AndAllowsGaps Passed
+
+TC03_StaleSave_CannotOverwriteNewerObservableState Passed
+
+TC04_SlowOldTask_CompletesAfterFastNewTask_WithoutRegression Passed
+
+TC05_Contention_InterleavedTasks_EndAtHighestValidRevision Passed
+
+TC06_ConcurrentSameRevision_ExactlyOneCommit_StableWinnerOnRetry Passed
+
+TC07_NullDraft_IsRejected_AndExistingStateSurvives Passed
+
+TC08_NonPositiveRevision_IsRejected(0L) Passed
+
+TC08_NonPositiveRevision_IsRejected(-1L) Passed
+
+TC08_NonPositiveRevision_IsRejected(long.MinValue) Passed
+
+TC09_CorruptPayload_IsRejected_WithoutPartialState("room-empty") Passed
+
+TC09_CorruptPayload_IsRejected_WithoutPartialState("room-null") Passed
+
+TC09_CorruptPayload_IsRejected_WithoutPartialState("player-empty") Passed
+
+TC09_CorruptPayload_IsRejected_WithoutPartialState("members-null") Passed
+
+TC09_CorruptPayload_IsRejected_WithoutPartialState("members-empty") Passed
+
+TC09_CorruptPayload_IsRejected_WithoutPartialState("schema") Passed
+
+TC09_CorruptPayload_IsRejected_WithoutPartialState("duplicate-slot") Passed
+
+TC09_CorruptPayload_IsRejected_WithoutPartialState("duplicate-id") Passed
+
+TC09_CorruptPayload_IsRejected_WithoutPartialState("phase") Passed
+
+TC10_StagedIoFailure_RetainsCommittedDraft_AndAllowsRetry Passed
+
+TC11_Contract_IsImmutable_AndRoomsAreIsolated Passed
+
+TC12_Load40ConcurrentTasks_P95AtMost1500ms_AndFinalIntegrity Passed
+VT067_LOAD users=40 backend=in-memory p50_ms=5.208200 p95_ms=7.008600 p99_ms=7.017800 max_ms=7.017800 limit_ms=1500 cores=12
+
+TC13_CancelledSave_DoesNotPublish_AndLeaseIsReusable Passed
+
+TC14_MultipleServicesSharingStorage_StillRejectStaleAndOverflowBoundary Passed
+Saving results to: C:/Users/EGlaciers/AppData/LocalLow/DefaultCompany/Small Arena\TestResults.xml

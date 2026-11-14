@@ -205,6 +205,7 @@ namespace SmallArena.Tests.PlayMode
             yield return SceneManager.LoadSceneAsync("MainMenu");
             yield return null;
             manager = (ArenaNetworkManager)NetworkManager.singleton;
+            manager.GetComponent<ServerLobbyController>().ConfigureDraftStorage(new SmallArena.Domain.InMemoryDraftStorage());
             manager.transport.enabled = false;
             transport = manager.gameObject.AddComponent<M1LoopbackTransport>();
             manager.transport = Transport.active = transport;
@@ -267,6 +268,7 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(room.Count, Is.Zero);
             AssertFreshMenu();
             manager = (ArenaNetworkManager)NetworkManager.singleton;
+            manager.GetComponent<ServerLobbyController>().ConfigureDraftStorage(new SmallArena.Domain.InMemoryDraftStorage());
             manager.transport.enabled = false;
             transport = manager.gameObject.AddComponent<M1LoopbackTransport>();
             manager.transport = Transport.active = transport;

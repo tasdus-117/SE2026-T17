@@ -1,14 +1,18 @@
 param(
     [string]$EditorRoot = 'C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor',
-    [switch]$MutationChecks
+    [switch]$MutationChecks,
+    [string]$OutputDirectory = '',
+    [string]$SourceDirectory = '',
+    [string]$TestPrefix = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $taskRoot
-$domainFolder = Join-Path $taskRoot 'Assets/_Project/Scripts/Shared/Domain'
+$domainFolder = if ($SourceDirectory) { [IO.Path]::GetFullPath($SourceDirectory) } else { Join-Path $taskRoot 'Assets/_Project/Scripts/Shared/Domain' }
 $testFolder = Join-Path $taskRoot 'Assets/_Project/Tests/EditMode'
-$output = Join-Path $taskRoot 'TestResults/Domain'
+$output = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $taskRoot 'TestResults/Domain' }
+if (-not $output.StartsWith($taskRoot + '\', [StringComparison]::OrdinalIgnoreCase) -or -not $domainFolder.StartsWith($taskRoot + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Domain sources/output must remain inside the workspace.' }
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $dotnet = Join-Path $EditorRoot 'Data/NetCoreRuntime/dotnet.exe'
 $csc = Join-Path $EditorRoot 'Data/DotNetSdk/sdk/8.0.318/Roslyn/bincore/csc.dll'
@@ -18,7 +22,7 @@ $nunit = Join-Path $EditorRoot 'Data/Resources/PackageManager/BuiltInPackages/co
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 
 function Compile-Source([string]$Binary, [string[]]$Sources, [string[]]$References, [string]$Target = 'library') {
-    $arguments = @($csc, '/nologo', '/noconfig', '/nostdlib+', '/langversion:9.0', '/warnaserror+', ('/target:' + $Target), ('/out:' + $Binary))
+    $arguments = @($csc, '/nologo', '/noconfig', '/nostdlib+', '/langversion:9.0', '/debug:portable', '/warnaserror+', ('/target:' + $Target), ('/out:' + $Binary))
     $arguments += @($References | ForEach-Object { '/reference:' + $_ })
     $arguments += $Sources
     $diagnostics = @(& $dotnet @arguments 2>&1)
@@ -31,12 +35,7 @@ function Compile-Suite([string]$SourceFolder, [string]$Destination) {
     # No engine, plugin or NUnit reference is passed to the domain compiler.
     $domainSources = @(Get-ChildItem -LiteralPath $SourceFolder -Filter '*.cs' -Recurse | ForEach-Object { $_.FullName })
     Compile-Source $domainBinary $domainSources $framework
-    $testSources = @(
-        (Join-Path $testFolder 'AssemblyInfo.cs'),
-        (Join-Path $testFolder 'MatchStateTests.cs'),
-        (Join-Path $testFolder 'GameplayConfigurationTests.cs'),
-        (Join-Path $testFolder 'OnlineStateTests.cs')
-    )
+    $testSources = @(Get-ChildItem -LiteralPath $testFolder -Filter '*.cs' -Recurse | ForEach-Object { $_.FullName })
     Compile-Source (Join-Path $Destination 'SmallArena.EditMode.Tests.dll') $testSources (@($framework) + @($domainBinary, $nunit))
 }
 
@@ -49,11 +48,13 @@ $runtime = '{"runtimeOptions":{"tfm":"net8.0","framework":{"name":"Microsoft.NET
 Compile-Suite $domainFolder $output
 $baselineXml = Join-Path $output 'results.xml'
 if (Test-Path -LiteralPath $baselineXml) { Remove-Item -LiteralPath $baselineXml -Force }
-$baselineLog = @(& $dotnet $hostBinary (Join-Path $output 'SmallArena.EditMode.Tests.dll') $baselineXml 2>&1)
+$runArguments = @($hostBinary, (Join-Path $output 'SmallArena.EditMode.Tests.dll'), $baselineXml)
+if ($TestPrefix) { $runArguments += $TestPrefix }
+$baselineLog = @(& $dotnet @runArguments 2>&1)
 $baselineExit = $LASTEXITCODE
 $baselineLog | Set-Content -LiteralPath (Join-Path $output 'results.log')
 $baselineLog | Write-Output
-if ($baselineExit -ne 0) { throw 'Baseline NUnit run failed; see TestResults/Domain/results.log.' }
+if ($baselineExit -ne 0) { throw "NUnit run failed; see $output/results.log." }
 [xml]$baselineResult = Get-Content -LiteralPath $baselineXml -Raw
 $caseCount = @($baselineResult.SelectNodes('//test-case')).Count
 if ($caseCount -eq 0) { throw 'NUnit discovered no cases.' }

@@ -1,0 +1,19 @@
+native-playmode: {'total': '286', 'passed': '284', 'failed': '0', 'skipped': '2'}
+TC16_FileReopenAndIndependentInstances_PreserveHighestRevision Passed
+
+TC17_FileFailureAtPublish_RollsBackBytesAndRemovesStagingFile Passed
+
+TC18_DurableLoad40AcrossIndependentBackends_P95AtMost1500ms Passed
+VT067_LOAD users=40 backend=atomic-file p50_ms=429.130700 p95_ms=538.363300 p99_ms=552.741000 max_ms=552.741000 limit_ms=1500 cores=12
+
+TC19_CorruptedFile_FailsClosed_WithoutOverwritingEvidence Passed
+
+TC15_LobbyJoinAndReady_AutomaticallySave_WithoutRestoringLiveAuthority Passed
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client connected: 2
+[TV1] Client disconnected: 0
+[TV1] Client disconnected: 2
+Server started listening
+[TV1] Client connected: 0
+[TV1] Client disconnected: 0

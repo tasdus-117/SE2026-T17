@@ -1,0 +1,45 @@
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC01_NormalSave_PublicReadReturnsCompleteDraft
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC02_NewerRevision_ReplacesPayload_AndAllowsGaps
+Failed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC03_StaleSave_CannotOverwriteNewerObservableState
+  Expected: RejectedStale
+  But was:  Saved
+
+Failed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC04_SlowOldTask_CompletesAfterFastNewTask_WithoutRegression
+  Expected: RejectedStale
+  But was:  Saved
+
+Failed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC05_Contention_InterleavedTasks_EndAtHighestValidRevision
+  Expected: 40
+  But was:  24
+
+Failed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC06_ConcurrentSameRevision_ExactlyOneCommit_StableWinnerOnRetry
+  Expected: 1
+  But was:  40
+
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC07_NullDraft_IsRejected_AndExistingStateSurvives
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC08_NonPositiveRevision_IsRejected(0L)
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC08_NonPositiveRevision_IsRejected(-1L)
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC08_NonPositiveRevision_IsRejected(long.MinValue)
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC09_CorruptPayload_IsRejected_WithoutPartialState("room-empty")
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC09_CorruptPayload_IsRejected_WithoutPartialState("room-null")
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC09_CorruptPayload_IsRejected_WithoutPartialState("player-empty")
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC09_CorruptPayload_IsRejected_WithoutPartialState("members-null")
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC09_CorruptPayload_IsRejected_WithoutPartialState("members-empty")
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC09_CorruptPayload_IsRejected_WithoutPartialState("schema")
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC09_CorruptPayload_IsRejected_WithoutPartialState("duplicate-slot")
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC09_CorruptPayload_IsRejected_WithoutPartialState("duplicate-id")
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC09_CorruptPayload_IsRejected_WithoutPartialState("phase")
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC10_StagedIoFailure_RetainsCommittedDraft_AndAllowsRetry
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC11_Contract_IsImmutable_AndRoomsAreIsolated
+Failed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC12_Load40ConcurrentTasks_P95AtMost1500ms_AndFinalIntegrity
+VT067_LOAD users=40 backend=in-memory p50_ms=3.084000 p95_ms=3.118200 p99_ms=3.129900 max_ms=3.129900 limit_ms=1500 cores=12
+
+  Expected: 40
+  But was:  30
+
+Passed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC13_CancelledSave_DoesNotPublish_AndLeaseIsReusable
+Failed: SmallArena.Tests.EditMode.VT067.AutoSaveDraftConcurrencyTests.TC14_MultipleServicesSharingStorage_StillRejectStaleAndOverflowBoundary
+  Expected: RejectedStale
+  But was:  Saved
+
+Passed: 18; failed: 6; skipped: 0; inconclusive: 0

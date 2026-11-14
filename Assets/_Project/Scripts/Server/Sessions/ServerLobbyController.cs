@@ -1,4 +1,8 @@
 using Mirror;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using SmallArena.Domain;
 using SmallArena.Networking;
 using UnityEngine;
 
@@ -12,6 +16,13 @@ namespace SmallArena.Server.Sessions
         private ArenaNetworkManager manager;
         private readonly LobbyRoom room = new LobbyRoom();
         public LobbyRoom Room => room;
+        private IAtomicDraftStorage draftStorage;
+        public LobbyDraftAutoSave Drafts { get; private set; }
+        public void ConfigureDraftStorage(IAtomicDraftStorage storage)
+        {
+            if (NetworkServer.active) throw new InvalidOperationException("Configure draft storage before starting the server.");
+            draftStorage = storage ?? throw new ArgumentNullException(nameof(storage));
+        }
 
         private void OnEnable()
         {
@@ -39,6 +50,9 @@ namespace SmallArena.Server.Sessions
         {
             if (!manager.RoomEnabled) return;
             room.Open();
+            // Resolve the Unity path on the main thread. File storage itself uses only System APIs.
+            Drafts = new LobbyDraftAutoSave(draftStorage ?? new AtomicFileDraftStorage(
+                Path.Combine(Application.persistentDataPath, "VT067", "Drafts")));
             NetworkServer.RegisterHandler<LobbyReadyRequest>(Ready);
             NetworkServer.RegisterHandler<LobbyStartRequest>(StartMatch);
         }
@@ -78,9 +92,19 @@ namespace SmallArena.Server.Sessions
         {
             if (!NetworkServer.active) return;
             var members = room.Members;
+            if (Drafts != null) ObserveSave(Drafts.CaptureAsync(room));
             foreach (var connection in NetworkServer.connections.Values)
                 if (connection.isAuthenticated)
                     connection.Send(new LobbySnapshot { Phase = room.Phase, LocalConnectionId = connection.connectionId, CanStart = room.CanStart, Members = members });
+        }
+        private async void ObserveSave(Task<DraftSaveResult> save)
+        {
+            try { await save; }
+            catch (Exception error)
+            {
+                // Capture the Unity synchronization context; persistence never logs from a worker.
+                if (this != null) Debug.LogWarning("[VT067] Draft save failed; previous commit retained: " + error.GetType().Name);
+            }
         }
     }
 }

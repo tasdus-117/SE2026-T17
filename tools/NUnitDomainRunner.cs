@@ -11,9 +11,9 @@ internal static class NUnitDomainRunner
 {
     public static int Main(string[] args)
     {
-        if (args.Length != 2)
+        if (args.Length < 2 || args.Length > 3)
         {
-            Console.Error.WriteLine("Usage: NUnitDomainRunner <test-assembly> <result.xml>");
+            Console.Error.WriteLine("Usage: NUnitDomainRunner <test-assembly> <result.xml> [full-name-prefix]");
             return 2;
         }
 
@@ -32,7 +32,7 @@ internal static class NUnitDomainRunner
             return 2;
         }
 
-        var result = runner.Run(TestListener.NULL, TestFilter.Empty);
+        var result = runner.Run(TestListener.NULL, args.Length == 3 ? (ITestFilter)new PrefixFilter(args[2]) : TestFilter.Empty);
         File.WriteAllText(args[1], result.ToXml(true).OuterXml);
         PrintCases(result);
         Console.WriteLine($"Passed: {result.PassCount}; failed: {result.FailCount}; skipped: {result.SkipCount}; inconclusive: {result.InconclusiveCount}");
@@ -44,6 +44,7 @@ internal static class NUnitDomainRunner
         if (!result.HasChildren)
         {
             Console.WriteLine($"{result.ResultState.Status}: {result.FullName}");
+            if (!string.IsNullOrEmpty(result.Output)) Console.WriteLine(result.Output);
             if (result.ResultState.Status == TestStatus.Failed)
             {
                 Console.WriteLine(result.Message);
@@ -55,5 +56,13 @@ internal static class NUnitDomainRunner
         {
             PrintCases(child);
         }
+    }
+
+    private sealed class PrefixFilter : TestFilter
+    {
+        private readonly string prefix;
+        internal PrefixFilter(string prefix) => this.prefix = prefix;
+        public override bool Match(ITest test) => test.FullName.StartsWith(prefix, StringComparison.Ordinal);
+        public override NUnit.Framework.Interfaces.TNode AddToXml(NUnit.Framework.Interfaces.TNode parentNode, bool recursive) => parentNode.AddElement("filter");
     }
 }

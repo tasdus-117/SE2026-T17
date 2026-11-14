@@ -1,0 +1,5 @@
+--- a/Assets/_Project/Scripts/Shared/Domain/AutoSaveDraftService.cs
++++ b/Assets/_Project/Scripts/Shared/Domain/AutoSaveDraftService.cs
+@@ -17,2 +16,0 @@
+-                if (transaction.Current != null && snapshot.Revision <= transaction.Current.Revision)
+-                    return DraftSaveResult.RejectedStale;

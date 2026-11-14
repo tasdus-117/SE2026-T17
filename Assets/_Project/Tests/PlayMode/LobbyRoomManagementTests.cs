@@ -32,6 +32,7 @@ namespace SmallArena.Tests.PlayMode
             yield return null;
             manager = (ArenaNetworkManager)NetworkManager.singleton;
             server = manager.GetComponent<ServerLobbyController>();
+            server.ConfigureDraftStorage(new SmallArena.Domain.InMemoryDraftStorage());
             view = Object.FindAnyObjectByType<LobbyRoomView>();
             manager.transport.enabled = false;
             transport = manager.gameObject.AddComponent<M1LoopbackTransport>();
@@ -266,6 +267,7 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(previous == null, Is.True, "Mirror destroys the stopped session root when leaving the arena.");
             manager = (ArenaNetworkManager)NetworkManager.singleton;
             server = manager.GetComponent<ServerLobbyController>();
+            server.ConfigureDraftStorage(new SmallArena.Domain.InMemoryDraftStorage());
             manager.transport.enabled = false;
             transport = manager.gameObject.AddComponent<M1LoopbackTransport>();
             manager.transport = transport;
