@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SmallArena.Networking;
@@ -13,6 +14,30 @@ namespace SmallArena.Server.Sessions
         public int Count => members.Count;
         public bool AllReady => Count > 0 && members.Values.All(member => member.IsReady);
         public LobbyMember[] Members => members.Values.OrderBy(member => member.ConnectionId).ToArray();
+
+        /// <summary>
+        /// Single-threaded server query. Bind requester to a trusted connection.
+        /// Ordering is stable only while membership/readiness remains unchanged.
+        /// </summary>
+        public LobbyMember[] SearchMembers(int requester, bool? ready = null,
+            bool? host = null, int page = 0, int pageSize = Capacity)
+        {
+            if (Phase != LobbyPhase.Waiting || !members.ContainsKey(requester))
+                throw new UnauthorizedAccessException("Only waiting room members may search.");
+            if (page < 0) throw new ArgumentOutOfRangeException(nameof(page));
+            if (pageSize < 1 || pageSize > Capacity) throw new ArgumentOutOfRangeException(nameof(pageSize));
+
+            var offset = (long)page * pageSize;
+            if (offset >= Count) return Array.Empty<LobbyMember>();
+            return members.Values
+                .Where(member => (!ready.HasValue || member.IsReady == ready.Value)
+                    && (!host.HasValue || member.IsHost == host.Value))
+                .OrderByDescending(member => member.IsReady)
+                .ThenBy(member => member.ConnectionId)
+                .Skip((int)offset)
+                .Take(pageSize)
+                .ToArray();
+        }
 
         public void Open() { members.Clear(); Phase = LobbyPhase.Waiting; }
         public void Close() { members.Clear(); Phase = LobbyPhase.Offline; }

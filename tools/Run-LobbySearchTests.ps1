@@ -44,7 +44,11 @@ $run = @(& $dotnet (Join-Path $output 'NUnitDomainRunner.dll') (Join-Path $outpu
 $code = $LASTEXITCODE
 $run | Set-Content (Join-Path $output 'results.log')
 $run | Write-Output
-$info = [ordered]@{ utc = $start; sha = $sha; patchSha256 = $patchId; command = $MyInvocation.Line; baseline = [bool]$Baseline; exitCode = $code; runtime = (& $dotnet --info | Out-String); boundary = 'Actual LobbyRoom + LobbyMessages with Mirror marker only; no serialization, transport, engine, or UI' }
+$command = "powershell -NoProfile -ExecutionPolicy Bypass -File tools/Run-LobbySearchTests.ps1 -EditorRoot '$EditorRoot' -OutputDirectory '$OutputDirectory'"
+if ($Baseline) { $command += ' -Baseline' }
+if ($Load) { $command += ' -Load' }
+$inventory = @(Get-FileHash -Algorithm SHA256 -LiteralPath 'Assets/_Project/Scripts/Server/Sessions/LobbyRoom.cs','Assets/_Project/Scripts/Networking/LobbyMessages.cs','Assets/_Project/Tests/PlayMode/LobbyMemberSearchTests.cs','tools/Run-LobbySearchTests.ps1' | Select-Object @{Name='File';Expression={Split-Path -Leaf $_.Path}},Hash)
+$info = [ordered]@{ utc = $start; sha = $sha; patchSha256 = $patchId; command = $command; files = $inventory; baseline = [bool]$Baseline; exitCode = $code; runtime = (& $dotnet --info | Out-String); boundary = 'Actual LobbyRoom + LobbyMessages with Mirror marker only; no serialization, transport, engine, or UI' }
 $info | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $output 'run.json')
 if ($code -ne 0) { exit $code }
 if ($Load) {

@@ -167,6 +167,34 @@ namespace SmallArena.Tests.PlayMode
                 Assert.That(Query(room).Select(m => m.ConnectionId), Is.EqualTo(new[] { 2, 7, 9, 0 }), "seed=" + seed);
             }
         }
+#if !LOBBY_PORTABLE
+        // Frozen decoder from a702d17 LobbyMessages field order and Mirror 96 WriteArray.
+        // Deliberately does not use reader.Read<LobbySnapshot>() or ReadArray<LobbyMember>().
+        [Test]
+        public void C14_CurrentWriter_FrozenLegacyDecoder_AfterQueryFailure()
+        {
+            var room = Fixture();
+            Assert.Throws<ArgumentOutOfRangeException>(() => Query(room, pageSize: 0));
+            var legacy = new LobbySnapshot { Phase = room.Phase, LocalConnectionId = 0, Members = room.Members };
+            using (var writer = NetworkWriterPool.Get())
+            {
+                writer.Write(legacy);
+                using (var reader = NetworkReaderPool.Get(writer.ToArraySegment()))
+                {
+                    Assert.That(reader.ReadByte(), Is.EqualTo((byte)LobbyPhase.Waiting));
+                    Assert.That(reader.ReadInt(), Is.Zero);
+                    Assert.That(Compression.DecompressVarUInt(reader), Is.EqualTo(5UL));
+                    foreach (var id in new[] { 0, 2, 7, 9 })
+                    {
+                        Assert.That(reader.ReadInt(), Is.EqualTo(id));
+                        Assert.That(reader.ReadBool(), Is.EqualTo(id != 0));
+                        Assert.That(reader.ReadBool(), Is.EqualTo(id == 0));
+                    }
+                    Assert.That(reader.Remaining, Is.Zero);
+                }
+            }
+        }
+#endif
 #endif
     }
 }
