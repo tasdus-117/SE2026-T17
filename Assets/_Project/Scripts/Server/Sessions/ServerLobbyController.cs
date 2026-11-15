@@ -11,6 +11,7 @@ namespace SmallArena.Server.Sessions
     {
         private ArenaNetworkManager manager;
         private readonly LobbyRoom room = new LobbyRoom();
+        private LobbyStartOperation startOperation;
         public LobbyRoom Room => room;
 
         private void OnEnable()
@@ -39,10 +40,11 @@ namespace SmallArena.Server.Sessions
         {
             if (!manager.RoomEnabled) return;
             room.Open();
+            startOperation = new LobbyStartOperation(room, manager.LoadRoomArena, Publish, error => manager.AbortRoomStart(error.Message));
             NetworkServer.RegisterHandler<LobbyReadyRequest>(Ready);
             NetworkServer.RegisterHandler<LobbyStartRequest>(StartMatch);
         }
-        private void Close() => room.Close();
+        private void Close() { startOperation = null; room.Close(); }
         private void Join(NetworkConnectionToClient connection)
         {
             if (!manager.RoomEnabled) return;
@@ -64,15 +66,12 @@ namespace SmallArena.Server.Sessions
         }
         private void StartMatch(NetworkConnectionToClient connection, LobbyStartRequest request)
         {
-            if (!room.TryStart(connection.connectionId)) return;
-            Publish();
-            manager.LoadRoomArena();
+            startOperation?.TryStart(connection.connectionId);
         }
         private void SceneLoaded(string scene)
         {
             if (!manager.RoomEnabled || !scene.EndsWith("Arena_MVP.unity") && scene != "Arena_MVP") return;
-            room.FinishLoading();
-            Publish();
+            startOperation?.Complete();
         }
         private void Publish()
         {

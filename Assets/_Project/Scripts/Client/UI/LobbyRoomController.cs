@@ -28,6 +28,9 @@ namespace SmallArena.Client.UI
             view.LeaveButton.onClick.AddListener(Leave);
             if (view.DismissErrorButton != null) view.DismissErrorButton.onClick.AddListener(view.DismissError);
             if (manager != null) { manager.RoomChanged += Refresh; manager.RoomRejected += Rejected; }
+            ArenaLoadingOverlay.Observe(manager);
+            var notice = MatchSessionNavigation.TakeNotice();
+            if (!string.IsNullOrEmpty(notice)) view.ShowSessionError(notice);
         }
         private void OnDisable()
         {
@@ -50,6 +53,12 @@ namespace SmallArena.Client.UI
         private void Update()
         {
             ReleaseIdleManager();
+            // A startup failure can return to the already active MainMenu without reloading it.
+            if (!MatchSessionNavigation.IsReturning)
+            {
+                var notice = MatchSessionNavigation.TakeNotice();
+                if (!string.IsNullOrEmpty(notice)) view.ShowSessionError(notice);
+            }
             // Mirror finishes its connection-state change after the disconnect callback returns.
             // Refresh once when that transition completes, not every frame.
             if (visible && manager != null && wasConnecting != (NetworkClient.active && manager.CurrentRoom.Phase == LobbyPhase.Offline)) Refresh();

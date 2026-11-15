@@ -2,7 +2,7 @@ using Mirror;
 
 namespace SmallArena.Networking
 {
-    public enum LobbyPhase : byte { Offline, Waiting, Loading, Playing }
+    public enum LobbyPhase : byte { Offline, Waiting, Loading, Playing, Failed }
 
     public struct LobbyMember
     {

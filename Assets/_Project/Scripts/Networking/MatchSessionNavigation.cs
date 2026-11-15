@@ -10,6 +10,11 @@ namespace SmallArena.Networking
     {
         private static MatchSessionNavigation active;
         public static bool IsReturning => active != null;
+        private static string pendingNotice;
+        // Kept outside the manager because teardown destroys it before the menu appears.
+        public static void RecordNotice(string message) { if (string.IsNullOrEmpty(pendingNotice)) pendingNotice = message; }
+        public static string TakeNotice() { var message = pendingNotice; pendingNotice = null; return message; }
+        public static void ClearNotice() => pendingNotice = null;
 
         public static void ReturnToMainMenu()
         {
@@ -47,12 +52,19 @@ namespace SmallArena.Networking
             if (NetworkClient.active || NetworkClient.connection != null || NetworkClient.spawned.Count > 0) NetworkClient.Shutdown();
             if (stopServer && NetworkServer.active) NetworkServer.Shutdown();
             while (NetworkManager.loadingSceneAsync != null && !NetworkManager.loadingSceneAsync.isDone) yield return null;
+            // A synchronous disconnect inside OnClientChangeScene can finish StopClient
+            // before Mirror sets isLoadingScene. Reset again after that native load drains,
+            // or a new host/client silently keeps its lobby messages paused.
+            NetworkClient.Shutdown();
+            NetworkManager.loadingSceneAsync = null;
             if (manager is ArenaNetworkManager arena && arena != null) arena.ClearRoomClientState();
             if (manager != null) Destroy(manager.gameObject);
             yield return null; // Finish Unity destruction before resetting singleton references or creating the menu root.
             NetworkManager.ResetStatics();
             if (!NetworkServer.active) Transport.active = null;
-            if (SceneManager.GetActiveScene().name != "MainMenu") yield return SceneManager.LoadSceneAsync("MainMenu");
+            // Startup may fail while MainMenu is still active. Reload it as well: the
+            // old session manager was destroyed above and the scene must create a new one.
+            yield return SceneManager.LoadSceneAsync("MainMenu");
             Destroy(gameObject);
         }
 
