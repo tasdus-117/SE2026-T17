@@ -202,55 +202,19 @@ internal static class ArenaLayoutVerifier
         var parent = scene.Component(geometry, "Transform");
         IdentityRotation(parent);
         Check(Vector(parent.Data, "m_LocalPosition") == Vector3.Zero && Vector(parent.Data, "m_LocalScale") == Vector3.One, "Geometry parent must be identity.");
-        var wallNames = new[] { "WallNorth", "WallSouth", "WallEast", "WallWest" };
-        var coverNames = new[] { "CoverNorthWest", "CoverSouthEast" };
-        var barrierNames = wallNames.Concat(coverNames).ToArray();
-        var geometryNames = new[] { "Floor" }.Concat(barrierNames).ToArray();
-        Check(scene.OfType("BoxCollider").Count() == geometryNames.Length && !scene.OfType("Rigidbody").Any(),
-            "Expected floor, four static walls and two static cover blocks.");
-        var geometryBoxes = new Dictionary<string, Box>();
-        foreach (var name in geometryNames)
-        {
-            var owner = scene.Named(name);
-            Check(Number(owner.Data, "m_Layer") == expectedLayers["Environment"], "Wrong geometry layer: " + name);
-            var transform = scene.Component(owner, "Transform");
-            Check(Id(Field(transform.Data, "m_Father")) == parent.Id, "Geometry parent mismatch.");
-            Check(Sequence(Field(parent.Data, "m_Children")).Any(item => Id(item) == transform.Id), "Missing parent child link.");
-            var collider = scene.Component(owner, "BoxCollider");
-            Check(Number(collider.Data, "m_IsTrigger") == 0 && Number(collider.Data, "m_Enabled") == 1, "Geometry must be solid and enabled.");
-            geometryBoxes[name] = Bounds(transform, collider, Vector3.Zero);
-        }
-        var floor = geometryBoxes["Floor"];
+        var floorOwner = scene.Named("Floor");
+        var floorTransform = scene.Component(floorOwner, "Transform");
+        var floorCollider = scene.Component(floorOwner, "BoxCollider");
+        Check(scene.OfType("BoxCollider").Count() == 1 && !scene.OfType("Rigidbody").Any(),
+            "Expected only the floor as saved geometry.");
+        Check(Number(floorOwner.Data, "m_Layer") == expectedLayers["Environment"], "Floor must be on Environment.");
+        Check(Id(Field(floorTransform.Data, "m_Father")) == parent.Id, "Floor parent mismatch.");
+        Check(Sequence(Field(parent.Data, "m_Children")).Select(Id).SequenceEqual(new[] { floorTransform.Id }),
+            "The open arena should have no saved outer walls or obstacles.");
+        Check(Number(floorCollider.Data, "m_IsTrigger") == 0 && Number(floorCollider.Data, "m_Enabled") == 1,
+            "Floor must be solid and enabled.");
+        var floor = Bounds(floorTransform, floorCollider, Vector3.Zero);
         Near(floor.Min.X, -8); Near(floor.Max.X, 8); Near(floor.Min.Z, -8); Near(floor.Max.Z, 8); Near(floor.Max.Y, 0);
-        foreach (var name in wallNames)
-        {
-            var wall = geometryBoxes[name];
-            Near(wall.Min.Y, 0);
-            Check(wall.Size.Y >= 3, "Wall is shorter than 3m.");
-            Check(wall.Size.Y > 1.2 + Number(controller.Data, "m_StepOffset") + Number(controller.Data, "m_SkinWidth"), "Insufficient jump/step margin.");
-            if (name == "WallNorth" || name == "WallSouth")
-            {
-                Near(name == "WallNorth" ? wall.Min.Z : wall.Max.Z, name == "WallNorth" ? 8 : -8);
-                Check(wall.Min.X <= floor.Min.X && wall.Max.X >= floor.Max.X, "Wall does not span arena width.");
-            }
-            else
-            {
-                Near(name == "WallEast" ? wall.Min.X : wall.Max.X, name == "WallEast" ? 8 : -8);
-                Check(wall.Min.Z <= floor.Min.Z && wall.Max.Z >= floor.Max.Z, "Wall does not span arena depth.");
-            }
-        }
-        foreach (var northSouth in new[] { "WallNorth", "WallSouth" })
-            foreach (var eastWest in new[] { "WallEast", "WallWest" })
-                Check(geometryBoxes[northSouth].Overlaps(geometryBoxes[eastWest]), "Open corner seam.");
-        foreach (var name in coverNames)
-        {
-            var cover = geometryBoxes[name];
-            Near(cover.Min.Y, floor.Max.Y);
-            Check(cover.Min.X > floor.Min.X && cover.Max.X < floor.Max.X
-                && cover.Min.Z > floor.Min.Z && cover.Max.Z < floor.Max.Z, "Cover must be inside the arena: " + name);
-            Check(Number(scene.Component(scene.Named(name), "MeshRenderer").Data, "m_Enabled") == 1,
-                "Cover must be visible: " + name);
-        }
 
         var instances = scene.OfType("PrefabInstance").ToArray();
         Check(instances.Length == 5, "Expected three gameplay prefabs, in-game menu and network HUD.");
@@ -310,8 +274,6 @@ internal static class ArenaLayoutVerifier
             entityBoxes[name] = box;
             Check(box.Min.X > floor.Min.X && box.Max.X < floor.Max.X && box.Min.Z > floor.Min.Z && box.Max.Z < floor.Max.Z, "Spawn outside playable area: " + name);
             Near(box.Min.Y, floor.Max.Y);
-            foreach (var barrier in barrierNames)
-                Check(!box.Overlaps(geometryBoxes[barrier]), "Spawn intersects " + barrier + ": " + name);
         }
         for (var first = 0; first < names.Length; first++)
             for (var second = first + 1; second < names.Length; second++)
@@ -398,17 +360,23 @@ internal static class ArenaLayoutVerifier
         var markers = sceneBehaviours.Where(item => Text(Map(Field(item.Data, "m_Script")), "guid") == startGuid).ToArray();
         Check(markers.Length == 4, "Expected four network spawn markers.");
         var markerPositions = markers.Select(item => Vector(scene.Component(scene.Records[Id(Field(item.Data, "m_GameObject"))], "Transform").Data, "m_LocalPosition")).ToArray();
-        Check(markerPositions.Distinct().Count() == 4 && markerPositions.All(position => Math.Abs(position.X) == 6 && position.Y == 1 && Math.Abs(position.Z) == 6), "Network spawns must be distinct, supported and clear of arena walls.");
-        foreach (var position in markerPositions)
-        {
-            var spawn = Bounds(player.Only("Transform"), controller, position);
-            foreach (var barrier in barrierNames)
-                Check(!spawn.Overlaps(geometryBoxes[barrier]), "Network spawn intersects " + barrier + ": " + position);
-        }
+        Check(markerPositions.Distinct().Count() == 4 && markerPositions.All(position => Math.Abs(position.X) == 6 && position.Y == 1 && Math.Abs(position.Z) == 6), "Network spawns must be distinct, supported and inside the arena.");
+        var obstaclesGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/ArenaObstacles.cs.meta"));
+        var obstacleOwner = scene.Named("ArenaObstacles");
+        var obstacles = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == obstaclesGuid);
+        var layoutIdentity = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == identityGuid);
+        Check(Id(Field(obstacles.Data, "m_GameObject")) == obstacleOwner.Id
+            && Id(Field(layoutIdentity.Data, "m_GameObject")) == obstacleOwner.Id
+            && Text(layoutIdentity.Data, "sceneId") != "0", "Layout requires a scene NetworkIdentity.");
+        Check(Id(Field(obstacles.Data, "floor")) == floorCollider.Id, "Layout floor reference mismatch.");
+        var reservedSpawns = Sequence(Field(obstacles.Data, "reservedSpawns")).Select(Id).ToArray();
+        var expectedSpawns = entityObjects.Values.Concat(markers.Select(item => Id(Field(item.Data, "m_GameObject"))));
+        Check(reservedSpawns.Length == 7 && reservedSpawns.ToHashSet().SetEquals(expectedSpawns),
+            "The obstacle generator must reserve every offline and multiplayer spawn.");
         var scope = sceneBehaviours.Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == scopeGuid);
         Check(Sequence(Field(scope.Data, "offlineRoots")).Select(Id).ToHashSet().SetEquals(new[] { entityObjects["Player"], entityObjects["Bot"], entityObjects["WeaponPickup"], managerObject.Id, Id(Field(ui.Data, "m_GameObject")) }), "Offline scope must disable only offline actors, coordinator and HUD.");
         Check(sceneBehaviours.All(item => packageReferences.Contains(Text(Map(Field(item.Data, "m_Script")), "guid"))
-            || Text(Map(Field(item.Data, "m_Script")), "guid") == startGuid || item.Id == scope.Id
+            || Text(Map(Field(item.Data, "m_Script")), "guid") == startGuid || item.Id == scope.Id || item.Id == obstacles.Id || item.Id == layoutIdentity.Id
             || item.Id == manager.Id || item.Id == follow.Id || item.Id == occlusion.Id || item.Id == readiness.Id || item.Id == ui.Id), "Unexpected scene gameplay script.");
         var build = Read(System.IO.Path.Combine(root, "ProjectSettings/EditorBuildSettings.asset")).Only("EditorBuildSettings");
         var buildScenes = Sequence(Field(build.Data, "m_Scenes")).Select(Map).ToArray();
@@ -441,12 +409,12 @@ internal static class ArenaLayoutVerifier
         {
             AssertionsPassed = assertions, UnityYamlFilesParsed = parsed.Count,
             Scene = "Assets/_Project/Scenes/Arena_MVP.unity", LinkedEntityInstances = instances.Length,
-            FloorMetres = "16 x 16", WallHeightMetres = 3,
+            FloorMetres = "16 x 16", OpenEdges = true,
             GameManagerWiredToPrefabRootsAndCamera = true, OfflineAutoStart = true, FullReadinessProviderAssigned = true, HudWired = true,
             Spawns = spawns.ToDictionary(pair => pair.Key, pair => new[] { pair.Value.X, pair.Value.Y, pair.Value.Z }),
             VerificationMode = "Saved-file references and geometry only; Unity import and native physics require licensed PlayMode execution."
         }, new JsonSerializerOptions { WriteIndented = true }));
-        Console.WriteLine($"PASS: {assertions} saved-layout assertions; {parsed.Count} Unity YAML files; 3 linked gameplay prefabs plus in-game menu; 16x16 floor; 3m walls; two cover blocks; supported, separate spawns.");
+        Console.WriteLine($"PASS: {assertions} saved-layout assertions; {parsed.Count} Unity YAML files; 3 linked gameplay prefabs plus in-game menu; 16x16 open floor; networked obstacle generator; supported, separate spawns.");
     }
 
     private static Box Bounds(Record transform, Record collider, Vector3 positionOverride)
