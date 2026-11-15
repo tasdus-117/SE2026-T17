@@ -4,6 +4,7 @@ namespace SmallArena.Domain
     {
         Initializing,
         Playing,
-        Victory
+        Victory,
+        Defeat
     }
 }

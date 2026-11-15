@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1005}
   - component: {fileID: 1006}
   - component: {fileID: 6808795567801122139}
+  - component: {fileID: 1019}
   m_Layer: 8
   m_Name: Bot
   m_TagString: Untagged
@@ -144,3 +145,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: SmallArena.Client::SmallArena.Client.UI.OfflineHealthPresenter
   healthSource: {fileID: 1006}
   healthBarPrefab: {fileID: 1051110857435667685, guid: 9a0c2a3e3d3305a4981e934729814648, type: 3}
+--- !u!114 &1019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2af15af70eb4a539f34d40413749ad2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:

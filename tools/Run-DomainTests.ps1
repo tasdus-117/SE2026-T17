@@ -70,10 +70,10 @@ if (-not $MutationChecks) { exit 0 }
 $mutations = @(
     @{ Id = 'M01'; File = 'MatchStateMachine.cs'; Find = '|| !readiness.IsReady'; Replace = '|| readiness.IsReady'; Description = 'Invert readiness guard' },
     @{ Id = 'M02'; File = 'MatchStateMachine.cs'; Find = 'CurrentState != MatchState.Initializing'; Replace = 'CurrentState == MatchState.Initializing'; Description = 'Invert start-state guard' },
-    @{ Id = 'M03'; File = 'MatchStateMachine.cs'; Find = 'CurrentState != MatchState.Playing'; Replace = 'CurrentState == MatchState.Playing'; Description = 'Invert victory-state guard' },
+    @{ Id = 'M03'; File = 'MatchStateMachine.cs'; Find = "if (isNotifying || CurrentState != MatchState.Playing)`n"; Replace = "if (isNotifying || CurrentState == MatchState.Playing)`n"; Description = 'Invert victory-state guard' },
     @{ Id = 'M04'; File = 'MatchStateMachine.cs'; Find = 'TransitionTo(MatchState.Victory);'; Replace = 'TransitionTo(MatchState.Playing);'; Description = 'Victory remains Playing' },
     @{ Id = 'M05'; File = 'MatchStateMachine.cs'; Find = 'OnStateChanged?.Invoke(nextState);'; Replace = '_ = OnStateChanged;'; Description = 'Suppress state-change notification' },
-    @{ Id = 'M06'; File = 'MatchStateMachine.cs'; Find = 'if (isNotifying || CurrentState != MatchState.Playing)'; Replace = 'if (CurrentState != MatchState.Playing)'; Description = 'Allow victory during Playing notification' },
+    @{ Id = 'M06'; File = 'MatchStateMachine.cs'; Find = "if (isNotifying || CurrentState != MatchState.Playing)`n"; Replace = "if (CurrentState != MatchState.Playing)`n"; Description = 'Allow victory during Playing notification' },
     @{ Id = 'M07'; File = 'MatchStateMachine.cs'; Find = "CurrentState = nextState;`n            isNotifying = true;"; Replace = 'isNotifying = true;'; FindAfter = 'OnStateChanged?.Invoke(nextState);'; ReplaceAfter = "OnStateChanged?.Invoke(nextState);`n                CurrentState = nextState;"; Description = 'Notify before committing state' },
     @{ Id = 'M08'; File = 'MatchStateMachine.cs'; Find = 'isNotifying = false;'; Replace = 'isNotifying = true;'; Description = 'Never release notification guard' },
     @{ Id = 'M09'; File = 'MatchStateMachine.cs'; Find = 'OnStateChanged?.Invoke(nextState);'; Replace = "OnStateChanged?.Invoke(nextState);`n                OnStateChanged?.Invoke(nextState);"; Description = 'Duplicate transition notification' },

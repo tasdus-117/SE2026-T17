@@ -79,9 +79,10 @@ namespace SmallArena.Client.UI
 
         private void HandleStateChanged(MatchState state)
         {
-            if (state == MatchState.Victory) SceneNavigation.ShowMenuCursor();
-            if (victoryText != null) victoryText.text = "VICTORY!";
-            if (victoryBanner != null) victoryBanner.SetActive(state == MatchState.Victory);
+            var terminal = state == MatchState.Victory || state == MatchState.Defeat;
+            if (terminal) SceneNavigation.ShowMenuCursor();
+            if (victoryText != null) victoryText.text = state == MatchState.Defeat ? "DEFEAT!" : "VICTORY!";
+            if (victoryBanner != null) victoryBanner.SetActive(terminal);
         }
 
         public void OnPlayAgainClicked() => SceneNavigation.ReloadActiveScene();

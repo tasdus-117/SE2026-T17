@@ -128,7 +128,7 @@ namespace SmallArena.Tests.PlayMode
             var combat = Object.FindAnyObjectByType<CombatController>();
             var pickup = Object.FindAnyObjectByType<WeaponPickup>();
             Assert.That(pickup.TryCollect(combat, pickup.transform.position), Is.True);
-            Object.FindAnyObjectByType<Health>().TakeDamage(10);
+            GameObject.Find("Bot").GetComponent<Health>().TakeDamage(10);
             var ui = Object.FindAnyObjectByType<MatchUI>();
             for (var cycle = 0; cycle < 3; cycle++) { ui.enabled = false; ui.enabled = true; }
             AssertMenuCursor();
@@ -154,7 +154,7 @@ namespace SmallArena.Tests.PlayMode
             ButtonNamed("SinglePlayerButton").onClick.Invoke();
             yield return WaitForScene("Arena_MVP");
             var previousManager = Object.FindAnyObjectByType<GameManager>();
-            Object.FindAnyObjectByType<Health>().TakeDamage(10);
+            GameObject.Find("Bot").GetComponent<Health>().TakeDamage(10);
             Assert.That(previousManager.CurrentState, Is.EqualTo(MatchState.Victory));
             ButtonNamed("ExitToMenuButton").onClick.Invoke();
             yield return WaitForScene("MainMenu");
@@ -173,7 +173,7 @@ namespace SmallArena.Tests.PlayMode
             yield return LoadMainMenu();
             ButtonNamed("SinglePlayerButton").onClick.Invoke();
             yield return WaitForScene("Arena_MVP");
-            Object.FindAnyObjectByType<Health>().TakeDamage(10);
+            GameObject.Find("Bot").GetComponent<Health>().TakeDamage(10);
             var ui = Object.FindAnyObjectByType<MatchUI>();
             var replay = ButtonNamed("PlayAgainButton");
             var toMenu = ButtonNamed("ExitToMenuButton");
@@ -230,7 +230,7 @@ namespace SmallArena.Tests.PlayMode
         {
             Assert.That(SceneManager.GetActiveScene().buildIndex, Is.EqualTo(2));
             Assert.That(Object.FindAnyObjectByType<GameManager>().CurrentState, Is.EqualTo(MatchState.Playing));
-            Assert.That(Object.FindAnyObjectByType<Health>().CurrentHealth, Is.EqualTo(10));
+            Assert.That(GameObject.Find("Bot").GetComponent<Health>().CurrentHealth, Is.EqualTo(10));
             Assert.That(Object.FindAnyObjectByType<CombatController>().CurrentDamage, Is.EqualTo(1));
             Assert.That(Object.FindAnyObjectByType<WeaponPickup>().IsCollected, Is.False);
             Assert.That(Object.FindAnyObjectByType<PlayerController>().enabled, Is.True);

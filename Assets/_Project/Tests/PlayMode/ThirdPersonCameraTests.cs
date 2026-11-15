@@ -128,11 +128,21 @@ namespace SmallArena.Tests.PlayMode
                 AssertCapsuleVisible(sceneCamera, character.bounds);
             }
 
-            var walls = roots.SelectMany(item => item.GetComponentsInChildren<Renderer>()).Where(item => item.name.StartsWith("Wall")).ToArray();
-            Assert.That(walls.Any(item => item.shadowCastingMode == ShadowCastingMode.ShadowsOnly), Is.True, "Foreground wall must not obscure the south-edge capsule.");
-            foreach (var wall in walls) Assert.That(wall.GetComponent<Collider>().enabled, Is.True);
+            Assert.That(roots.SelectMany(item => item.GetComponentsInChildren<Transform>()).Any(item => item.name.StartsWith("Wall")), Is.False);
+            // An open arena still needs occlusion handling for randomly placed cover.
+            var cover = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            SceneManager.MoveGameObjectToScene(cover, arena);
+            cover.name = "Camera test cover";
+            cover.layer = LayerMask.NameToLayer("Environment");
+            cover.transform.position = character.bounds.center + Offset * 0.5f;
+            cover.transform.localScale = Vector3.one * 2;
+            Physics.SyncTransforms();
+            yield return null;
+            var coverRenderer = cover.GetComponent<Renderer>();
+            Assert.That(coverRenderer.shadowCastingMode, Is.EqualTo(ShadowCastingMode.ShadowsOnly));
+            Assert.That(cover.GetComponent<Collider>().enabled, Is.True);
             occlusion.enabled = false;
-            foreach (var wall in walls) Assert.That(wall.shadowCastingMode, Is.EqualTo(ShadowCastingMode.On));
+            Assert.That(coverRenderer.shadowCastingMode, Is.EqualTo(ShadowCastingMode.On));
         }
 
         private static void AssertCapsuleVisible(Camera camera, Bounds bounds)

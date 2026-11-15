@@ -23,6 +23,7 @@ namespace SmallArena.Core
         private bool starting;
         private bool validating;
         private Health observedBotHealth;
+        private Health observedPlayerHealth;
 
         public MatchState CurrentState => stateMachine.CurrentState;
         public bool IsPlaying => stateMachine.IsPlaying;
@@ -57,12 +58,21 @@ namespace SmallArena.Core
             UnbindBotDeath();
             observedBotHealth = botInstance != null ? botInstance.GetComponent<Health>() : null;
             if (observedBotHealth != null) observedBotHealth.OnDeath += ReportBotDefeated;
+            observedPlayerHealth = playerInstance != null ? playerInstance.GetComponent<Health>() : null;
+            if (observedPlayerHealth != null) observedPlayerHealth.OnDeath += ReportPlayerDefeated;
         }
 
         private void UnbindBotDeath()
         {
             if (observedBotHealth != null) observedBotHealth.OnDeath -= ReportBotDefeated;
             observedBotHealth = null;
+            if (observedPlayerHealth != null) observedPlayerHealth.OnDeath -= ReportPlayerDefeated;
+            observedPlayerHealth = null;
+        }
+
+        public void ReportPlayerDefeated()
+        {
+            if (CurrentState == MatchState.Playing) stateMachine.TriggerDefeat();
         }
 
         public void ReportBotDefeated()
@@ -146,6 +156,8 @@ namespace SmallArena.Core
             {
                 starting = false;
                 // Death during a Playing notification is deferred until Domain releases its notification guard.
+                if (CurrentState == MatchState.Playing && observedPlayerHealth != null && observedPlayerHealth.IsDead)
+                    ReportPlayerDefeated();
                 if (CurrentState == MatchState.Playing && observedBotHealth != null && observedBotHealth.IsDead)
                     ReportBotDefeated();
             }
@@ -184,7 +196,7 @@ namespace SmallArena.Core
         private void ForwardState(MatchState state)
         {
             // Stop local actions before publishing terminal state to any observers.
-            if (state == MatchState.Victory && playerInstance != null)
+            if ((state == MatchState.Victory || state == MatchState.Defeat) && playerInstance != null)
             {
                 foreach (var component in playerInstance.GetComponents<MonoBehaviour>())
                     if (component is IMatchEndParticipant participant) participant.EndMatch();
