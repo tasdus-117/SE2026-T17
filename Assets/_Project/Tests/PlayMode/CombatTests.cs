@@ -197,7 +197,7 @@ namespace SmallArena.Tests.PlayMode
         [UnityTest]
         public IEnumerator Punch_IgnoresPlayerAndEnvironmentHealth()
         {
-            var self = player.AddComponent<Health>();
+            var self = player.GetComponent<Health>();
             extra = GameObject.CreatePrimitive(PrimitiveType.Cube);
             extra.layer = LayerMask.NameToLayer("Environment");
             extra.transform.position = player.transform.position + new Vector3(0f, 1f, 0.8f);

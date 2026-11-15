@@ -13,6 +13,28 @@ namespace SmallArena.Tests.EditMode
         private static MatchReadinessResult Ready => new MatchReadinessResult(true);
 
         [Test]
+        public void Defeat_OnlyTransitionsFromPlaying_AndIsTerminal()
+        {
+            var machine = new MatchStateMachine();
+            Assert.That(machine.TriggerDefeat(), Is.False);
+            machine.StartMatch(Ready);
+            var events = 0;
+            machine.OnStateChanged += state =>
+            {
+                Assert.That(state, Is.EqualTo(MatchState.Defeat));
+                Assert.That(machine.CurrentState, Is.EqualTo(state));
+                Assert.That(machine.TriggerVictory(), Is.False);
+                events++;
+            };
+            Assert.That(machine.TriggerDefeat(), Is.True);
+            Assert.That(machine.TriggerDefeat(), Is.False);
+            Assert.That(machine.TriggerVictory(), Is.False);
+            Assert.That(machine.StartMatch(Ready), Is.False);
+            Assert.That(machine.IsPlaying, Is.False);
+            Assert.That(events, Is.EqualTo(1));
+        }
+
+        [Test]
         public void ReadinessSuccessFactory_IsReady_WithEmptyDiagnostic()
         {
             var result = MatchReadinessResult.Success();

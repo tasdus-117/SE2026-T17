@@ -19,8 +19,8 @@ namespace SmallArena.Client.UI
         private IMatchStateSource match;
         private bool leaving;
         public bool IsPaused => view != null && view.PauseVisible;
-        private bool OfflineVictory => !NetworkClient.active && !NetworkServer.active && matchStateSource != null && match != null && match.CurrentState == MatchState.Victory;
-        private bool Blocked => leaving || IsPaused || view.ResultVisible || OfflineVictory || MatchSessionNavigation.IsReturning;
+        private bool OfflineEnded => !NetworkClient.active && !NetworkServer.active && matchStateSource != null && match != null && (match.CurrentState == MatchState.Victory || match.CurrentState == MatchState.Defeat);
+        private bool Blocked => leaving || IsPaused || view.ResultVisible || OfflineEnded || MatchSessionNavigation.IsReturning;
 
         private void OnEnable()
         {
@@ -44,7 +44,7 @@ namespace SmallArena.Client.UI
         }
         private void Toggle(InputAction.CallbackContext context)
         {
-            if (leaving || view.ResultVisible || OfflineVictory || MatchSessionNavigation.IsReturning) return;
+            if (leaving || view.ResultVisible || OfflineEnded || MatchSessionNavigation.IsReturning) return;
             if (IsPaused) Resume();
             else
             {
@@ -56,7 +56,7 @@ namespace SmallArena.Client.UI
         }
         public void Resume()
         {
-            if (leaving || view.ResultVisible || OfflineVictory || MatchSessionNavigation.IsReturning) return;
+            if (leaving || view.ResultVisible || OfflineEnded || MatchSessionNavigation.IsReturning) return;
             view.ShowPause(false);
             ApplyInputGate();
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
@@ -97,7 +97,7 @@ namespace SmallArena.Client.UI
         private void ApplyInputGate() { if (localInput != null) localInput.SetMenuInputBlocked(Blocked); }
         private void MatchChanged(MatchState state)
         {
-            if (state != MatchState.Victory || NetworkClient.active || NetworkServer.active) return;
+            if ((state != MatchState.Victory && state != MatchState.Defeat) || NetworkClient.active || NetworkServer.active) return;
             view.ShowPause(false); // Preserve the existing offline Victory banner/replay controls.
             ApplyInputGate();
             SceneNavigation.ShowMenuCursor();

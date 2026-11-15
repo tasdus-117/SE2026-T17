@@ -113,7 +113,7 @@ internal static class ArenaLayoutVerifier
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
             expectedTypes.Add("MonoBehaviour");
-            var expectedCount = expectedTypes.Count + (name == "Player" ? 12 : 1);
+            var expectedCount = expectedTypes.Count + (name == "Player" ? 14 : name == "Bot" ? 2 : 1);
             Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
             var layerName = name == "WeaponPickup" ? "Pickup" : name;
@@ -172,6 +172,10 @@ internal static class ArenaLayoutVerifier
         Check(!triggerEnabled && Number(controller.Data, "m_Enabled") == 1, "Player collision must be solid and enabled.");
         var bot = prefabs["Bot"];
         var healthGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Combat/Health.cs.meta"));
+        var fallGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Simulation/FallDamage.cs.meta"));
+        foreach (var actor in new[] { player, bot })
+            Check(actor.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == fallGuid) == 1, "Actor requires fall death handling.");
+        Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == healthGuid) == 1, "Offline player requires Health.");
         var combatGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Combat/CombatController.cs.meta"));
         var health = bot.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == healthGuid);
         var combat = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == combatGuid);

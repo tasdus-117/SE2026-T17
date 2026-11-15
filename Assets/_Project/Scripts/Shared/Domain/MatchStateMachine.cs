@@ -35,6 +35,13 @@ namespace SmallArena.Domain
             return true;
         }
 
+        public bool TriggerDefeat()
+        {
+            if (isNotifying || CurrentState != MatchState.Playing) return false;
+            TransitionTo(MatchState.Defeat);
+            return true;
+        }
+
         private void TransitionTo(MatchState nextState)
         {
             CurrentState = nextState;

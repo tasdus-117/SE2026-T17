@@ -100,7 +100,8 @@ namespace SmallArena.Tests.PlayMode
                 Assert.That(obstacle.enabled && !obstacle.isTrigger, Is.True);
                 Assert.That(obstacle.gameObject.layer, Is.EqualTo(Layer("Environment")));
                 Assert.That(obstacle.GetComponent<MeshRenderer>().enabled, Is.True);
-                Near(bounds.min.y, floor.max.y);
+                Assert.That(bounds.min.y, Is.EqualTo(floor.max.y).Within(Tolerance),
+                    obstacle.name + " position=" + obstacle.transform.position + " size=" + bounds.size + " scale=" + obstacle.transform.localScale);
                 Assert.That(bounds.min.x, Is.GreaterThan(floor.min.x));
                 Assert.That(bounds.max.x, Is.LessThan(floor.max.x));
                 Assert.That(bounds.min.z, Is.GreaterThan(floor.min.z));
@@ -122,6 +123,80 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(player.GetComponent<SmallArena.Server.Combat.Health>().CurrentHealth, Is.Zero);
             Assert.That(Entity("VictoryText").GetComponent<TMPro.TMP_Text>().text, Is.EqualTo("DEFEAT!"));
             Assert.That(Entity("PlayAgainButton").activeInHierarchy, Is.True);
+        }
+
+        [TestCase(0)]
+        [TestCase(100)]
+        [TestCase(200)]
+        [TestCase(300)]
+        [TestCase(400)]
+        [TestCase(500)]
+        [TestCase(600)]
+        [TestCase(700)]
+        [TestCase(800)]
+        [TestCase(900)]
+        public void HundredSeeds_RespectActualColliderReservations_AndVaryLayouts(int start)
+        {
+            var generator = Entity("ArenaObstacles").GetComponent<ArenaObstacles>();
+            var floor = BoundsOf("Floor");
+            var counts = new System.Collections.Generic.HashSet<int>();
+            var shapes = new System.Collections.Generic.HashSet<PrimitiveType>();
+            var positions = new System.Collections.Generic.HashSet<Vector3>();
+            for (var seed = start; seed < start + 100; seed++)
+            {
+                var layout = ArenaObstacles.CreateLayout(seed, floor, generator.ReservedBounds);
+                Assert.That(layout.Count, Is.InRange(3, 6), "seed " + seed);
+                Assert.That(layout.Select(item => item.Shape).Distinct().Count(), Is.GreaterThanOrEqualTo(2));
+                counts.Add(layout.Count);
+                foreach (var item in layout)
+                {
+                    shapes.Add(item.Shape); positions.Add(item.Position);
+                    var primitive = GameObject.CreatePrimitive(item.Shape);
+                    try
+                    {
+                        primitive.transform.position = item.Position;
+                        primitive.transform.localScale = item.Shape == PrimitiveType.Capsule
+                            ? new Vector3(item.Size.x, item.Size.y / 2, item.Size.z) : item.Size;
+                        Physics.SyncTransforms();
+                        var actual = primitive.GetComponent<Collider>().bounds;
+                        Assert.That(Vector3.Distance(actual.size, item.Size), Is.LessThan(0.002f));
+                        Near(actual.min.y, floor.max.y);
+                        Assert.That(actual.min.x, Is.GreaterThan(floor.min.x));
+                        Assert.That(actual.max.x, Is.LessThan(floor.max.x));
+                        Assert.That(actual.min.z, Is.GreaterThan(floor.min.z));
+                        Assert.That(actual.max.z, Is.LessThan(floor.max.z));
+                        actual.Expand(ArenaObstacles.Clearance * 2 - 0.002f);
+                        foreach (var reserved in generator.ReservedBounds)
+                            Assert.That(actual.Intersects(reserved), Is.False, "seed " + seed);
+                        foreach (var other in layout.Where(other => other.Position != item.Position))
+                            Assert.That(actual.Intersects(other.Bounds), Is.False, "seed " + seed);
+                    }
+                    finally { UnityEngine.Object.DestroyImmediate(primitive); }
+                }
+            }
+            Assert.That(counts.Count, Is.EqualTo(4));
+            Assert.That(shapes.Count, Is.EqualTo(3));
+            Assert.That(positions.Count, Is.GreaterThan(100));
+        }
+
+        [UnityTest]
+        public IEnumerator OfflineReplay_RegeneratesLayout_AndRestoresHealthAndPlaying()
+        {
+            var previous = Entity("ArenaObstacles").GetComponent<ArenaObstacles>().Layout.Select(item => item.Position).ToArray();
+            var player = Entity("Player");
+            player.transform.position = new Vector3(9, ArenaObstacles.FallHeight - 1, 0);
+            yield return new WaitForFixedUpdate();
+            Assert.That(Entity("_GameManager").GetComponent<GameManager>().CurrentState, Is.EqualTo(MatchState.Defeat));
+            Entity("PlayAgainButton").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            yield return null;
+            var deadline = Time.realtimeSinceStartup + 10;
+            while (SceneManager.GetSceneByPath(ScenePath) == arena && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.That(SceneManager.GetSceneByPath(ScenePath), Is.Not.EqualTo(arena));
+            arena = SceneManager.GetSceneByPath(ScenePath);
+            yield return null;
+            Assert.That(Entity("_GameManager").GetComponent<GameManager>().CurrentState, Is.EqualTo(MatchState.Playing));
+            Assert.That(Entity("Player").GetComponent<SmallArena.Server.Combat.Health>().CurrentHealth, Is.EqualTo(10));
+            Assert.That(Entity("ArenaObstacles").GetComponent<ArenaObstacles>().Layout.Select(item => item.Position), Is.Not.EqualTo(previous));
         }
 
         [Test]
@@ -172,6 +247,11 @@ namespace SmallArena.Tests.PlayMode
         public void Entity_ContainsOnlyExpectedComponents(string name)
         {
             var allowed = new[] { typeof(Transform), typeof(MeshFilter), typeof(MeshRenderer), typeof(CharacterController), typeof(CapsuleCollider), typeof(BoxCollider), typeof(Rigidbody) }.ToList();
+            if (name == "Player" || name == "Bot")
+            {
+                allowed.Add(typeof(SmallArena.Server.Combat.Health));
+                allowed.Add(typeof(SmallArena.Server.Simulation.FallDamage));
+            }
             if (name == "Player")
             {
                 allowed.Add(typeof(SmallArena.Input.PlayerInputHandler));
@@ -204,13 +284,17 @@ namespace SmallArena.Tests.PlayMode
         public void Spawn_IsInsideBounds_AndFlushWithSupportingFloor(string name, float x, float y, float z)
         {
             var entity = Entity(name);
-            Assert.That(Vector3.Distance(entity.transform.position, new Vector3(x, y, z)), Is.LessThan(Tolerance));
+            Near(entity.transform.position.x, x);
+            Near(entity.transform.position.z, z);
+            var controller = entity.GetComponent<CharacterController>();
+            var skin = controller != null ? controller.skinWidth : 0;
+            Assert.That(entity.transform.position.y, Is.EqualTo(y).Within(skin + Tolerance));
             var bounds = BoundsOf(name);
             Assert.That(bounds.min.x, Is.GreaterThan(-8));
             Assert.That(bounds.max.x, Is.LessThan(8));
             Assert.That(bounds.min.z, Is.GreaterThan(-8));
             Assert.That(bounds.max.z, Is.LessThan(8));
-            Near(bounds.min.y, BoundsOf("Floor").max.y);
+            Assert.That(bounds.min.y, Is.EqualTo(BoundsOf("Floor").max.y).Within(skin + Tolerance));
             Assert.That(Physics.Raycast(new Vector3(bounds.center.x, bounds.min.y + 0.1f, bounds.center.z),
                 Vector3.down, out var hit, 0.2f, LayerMask.GetMask("Environment"), QueryTriggerInteraction.Ignore), Is.True);
             Assert.That(hit.collider.gameObject.name, Is.EqualTo("Floor"));
