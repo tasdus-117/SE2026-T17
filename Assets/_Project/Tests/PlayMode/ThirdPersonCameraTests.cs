@@ -91,6 +91,34 @@ namespace SmallArena.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator ThinCoverAtCapsuleEdge_IsHiddenWithoutDisablingPhysics_AndRestored()
+        {
+            var capsule = target.AddComponent<CapsuleCollider>();
+            var occlusion = cameraObject.AddComponent<CameraOcclusionController>();
+            typeof(CameraOcclusionController).GetField("occlusionLayers", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .SetValue(occlusion, (LayerMask)(1 << LayerMask.NameToLayer("Environment")));
+            Physics.SyncTransforms();
+            var cover = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                cover.layer = LayerMask.NameToLayer("Environment");
+                cover.transform.localScale = new Vector3(0.005f, 0.05f, 0.05f);
+                foreach (var fraction in new[] { 0.9f, 0.95f })
+                {
+                    var edge = capsule.bounds.center + Vector3.right * capsule.bounds.extents.x * fraction;
+                    cover.transform.position = Vector3.Lerp(edge, cameraObject.transform.position, 0.5f);
+                    Physics.SyncTransforms();
+                    yield return null;
+                    Assert.That(cover.GetComponent<Renderer>().shadowCastingMode, Is.EqualTo(ShadowCastingMode.ShadowsOnly), "capsule fraction " + fraction);
+                }
+                Assert.That(cover.GetComponent<Collider>().enabled, Is.True);
+                occlusion.enabled = false;
+                Assert.That(cover.GetComponent<Renderer>().shadowCastingMode, Is.EqualTo(ShadowCastingMode.On));
+            }
+            finally { Object.DestroyImmediate(cover); }
+        }
+
+        [UnityTest]
         public IEnumerator ArenaCamera_IsWired_AndKeepsCapsuleVisibleAtEdgesAndJumpHeight()
         {
             yield return SceneManager.LoadSceneAsync("Arena_MVP", LoadSceneMode.Additive);

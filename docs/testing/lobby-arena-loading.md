@@ -50,21 +50,21 @@ không được tính là bằng chứng mạng hai tiến trình.
 
 ## Kết quả thực tế
 
-Unity 6000.6.8f1 / Windows, ngày 15/11/2026:
+Unity 6000.6.8f1 / Windows, ngày 15–16/11/2026:
 
 | Ca chạy | Kết quả |
 | --- | --- |
 | EditMode toàn bộ | 142 đạt, 0 lỗi, 0 skip |
-| PlayMode toàn bộ | 316 đạt, 0 lỗi, 2 skip |
+| PlayMode toàn bộ | 317 đạt, 0 lỗi, 2 skip |
 | Build standalone cuối | Succeeded, 0 lỗi, 0 cảnh báo ở incremental build (build đầu 15 cảnh báo dependency/analyzer) |
 | Hai tiến trình, host gửi 10 Start, client rơi | Đạt; mỗi máy 1 start/1 finish/0 abort, 1 sceneLoaded; collider trùng, Defeat/Victory đúng, 0 lỗi runtime |
 | Hai tiến trình, host gửi 10 Start, host rơi | Đạt, cùng các assertion trên |
 | Hai tiến trình, client disconnect tại callback tải | Đạt; client 1 start/0 finish/1 abort, thông báo đúng, tạo phòng mới có 1 thành viên; host 1 start/1 finish/0 abort và vào Arena |
 
 Evidence local (không track): `TestResults/LobbyArenaLoading`.
-Hai lượt bình thường cuối: `StandaloneSmoke/2d7169a4e924469f88abae48766ac3c6`
-(client rơi), `StandaloneSmoke/6b50988f8e134033b74dcb3b5c9355b7` (host rơi).
-Disconnect sau sửa: `StandaloneSmoke/d74efbe7eff2448bbd7ec1a55fb0c3fd`.
+Hai lượt bình thường cuối: `StandaloneSmoke/1119925cafa94f35868352f60909c2bb`
+(client rơi), `StandaloneSmoke/59bf5d1ec2d845ad9100d199025825ed` (host rơi).
+Disconnect sau sửa: `StandaloneSmoke/3534e3205a064e40a30439a065aec682`.
 
 Ca disconnect đầu tiên thất bại ở khôi phục phòng mới: thông báo và overlay đã
 đúng, nhưng Mirror còn cờ `isLoadingScene` nên snapshot phòng mới không đến.
@@ -74,6 +74,22 @@ Lượt test bổ sung đầu tiên có lỗi biên dịch do setter Mirror khô
 sửa fixture và chạy lại. Hai test chuột dependency Input System có sẵn lý do
 skip “Unstable due to 1252825”. Lượt Unity đầu bị sandbox chặn licensing, đã
 chạy thành công ngoài sandbox; không thay đổi cấu hình giấy phép hoặc bảo mật.
+
+CI lần đầu thiếu Docker daemon, rerun qua được hạ tầng. Lượt tiếp theo mang nhãn
+job success nhưng XML có một lỗi test replay (Playing thay vì Defeat sau đúng một
+fixed-yield). Hai ca offline fall/replay nay teleport CharacterController an toàn,
+SyncTransforms rồi chờ Defeat thật tối đa 5 giây; vẫn kiểm tra HP=0 và replay đổi
+bố cục. Không đổi hành vi runtime arena. Workflow kiểm tra bắt buộc cả XML
+EditMode/PlayMode bằng `tools/Assert-UnityTestResults.ps1`, từ chối XML thiếu,
+không có test, có failed/inconclusive hoặc child Failed. Đã thử guard local với
+mẫu hợp lệ và 5 mẫu lỗi/thiếu. Kết quả CI cuối có trong mô tả PR.
+
+Lượt hồi quy sau sửa replay phát hiện camera có thể bỏ sót vật cản rất mỏng ở
+mép capsule: runtime dò tại 90% bán kính/chiều cao trong khi tiêu chí visibility
+kiểm tra 95%. Regression deterministic với cover mỏng đã RED trên mã cũ, GREEN
+sau khi bổ sung tia ở 95% và giữ nguyên tia 90%; vẫn giữ collider bật và khôi
+phục renderer khi tắt occlusion.
+Không đổi thuật toán arena, layout hoặc mạng. Fixture camera sau sửa: 5/5 đạt.
 
 Giới hạn: headless xác minh trạng thái canvas/text, chưa đánh giá bằng mắt hình ảnh,
 font hoặc animation. Không mô phỏng mạng Internet/latency/loss, dedicated server,

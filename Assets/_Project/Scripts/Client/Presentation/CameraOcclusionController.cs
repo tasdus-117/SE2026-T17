@@ -36,6 +36,11 @@ namespace SmallArena.Client.Presentation
                 CheckLine(bounds.center - Vector3.up * bounds.extents.y * 0.9f);
                 CheckLine(bounds.center + Vector3.right * bounds.extents.x * 0.9f);
                 CheckLine(bounds.center - Vector3.right * bounds.extents.x * 0.9f);
+                // Retain the original samples and cover thin obstacles at the capsule edge.
+                CheckLine(bounds.center + Vector3.up * bounds.extents.y * 0.95f);
+                CheckLine(bounds.center - Vector3.up * bounds.extents.y * 0.95f);
+                CheckLine(bounds.center + Vector3.right * bounds.extents.x * 0.95f);
+                CheckLine(bounds.center - Vector3.right * bounds.extents.x * 0.95f);
             }
 
             restored.Clear();
