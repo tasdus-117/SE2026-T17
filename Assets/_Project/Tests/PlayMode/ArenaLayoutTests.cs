@@ -115,9 +115,7 @@ namespace SmallArena.Tests.PlayMode
         public IEnumerator OfflineFall_EndsMatchInDefeatAndOffersReplay()
         {
             var player = Entity("Player");
-            player.transform.position = new Vector3(9f, ArenaObstacles.FallHeight - 0.1f, 0f);
-            Physics.SyncTransforms();
-            yield return new WaitForFixedUpdate();
+            yield return MoveBelowFloorAndWaitForDefeat(player);
 
             Assert.That(Entity("_GameManager").GetComponent<GameManager>().CurrentState, Is.EqualTo(MatchState.Defeat));
             Assert.That(player.GetComponent<SmallArena.Server.Combat.Health>().CurrentHealth, Is.Zero);
@@ -184,8 +182,7 @@ namespace SmallArena.Tests.PlayMode
         {
             var previous = Entity("ArenaObstacles").GetComponent<ArenaObstacles>().Layout.Select(item => item.Position).ToArray();
             var player = Entity("Player");
-            player.transform.position = new Vector3(9, ArenaObstacles.FallHeight - 1, 0);
-            yield return new WaitForFixedUpdate();
+            yield return MoveBelowFloorAndWaitForDefeat(player);
             Assert.That(Entity("_GameManager").GetComponent<GameManager>().CurrentState, Is.EqualTo(MatchState.Defeat));
             Entity("PlayAgainButton").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
             yield return null;
@@ -197,6 +194,23 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(Entity("_GameManager").GetComponent<GameManager>().CurrentState, Is.EqualTo(MatchState.Playing));
             Assert.That(Entity("Player").GetComponent<SmallArena.Server.Combat.Health>().CurrentHealth, Is.EqualTo(10));
             Assert.That(Entity("ArenaObstacles").GetComponent<ArenaObstacles>().Layout.Select(item => item.Position), Is.Not.EqualTo(previous));
+        }
+
+        private IEnumerator MoveBelowFloorAndWaitForDefeat(GameObject player)
+        {
+            // Teleport the CharacterController coherently, then observe the real
+            // FallDamage FixedUpdate. A single fixed-yield is not a completion signal
+            // when the test runner resumes before that component on a CI frame.
+            var controller = player.GetComponent<CharacterController>();
+            controller.enabled = false;
+            player.transform.position = new Vector3(9, ArenaObstacles.FallHeight - 1, 0);
+            controller.enabled = true;
+            Physics.SyncTransforms();
+            var manager = Entity("_GameManager").GetComponent<GameManager>();
+            var deadline = Time.realtimeSinceStartup + 5;
+            while (manager.CurrentState != MatchState.Defeat && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.That(manager.CurrentState, Is.EqualTo(MatchState.Defeat), "Real fall/death lifecycle must complete within 5 seconds.");
+            Assert.That(player.GetComponent<SmallArena.Server.Combat.Health>().CurrentHealth, Is.Zero);
         }
 
         [Test]

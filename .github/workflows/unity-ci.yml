@@ -58,6 +58,10 @@ jobs:
           testMode: all
           artifactsPath: TestResults/CI
           customParameters: -nographics
+      - name: Verify both Unity XML reports
+        if: ${{ !cancelled() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        shell: pwsh
+        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI
       - name: Upload Unity test results
         if: ${{ !cancelled() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

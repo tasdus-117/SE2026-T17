@@ -38,6 +38,11 @@ namespace SmallArena.Client.UI
             if (errorPanel != null) errorPanel.SetActive(true);
         }
         public void DismissError() { if (errorPanel != null) errorPanel.SetActive(false); }
+        public void ShowSessionError(string message)
+        {
+            if (errorText != null) errorText.text = message;
+            if (errorPanel != null) errorPanel.SetActive(true);
+        }
         public TMP_InputField Address => address;
         public Button HostButton => hostButton;
         public Button JoinButton => joinButton;
@@ -87,7 +92,7 @@ namespace SmallArena.Client.UI
             startButton.gameObject.SetActive(local.IsHost);
             startButton.interactable = local.IsHost && snapshot.CanStart;
             leaveButton.interactable = snapshot.Phase == LobbyPhase.Waiting;
-            if (snapshot.Phase == LobbyPhase.Loading) membersText.text += "\n\nLoading arena...";
+            if (snapshot.Phase == LobbyPhase.Loading) membersText.text += "\n\nStarting match...";
         }
     }
 }

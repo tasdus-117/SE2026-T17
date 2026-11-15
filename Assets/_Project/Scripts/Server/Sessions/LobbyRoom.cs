@@ -38,6 +38,17 @@ namespace SmallArena.Server.Sessions
             Phase = LobbyPhase.Loading;
             return true;
         }
-        public void FinishLoading() { if (Phase == LobbyPhase.Loading) Phase = LobbyPhase.Playing; }
+        public bool FinishLoading()
+        {
+            if (Phase != LobbyPhase.Loading) return false;
+            Phase = LobbyPhase.Playing;
+            return true;
+        }
+        public bool FailLoading()
+        {
+            if (Phase != LobbyPhase.Loading) return false;
+            Phase = LobbyPhase.Failed;
+            return true;
+        }
     }
 }
