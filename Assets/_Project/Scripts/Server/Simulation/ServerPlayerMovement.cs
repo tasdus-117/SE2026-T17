@@ -24,6 +24,7 @@ namespace SmallArena.Server.Simulation
         private float verticalVelocity;
         private bool pendingJump;
         private bool hasInput;
+        private bool hasSequence;
         private uint lastSequence;
         private uint lastJumpSequence;
         private double lastInputTime;
@@ -44,7 +45,8 @@ namespace SmallArena.Server.Simulation
         {
             move = Vector2.zero;
             verticalVelocity = 0f;
-            pendingJump = hasInput = false;
+            ClearIntent();
+            hasSequence = false;
             lastSequence = lastJumpSequence = SimulationTick = 0;
             character.enabled = true;
             bridge.ServerInputReceived += ReceiveInput;
@@ -59,18 +61,30 @@ namespace SmallArena.Server.Simulation
         public override void OnStopServer()
         {
             bridge.ServerInputReceived -= ReceiveInput;
+            ClearIntent();
+        }
+
+        private void OnDisable() => ClearIntent();
+
+        private void ClearIntent()
+        {
             move = Vector2.zero;
             pendingJump = hasInput = false;
+            lastInputTime = 0d;
+            // Revocation is not a new input session. Retain replay and jump watermarks.
         }
 
         private void ReceiveInput(MovementInput input)
         {
-            if (!isServer || !isActiveAndEnabled || health != null && !health.CanAct || (hasInput && !MovementInputValidator.IsNewer(input.Sequence, lastSequence))) return;
+            if (!isServer || !isActiveAndEnabled) return;
+            if (!character.enabled || health != null && !health.CanAct) { ClearIntent(); return; }
+            if (hasSequence && !MovementInputValidator.IsNewer(input.Sequence, lastSequence)) return;
             if (!MovementInputValidator.TryClamp(input.MoveX, input.MoveZ, out var accepted)) return;
             move = accepted;
             lastSequence = input.Sequence;
             lastInputTime = NetworkTime.localTime;
             hasInput = true;
+            hasSequence = true;
             if (MovementInputValidator.IsNewer(input.JumpSequence, lastJumpSequence))
             {
                 lastJumpSequence = input.JumpSequence;
@@ -79,10 +93,14 @@ namespace SmallArena.Server.Simulation
             }
         }
 
-        private void FixedUpdate()
+        private void FixedUpdate() => Simulate(NetworkTime.localTime);
+
+        private void Simulate(double serverTime)
         {
-            if (!isServer || !NetworkServer.active || !character.enabled) return;
-            var fresh = (health == null || health.CanAct) && hasInput && NetworkTime.localTime - lastInputTime <= InputTimeout;
+            if (!isServer || !NetworkServer.active) return;
+            if (health != null && !health.CanAct) ClearIntent();
+            if (!character.enabled) { ClearIntent(); return; }
+            var fresh = hasInput && serverTime - lastInputTime <= InputTimeout;
             var direction = fresh ? move : Vector2.zero;
             var jump = fresh && pendingJump;
             pendingJump = false;
