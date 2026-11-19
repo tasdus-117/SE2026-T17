@@ -31,3 +31,7 @@ Mirror Command `NetworkMovement.CmdSubmitMovement` đi Client → Server trên k
 Client gửi tối đa 60 heartbeat/giây theo clock cục bộ. Server chỉ cập nhật ý định mới nhất; physics chạy bằng fixed delta của server với tốc độ ngang tối đa 5 m/s. NaN/Infinity hoặc sequence không mới bị bỏ và không gia hạn timeout; input quá 0,25 giây không còn tạo chuyển động ngang. Không có client delta, tốc độ, vị trí hoặc rotation trong payload.
 
 State position/rotation đi Server → mọi client quan sát, gồm owner, bằng NetworkTransformReliable cấu hình ServerToClient; không thêm RPC snapshot trùng lặp. Xem [thiết kế movement](../architecture/tv1.2-server-movement.md).
+
+## TV2-004 logical contracts and integration review
+
+See [CT-201-205, examples, authority and dependency matrix](tv2-004-contracts.md). Existing MovementInput and melee Commands remain wire-compatible; raycast and reconnect additions are proposals pending TV1/TV2/TV3 review.

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SmallArena.Protocol;
 using Mirror;
 using UnityEngine;
 using System;
@@ -35,9 +36,7 @@ namespace SmallArena.Networking
             foreach (var connection in NetworkServer.connections.Values)
                 if (connection.isAuthenticated && connection.identity == null) return;
             // This arena keeps world +Z facing. Requests cannot extend range or rotate the hitbox.
-            if (!isServer || !health.CanAct || !Finite(aimDirection.x) || !Finite(aimDirection.y) || !Finite(aimDirection.z)
-                || aimDirection.sqrMagnitude < 0.99f || aimDirection.sqrMagnitude > 1.01f
-                || Vector3.Dot(aimDirection, Vector3.forward) < 0.99f || NetworkTime.localTime < nextAttackTime) return;
+            if (!isServer || !health.CanAct || !CombatAim.IsLegacyMeleeDirection(aimDirection.x, aimDirection.y, aimDirection.z) || NetworkTime.localTime < nextAttackTime) return;
             nextAttackTime = NetworkTime.localTime + Cooldown;
             var center = MeleeHitGeometry.Center(transform, Offset);
             var hits = Physics.OverlapSphere(center, MeleeHitGeometry.CandidateRadius(Radius), (1 << 7) | (1 << 8), QueryTriggerInteraction.Ignore);
@@ -53,6 +52,5 @@ namespace SmallArena.Networking
                 target.TakeDamage(attackDamage);
             }
         }
-        private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
     }
 }
