@@ -20,7 +20,8 @@ namespace SmallArena.Domain
             double matchDurationSeconds = 180, double respawnDelaySeconds = 3,
             double minimumSafeSpawnDistanceMetres = 5, double spawnRetryIntervalSeconds = 0.5,
             double spawnProtectionSeconds = 1, double reconnectGraceSeconds = 15,
-            double countdownDurationSeconds = 3, int maximumLives = 0, double spawnGraceSeconds = 10)
+            double countdownDurationSeconds = 3, int maximumLives = 0, double spawnGraceSeconds = 10,
+            double weaponRespawnDelaySeconds = 30)
         {
             if (!string.Equals(revision, SupportedRevision, StringComparison.Ordinal))
                 throw new ArgumentException("Unsupported gameplay revision.", nameof(revision));
@@ -38,6 +39,7 @@ namespace SmallArena.Domain
             RequireValue(reconnectGraceSeconds, nameof(reconnectGraceSeconds));
             RequireValue(countdownDurationSeconds, nameof(countdownDurationSeconds), true);
             RequireValue(spawnGraceSeconds, nameof(spawnGraceSeconds));
+            RequireValue(weaponRespawnDelaySeconds, nameof(weaponRespawnDelaySeconds));
             if (maximumLives < 0) throw new ArgumentOutOfRangeException(nameof(maximumLives));
             Revision = revision;
             MaxHealth = maxHealth;
@@ -55,6 +57,7 @@ namespace SmallArena.Domain
             CountdownDurationSeconds = countdownDurationSeconds;
             MaximumLives = maximumLives;
             SpawnGraceSeconds = spawnGraceSeconds;
+            WeaponRespawnDelaySeconds = weaponRespawnDelaySeconds;
         }
 
         public string Revision { get; }
@@ -73,6 +76,7 @@ namespace SmallArena.Domain
         public double CountdownDurationSeconds { get; }
         public int MaximumLives { get; } // Zero means unlimited; positive values include the current life.
         public double SpawnGraceSeconds { get; }
+        public double WeaponRespawnDelaySeconds { get; }
 
         private static void RequireValue(double value, string name, bool allowZero = false)
         {

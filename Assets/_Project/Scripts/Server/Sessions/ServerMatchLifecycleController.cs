@@ -28,6 +28,7 @@ namespace SmallArena.Server.Sessions
         private readonly Dictionary<int, double> nextSpawnAttempt = new Dictionary<int, double>();
         public MatchSessionRuntime Session { get; private set; }
         public NetworkMatchController ReplicatedState => replicated;
+        public BoxCollider ArenaFloor => arenaFloor;
         public void Configure(GameplayConfiguration value, GameObject statePrefab, BoxCollider floor = null)
         {
             if (Session != null) throw new InvalidOperationException("Configure before starting a session.");

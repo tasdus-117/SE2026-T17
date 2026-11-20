@@ -10,6 +10,8 @@ namespace SmallArena.Networking
         [SerializeField] private GameObject lootPrefab = null;
         private ArenaNetworkManager manager;
         private bool spawnedThisRound;
+        public GameObject LootPrefab => lootPrefab;
+        public System.Func<bool> ServerSpawnOverride;
         public static readonly Vector3 SpawnPosition = new Vector3(-3, 0.3f, 0);
         private void OnEnable()
         {
@@ -30,6 +32,7 @@ namespace SmallArena.Networking
             if (!NetworkServer.active || spawnedThisRound || lootPrefab == null
                 || !(scene == "Arena_MVP" || scene.EndsWith("/Arena_MVP.unity"))) return;
             spawnedThisRound = true;
+            if (ServerSpawnOverride != null && ServerSpawnOverride()) return;
             var item = Instantiate(lootPrefab, SpawnPosition, Quaternion.identity);
             NetworkServer.Spawn(item);
         }

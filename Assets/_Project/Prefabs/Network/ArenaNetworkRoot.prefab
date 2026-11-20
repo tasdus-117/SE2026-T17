@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2741305610565427396}
   - component: {fileID: 4613399148293153172}
   - component: {fileID: 1423673389608904399}
+  - component: {fileID: 8500310001}
   m_Layer: 0
   m_Name: ArenaNetworkRoot
   m_TagString: Untagged
@@ -156,3 +157,15 @@ MonoBehaviour:
   countdownSeconds: 3
   respawnSeconds: 3
   maximumLives: 0
+--- !u!114 &8500310001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5069386533207898361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c123d61af15a4b71b959f892e1aa3a0d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: SmallArena.Server::SmallArena.Server.Combat.ServerLootRespawnController
