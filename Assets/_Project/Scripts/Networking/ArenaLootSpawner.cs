@@ -27,6 +27,7 @@ namespace SmallArena.Networking
         }
         private void Started() => Loaded(SceneManager.GetActiveScene().name);
         private void Stopped() => spawnedThisRound = false;
+        public void ResetRound() { if (NetworkServer.active) spawnedThisRound = false; }
         private void Loaded(string scene)
         {
             if (!NetworkServer.active || spawnedThisRound || lootPrefab == null

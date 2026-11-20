@@ -68,6 +68,9 @@ namespace SmallArena.Domain
         public double NextShotAtSeconds { get; }
         public double ProtectionUntilSeconds { get; }
         public double? RespawnAtSeconds { get; }
+        internal OnlineCharacterState WithStatistics(int kills, int deaths) => new OnlineCharacterState(Match,
+            ParticipantId, LifeId, LifeState, ConnectionState, Health, kills, deaths,
+            NextShotAtSeconds, ProtectionUntilSeconds, RespawnAtSeconds);
 
         public bool IsCurrentLife(string participantId, long lifeId) => ParticipantId == participantId && LifeId == lifeId;
 

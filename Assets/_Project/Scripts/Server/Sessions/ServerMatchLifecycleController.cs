@@ -18,10 +18,17 @@ namespace SmallArena.Server.Sessions
         [SerializeField, Min(0)] private float countdownSeconds = 3;
         [SerializeField, Min(.01f)] private float respawnSeconds = 3;
         [SerializeField, Min(0)] private int maximumLives = 0;
+        [SerializeField, Min(0)] private int targetKills = 5;
+        [SerializeField, Min(.01f)] private float postMatchSeconds = 10;
         private ArenaNetworkManager manager;
         private GameplayConfiguration configuration;
         private NetworkMatchController replicated;
         private BoxCollider arenaFloor;
+        private double postMatchDeadline;
+        private double lastServerTime;
+        // Unity's unscaled clock samples fixed time inside physics callbacks. Keep one
+        // monotonic timeline across fixed-step, frame, Command and teardown callbacks.
+        private double ServerNow => lastServerTime = Math.Max(lastServerTime, NetworkTime.localTime);
         private readonly Dictionary<int, NetworkConnectionToClient> connections = new Dictionary<int, NetworkConnectionToClient>();
         private readonly Dictionary<int, NetworkHealth> actors = new Dictionary<int, NetworkHealth>();
         private readonly Dictionary<int, long> publishedLives = new Dictionary<int, long>();
@@ -52,16 +59,18 @@ namespace SmallArena.Server.Sessions
             if (!NetworkServer.active || Session != null) throw new InvalidOperationException("One active server session required.");
             var config = configuration ?? new GameplayConfiguration(maxHealth: 10, shotDamage: 1, shotCooldownSeconds: 1,
                 shotRangeMetres: 1.8, matchDurationSeconds: matchDurationSeconds, respawnDelaySeconds: respawnSeconds,
-                minimumSafeSpawnDistanceMetres: 1.5, countdownDurationSeconds: countdownSeconds, maximumLives: maximumLives);
+                minimumSafeSpawnDistanceMetres: 1.5, countdownDurationSeconds: countdownSeconds, maximumLives: maximumLives,
+                targetKills: targetKills, postMatchDurationSeconds: postMatchSeconds);
             Session = new MatchSessionRuntime(id, config);
+            Session.Eliminated += Eliminated;
             foreach (var member in members)
             {
                 if (!NetworkServer.connections.TryGetValue(member.ConnectionId, out var conn)
-                    || !Session.AddParticipant(id + "/" + member.SlotIndex, member.ConnectionId, member.SlotIndex, NetworkTime.localTime))
+                    || !Session.AddParticipant(id + "/" + member.SlotIndex, member.ConnectionId, member.SlotIndex, ServerNow))
                     throw new InvalidOperationException("Roster must contain unique connected participants.");
                 connections.Add(member.ConnectionId, conn);
             }
-            Session.LockRoster(NetworkTime.localTime);
+            Session.LockRoster(ServerNow);
             foreach (var conn in connections.Values.ToArray()) if (conn.identity != null) Spawned(conn, conn.identity.gameObject);
         }
         private void SceneLoaded(string scene)
@@ -83,23 +92,26 @@ namespace SmallArena.Server.Sessions
         private void Spawned(NetworkConnectionToClient conn, GameObject player)
         {
             if (Session == null || !connections.TryGetValue(conn.connectionId, out var expected) || expected != conn
-                || !Session.BindSpawn(conn.connectionId, NetworkTime.localTime)) return;
+                || !Session.BindSpawn(conn.connectionId, ServerNow)) return;
             var p = Session.ByConnection(conn.connectionId);
             var health = player.GetComponent<NetworkHealth>();
             actors.Add(conn.connectionId, health);
-            health.BindRuntime(() => Session != null && Session.CanAct(p, NetworkTime.localTime),
-                amount => Damage(p, amount), () => Session != null && Session.TryAttack(p.ParticipantId, p.LifeId, NetworkTime.localTime));
+            health.BindRuntime(() => Session != null && Session.CanAct(p, ServerNow),
+                (amount, attacker) => Damage(p, amount, attacker), () => Session != null && Session.TryAttack(p.ParticipantId, p.LifeId, ServerNow));
             EnsureState(); Publish();
         }
-        private bool Damage(MatchParticipantRuntime participant, int amount)
+        private bool Damage(MatchParticipantRuntime participant, int amount, NetworkHealth attacker)
         {
-            if (Session == null || !Session.TryDamage(participant.ParticipantId, participant.LifeId, amount, NetworkTime.localTime)) return false;
+            if (Session == null || !Session.TryDamage(participant.ParticipantId, participant.LifeId, amount, ServerNow,
+                attacker?.ParticipantId, attacker?.LifeId ?? 0)) return false;
             Publish(); return true;
         }
+        private void Eliminated(MatchElimination elimination)
+        { if (replicated != null) replicated.PublishElimination(elimination, Session); }
         private void Update()
         {
             if (!NetworkServer.active || Session == null) return;
-            var now = NetworkTime.localTime;
+            var now = ServerNow;
             Session.Tick(now);
             foreach (var p in Session.Participants)
             {
@@ -125,6 +137,8 @@ namespace SmallArena.Server.Sessions
                 }
             }
             Publish();
+            if (Session != null && Session.Phase == MatchLifecyclePhase.Ended && now >= postMatchDeadline
+                && manager.RoomEnabled) GetComponent<ServerLobbyController>()?.ReturnToLobby();
         }
         private bool TrySpawnPosition(NetworkHealth actor, int slot, out Vector3 position)
         {
@@ -163,13 +177,14 @@ namespace SmallArena.Server.Sessions
         private void Publish()
         {
             if (Session == null) return;
-            var eligible = Session.Participants.Where(p => p.IsConnected && p.LifeState != ParticipantLifeState.Eliminated).ToArray();
+            if (Session.Phase == MatchLifecyclePhase.Ended && postMatchDeadline == 0)
+                postMatchDeadline = ServerNow + Session.Configuration.PostMatchDurationSeconds;
             foreach (var p in Session.Participants)
             {
                 if (!actors.TryGetValue(p.ConnectionId, out var actor) || actor == null) continue;
                 var outcome = Session.Phase != MatchLifecyclePhase.Ended ? PlayerMatchResult.Playing
-                    : Session.Configuration.MaximumLives == 0 || eligible.Length != 1 ? PlayerMatchResult.Draw
-                    : eligible[0] == p ? PlayerMatchResult.Victory : PlayerMatchResult.Defeat;
+                    : Session.WinnerParticipantId == "" ? PlayerMatchResult.Draw
+                    : Session.WinnerParticipantId == p.ParticipantId ? PlayerMatchResult.Victory : PlayerMatchResult.Defeat;
                 actor.PublishRuntime(p, Session.Configuration, Session.Phase, outcome);
                 var lifeChanged = !publishedLives.TryGetValue(p.ConnectionId, out var life) || life != p.LifeId;
                 if (lifeChanged || p.LifeState != ParticipantLifeState.Alive) actor.GetComponent<NetworkCombat>().ResetForLife();
@@ -177,23 +192,25 @@ namespace SmallArena.Server.Sessions
                 actor.GetComponent<CharacterController>().enabled = p.IsConnected && p.LifeState == ParticipantLifeState.Alive;
                 if (!actor.CanAct) actor.GetComponent<ServerPlayerMovement>().ClearRuntimeInput();
             }
-            if (replicated != null) replicated.Publish(Session, NetworkTime.localTime);
+            if (replicated != null) replicated.Publish(Session, ServerNow, postMatchDeadline);
         }
         private void Disconnected(NetworkConnectionToClient connection)
         {
             if (Session == null || !connections.TryGetValue(connection.connectionId, out var expected) || expected != connection) return;
-            Session.Disconnect(connection.connectionId, NetworkTime.localTime);
+            Session.Disconnect(connection.connectionId, ServerNow);
             connections.Remove(connection.connectionId); actors.Remove(connection.connectionId); publishedLives.Remove(connection.connectionId);
             Publish();
         }
         private void Close()
         {
-            if (Session != null) Session.Teardown(NetworkTime.localTime);
+            if (Session != null) { Session.Eliminated -= Eliminated; Session.Teardown(ServerNow); }
             Session = null; connections.Clear(); actors.Clear(); publishedLives.Clear(); nextSpawnAttempt.Clear();
+            postMatchDeadline = 0;
             arenaFloor = null;
             if (replicated != null && NetworkServer.active) NetworkServer.Destroy(replicated.gameObject);
             replicated = null;
         }
+        public void ResetForLobby() { if (NetworkServer.active) Close(); }
         private void OnDisable()
         {
             if (manager != null)

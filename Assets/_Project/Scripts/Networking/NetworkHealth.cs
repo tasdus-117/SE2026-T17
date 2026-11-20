@@ -25,7 +25,7 @@ namespace SmallArena.Networking
         [SyncVar] private int baseDamage = 1;
         [SyncVar] private double attackCooldown = 1;
         private Func<bool> runtimeCanAct;
-        private Func<int, bool> runtimeDamage;
+        private Func<int, NetworkHealth, bool> runtimeDamage;
         private Func<bool> runtimeAttack;
         private GameplayConfiguration runtimeConfiguration;
         public double MovementSpeed => runtimeConfiguration == null ? 5 : Math.Min(5, runtimeConfiguration.MaxHorizontalSpeedMetresPerSecond);
@@ -66,9 +66,20 @@ namespace SmallArena.Networking
         }
         [Server]
         public bool TakeDamage(int amount)
+            => ApplyDamage(amount, null);
+        [Server] public bool TakeDamageFrom(NetworkHealth attacker, int amount)
+        {
+            if (attacker == null || !attacker.isServer || !attacker.CanAct) return false;
+            return ApplyDamage(amount, attacker);
+        }
+        private bool ApplyDamage(int amount, NetworkHealth attacker)
         {
             if (!isServer || !CanAct || amount <= 0) return false;
-            if (IsLifecycleBound) return runtimeDamage != null && runtimeDamage(amount);
+            if (IsLifecycleBound)
+            {
+                if (attacker != null && (!attacker.IsLifecycleBound || attacker.SessionId != sessionId)) return false;
+                return runtimeDamage != null && runtimeDamage(amount, attacker);
+            }
             currentHealth = amount >= currentHealth ? 0 : currentHealth - amount;
             if (currentHealth == 0)
             {
@@ -78,7 +89,7 @@ namespace SmallArena.Networking
             }
             return true;
         }
-        [Server] public void BindRuntime(Func<bool> canAct, Func<int, bool> damage, Func<bool> attack)
+        [Server] public void BindRuntime(Func<bool> canAct, Func<int, NetworkHealth, bool> damage, Func<bool> attack)
         {
             if (!isServer) return;
             runtimeCanAct = canAct; runtimeDamage = damage; runtimeAttack = attack;

@@ -53,6 +53,7 @@ namespace SmallArena.Client.UI
             if (result == PlayerMatchResult.Playing || source == null) return;
             var input = source.GetComponent<PlayerInputHandler>();
             if (input != null) input.SetMenuInputBlocked(true);
+            if (source.IsLifecycleBound) return; // Competitive result UI observes the authoritative standings.
             if (matchMenu != null)
             {
                 if (result == PlayerMatchResult.Draw) matchMenu.ShowMatchEnded();

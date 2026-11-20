@@ -151,5 +151,6 @@ namespace SmallArena.Server.Combat
             if (manager != null) { manager.ServerDisconnected -= Disconnected; manager.ServerStopped -= Close; }
             Close();
         }
+        public void ResetForLobby() { if (NetworkServer.active) Close(); }
     }
 }

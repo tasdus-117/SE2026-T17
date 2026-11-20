@@ -46,7 +46,7 @@ namespace SmallArena.Tests.EditMode
                 {
                     foreach (var value in new[] { int.MinValue, -1, 0 })
                     {
-                        if (parameter.Name == "maximumLives" && value == 0) continue; // M3: zero explicitly means unlimited stocks.
+                        if ((parameter.Name == "maximumLives" || parameter.Name == "targetKills") && value == 0) continue; // M3: zero explicitly means unlimited stocks.
                         yield return new TestCaseData(parameter.Name, value).SetName("Reject_" + parameter.Name + "_" + value);
                     }
                 }

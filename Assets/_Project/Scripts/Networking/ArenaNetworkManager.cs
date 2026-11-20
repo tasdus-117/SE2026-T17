@@ -102,6 +102,16 @@ namespace SmallArena.Networking
         {
             if (roomEnabled && NetworkClient.isConnected) NetworkClient.Send(new LobbyStartRequest());
         }
+        public void RequestReturnToLobby()
+        { if (roomEnabled && NetworkClient.isConnected) NetworkClient.Send(new LobbyReturnRequest()); }
+        public void LoadRoomMenu()
+        {
+            if (!NetworkServer.active || !roomEnabled || NetworkServer.isLoadingScene) throw new InvalidOperationException("Active room required.");
+            autoCreatePlayer = false; onlineScene = "";
+            foreach (var connection in NetworkServer.connections.Values.ToArray()) NetworkServer.DestroyPlayerForConnection(connection);
+            reservedSpawns.Clear(); releasedSpawns.Clear();
+            ServerChangeScene("Assets/_Project/Scenes/MainMenu.unity");
+        }
         // Called only by the server session coordinator after its host/readiness checks.
         public void LoadRoomArena()
         {
@@ -225,7 +235,7 @@ namespace SmallArena.Networking
         }
         public override void OnClientSceneChanged()
         {
-            if (roomEnabled) autoCreatePlayer = true;
+            if (roomEnabled) autoCreatePlayer = IsArena(networkSceneName);
             base.OnClientSceneChanged();
             EndClientArenaLoad(true);
         }

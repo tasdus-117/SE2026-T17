@@ -18,9 +18,11 @@ namespace SmallArena.Client.UI
         private InputAction toggle;
         private IMatchStateSource match;
         private bool leaving;
+        private bool competitiveResultVisible;
+        public bool CompetitiveResultVisible => competitiveResultVisible;
         public bool IsPaused => view != null && view.PauseVisible;
         private bool OfflineEnded => !NetworkClient.active && !NetworkServer.active && matchStateSource != null && match != null && (match.CurrentState == MatchState.Victory || match.CurrentState == MatchState.Defeat);
-        private bool Blocked => leaving || IsPaused || view.ResultVisible || OfflineEnded || MatchSessionNavigation.IsReturning;
+        private bool Blocked => leaving || IsPaused || view.ResultVisible || competitiveResultVisible || OfflineEnded || MatchSessionNavigation.IsReturning;
 
         private void OnEnable()
         {
@@ -44,7 +46,7 @@ namespace SmallArena.Client.UI
         }
         private void Toggle(InputAction.CallbackContext context)
         {
-            if (leaving || view.ResultVisible || OfflineEnded || MatchSessionNavigation.IsReturning) return;
+            if (leaving || view.ResultVisible || competitiveResultVisible || OfflineEnded || MatchSessionNavigation.IsReturning) return;
             if (IsPaused) Resume();
             else
             {
@@ -56,7 +58,7 @@ namespace SmallArena.Client.UI
         }
         public void Resume()
         {
-            if (leaving || view.ResultVisible || OfflineEnded || MatchSessionNavigation.IsReturning) return;
+            if (leaving || view.ResultVisible || competitiveResultVisible || OfflineEnded || MatchSessionNavigation.IsReturning) return;
             view.ShowPause(false);
             ApplyInputGate();
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
@@ -75,6 +77,12 @@ namespace SmallArena.Client.UI
         public void ShowMatchResult(bool isWinner)
             => ShowResult(isWinner ? "VICTORY" : "DEFEAT");
         public void ShowMatchEnded() => ShowResult("MATCH ENDED");
+        public void SetCompetitiveResultVisible(bool visible)
+        {
+            competitiveResultVisible = visible;
+            if (visible) { view.ShowPause(false); SceneNavigation.ShowMenuCursor(); }
+            ApplyInputGate();
+        }
         private void ShowResult(string header)
         {
             if (leaving) return;

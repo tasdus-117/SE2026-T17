@@ -50,5 +50,12 @@ namespace SmallArena.Server.Sessions
             Phase = LobbyPhase.Failed;
             return true;
         }
+        public bool ReturnToWaiting()
+        {
+            if (Phase != LobbyPhase.Playing) return false;
+            foreach (var id in members.Keys.ToArray())
+            { var member = members[id]; member.IsReady = false; members[id] = member; }
+            Phase = LobbyPhase.Waiting; return true;
+        }
     }
 }

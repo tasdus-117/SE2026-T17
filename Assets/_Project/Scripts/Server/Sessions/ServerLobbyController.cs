@@ -50,6 +50,11 @@ namespace SmallArena.Server.Sessions
             }, Publish, error => manager.AbortRoomStart(error.Message));
             NetworkServer.RegisterHandler<LobbyReadyRequest>(Ready);
             NetworkServer.RegisterHandler<LobbyStartRequest>(StartMatch);
+            NetworkServer.RegisterHandler<LobbyReturnRequest>((connection, _) =>
+            {
+                foreach (var member in room.Members)
+                    if (member.ConnectionId == connection.connectionId && member.IsHost) { ReturnToLobby(); break; }
+            });
         }
         private void Close() { startOperation = null; room.Close(); SessionId = ""; }
         private void Join(NetworkConnectionToClient connection)
@@ -77,8 +82,21 @@ namespace SmallArena.Server.Sessions
         }
         private void SceneLoaded(string scene)
         {
+            if (manager.RoomEnabled && (scene == "MainMenu" || scene.EndsWith("/MainMenu.unity"))) { Publish(); return; }
             if (!manager.RoomEnabled || !scene.EndsWith("Arena_MVP.unity") && scene != "Arena_MVP") return;
             startOperation?.Complete();
+        }
+        public bool ReturnToLobby()
+        {
+            var lifecycle = GetComponent<ServerMatchLifecycleController>();
+            if (!NetworkServer.active || !manager.RoomEnabled || NetworkServer.isLoadingScene
+                || lifecycle == null || lifecycle.Session == null || lifecycle.Session.Phase != SmallArena.Domain.MatchLifecyclePhase.Ended
+                || !room.ReturnToWaiting()) return false;
+            GetComponent<SmallArena.Server.Combat.ServerLootRespawnController>()?.ResetForLobby();
+            lifecycle.ResetForLobby();
+            GetComponent<ArenaLootSpawner>()?.ResetRound();
+            SessionId = System.Guid.NewGuid().ToString("N");
+            Publish(); manager.LoadRoomMenu(); return true;
         }
         private void Publish()
         {

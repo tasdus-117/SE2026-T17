@@ -14,6 +14,7 @@ namespace SmallArena.Client.UI
         [SerializeField] private TextMeshProUGUI phaseText = null;
         [SerializeField] private TextMeshProUGUI respawnText = null;
         private NetworkMatchController state;
+        public NetworkMatchController State => state;
         public string ClockText => clockText.text;
         public string PhaseText => phaseText.text;
         public string RespawnText => respawnText.text;

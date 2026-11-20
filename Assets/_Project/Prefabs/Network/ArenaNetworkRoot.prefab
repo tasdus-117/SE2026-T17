@@ -157,6 +157,8 @@ MonoBehaviour:
   countdownSeconds: 3
   respawnSeconds: 3
   maximumLives: 0
+  targetKills: 5
+  postMatchSeconds: 10
 --- !u!114 &8500310001
 MonoBehaviour:
   m_ObjectHideFlags: 0

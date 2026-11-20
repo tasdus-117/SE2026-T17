@@ -5,7 +5,8 @@ namespace SmallArena.Domain
     /// <summary>
     /// Immutable server-owned tuning snapshot. A match retains this instance; tuning changes
     /// apply to new matches. HP/damage are integral HP, distances metres, speed metres/second,
-    /// all durations seconds. Zero speed/distance is permitted; other values must be positive.
+    /// all durations seconds. Zero speed/distance/countdown is permitted; zero stocks/target
+    /// disables that limit. Other durations and HP/damage must be positive.
     /// These zero boundaries are local validation policy where rules-v0.1 is silent.
     /// </summary>
     public sealed class GameplayConfiguration
@@ -21,7 +22,7 @@ namespace SmallArena.Domain
             double minimumSafeSpawnDistanceMetres = 5, double spawnRetryIntervalSeconds = 0.5,
             double spawnProtectionSeconds = 1, double reconnectGraceSeconds = 15,
             double countdownDurationSeconds = 3, int maximumLives = 0, double spawnGraceSeconds = 10,
-            double weaponRespawnDelaySeconds = 30)
+            double weaponRespawnDelaySeconds = 30, int targetKills = 0, double postMatchDurationSeconds = 10)
         {
             if (!string.Equals(revision, SupportedRevision, StringComparison.Ordinal))
                 throw new ArgumentException("Unsupported gameplay revision.", nameof(revision));
@@ -40,6 +41,8 @@ namespace SmallArena.Domain
             RequireValue(countdownDurationSeconds, nameof(countdownDurationSeconds), true);
             RequireValue(spawnGraceSeconds, nameof(spawnGraceSeconds));
             RequireValue(weaponRespawnDelaySeconds, nameof(weaponRespawnDelaySeconds));
+            RequireValue(postMatchDurationSeconds, nameof(postMatchDurationSeconds));
+            if (targetKills < 0) throw new ArgumentOutOfRangeException(nameof(targetKills));
             if (maximumLives < 0) throw new ArgumentOutOfRangeException(nameof(maximumLives));
             Revision = revision;
             MaxHealth = maxHealth;
@@ -58,6 +61,7 @@ namespace SmallArena.Domain
             MaximumLives = maximumLives;
             SpawnGraceSeconds = spawnGraceSeconds;
             WeaponRespawnDelaySeconds = weaponRespawnDelaySeconds;
+            TargetKills = targetKills; PostMatchDurationSeconds = postMatchDurationSeconds;
         }
 
         public string Revision { get; }
@@ -77,6 +81,8 @@ namespace SmallArena.Domain
         public int MaximumLives { get; } // Zero means unlimited; positive values include the current life.
         public double SpawnGraceSeconds { get; }
         public double WeaponRespawnDelaySeconds { get; }
+        public int TargetKills { get; } // Zero disables the target-kill trigger; timeout still ranks players.
+        public double PostMatchDurationSeconds { get; }
 
         private static void RequireValue(double value, string name, bool allowZero = false)
         {

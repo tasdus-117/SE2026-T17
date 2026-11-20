@@ -97,12 +97,12 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(proxy.MatchClock, Is.EqualTo(lifecycle.Session.ClockRemaining(NetworkTime.localTime)).Within(.25));
             yield return Until(() => lifecycle.Session.ClockRemaining(NetworkTime.localTime) < .15);
             Assert.That(ServerOwner.TakeDamage(10), Is.True); // Respawn deadline falls after the match deadline.
-            yield return Until(() => proxy.Phase == MatchLifecyclePhase.Ended && owner.Result == PlayerMatchResult.Draw);
+            yield return Until(() => proxy.Phase == MatchLifecyclePhase.Ended && owner.Result == PlayerMatchResult.Defeat);
             yield return null;
             Assert.That(hud.GetComponent<MatchLifecycleHudView>().RespawnText, Is.Empty);
             Assert.That(ServerOwner.CurrentHealth, Is.Zero, "No resurrection after the match deadline.");
             Assert.That(ServerOwner.CanAct, Is.False); Assert.That(ServerOwner.TakeDamage(1), Is.False);
-            Assert.That(menu.GetComponent<InGameMenuView>().ResultHeader, Is.EqualTo("MATCH ENDED"));
+            Assert.That(hud.GetComponent<MatchResultHudView>().HeaderText, Is.EqualTo("DEFEAT — Rank #2"));
         }
         [UnityTest] public IEnumerator LethalHitRespawnsWithFullHealthNewLifeAndResetBuff()
         {

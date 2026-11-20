@@ -2,7 +2,7 @@
 
 Arena 3D góc nhìn thứ ba, tối đa **4 người/phòng**, dùng **Unity 6000.6.8f1**, **Mirror 96.0.1 + KCP Transport**, URP, New Input System và TextMeshPro/uGUI. Server quyết định vị trí, sát thương, HP, pickup, vòng đời và thời gian trận; client gửi ý định và hiển thị trạng thái được đồng bộ.
 
-README được đối chiếu ngày **20/11/2026** với nhánh `feature/tv1-m3-match-lifecycle`, commit `d936b9a` (Fair Weapon Respawn), tiếp sau `a07db32` (M3.1 + sửa teleport TH2). Các refs `main`/`origin/main` cục bộ khi kiểm toán còn ở `9ee7ea7`; phần mới trên nhánh feature không được ghi là đã merge vào `main`.
+README được cập nhật cho **M3.2** trên nhánh `feature/tv1-m3-match-lifecycle`, baseline `5056403`, tiếp sau `d936b9a` (Fair Weapon Respawn) và `a07db32` (M3.1 + sửa teleport TH2). Thay đổi M3.2 đang ở working tree, chưa commit; không ghi là đã merge vào `main`.
 
 ## 1. Tính năng và trạng thái hiện tại
 
@@ -16,12 +16,13 @@ README được đối chiếu ngày **20/11/2026** với nhánh `feature/tv1-m3
 | Match Lifecycle M3.1 | `WaitingForPlayers → Countdown → InProgress → Ended`; binding **Connection–Session–Participant–Life**, clock `MM:SS` đồng bộ. Mặc định countdown 3 s, trận 180 s; chỉ InProgress + Alive được di chuyển/đánh/nhặt. |
 | Chết và hồi sinh | Mặc định respawn sau 3 s tại marker an toàn, đầy HP/base damage và life ID mới; từ chối command của mạng sống cũ. `ArenaNetworkTransform` teleport đồng bộ physics, xóa interpolation cũ và giữ lịch sử delta compression để sửa TH2. Có cấu hình stocks hữu hạn; mặc định vô hạn. |
 | Arena TV3 | `Arena_MVP`: sàn mở 16×16 m, 3–6 vật cản Cube/Sphere/Capsule sinh theo server và đồng bộ collider layout qua SyncList. Falling dưới Y=-5 gây chết trên server; spawn tránh cover và mép sàn. |
-| HUD và điều hướng | HUD HP/damage, overhead health, clock/phase/respawn; Escape mở menu, Resume hoặc Leave Match về MainMenu với teardown Host/Client. Hết giờ hiện `MATCH ENDED`; hữu hạn mạng có Victory/Defeat. |
+| Score và kết quả M3.2 | Server ghi Kills/Deaths/actual DamageDealt; sort Kills DESC → Deaths ASC → Damage DESC → SlotIndex ASC. Đạt 5 kills, hết giờ hoặc finite-life kết thúc sẽ chốt Rank 1/Winner. Giữ Tab xem bảng điểm, kill feed fade sau 4 s, result VICTORY / DEFEAT — Rank #X. |
+| HUD và điều hướng | HUD HP/damage, overhead health, clock/phase/respawn; Escape mở menu, Resume hoặc Leave Match với teardown Host/Client. Room mode Ended đợi 10 s hoặc Host Return to Lobby: giữ connection/slot, reset Ready, bắt đầu round mới với điểm 0. |
 | Hiển thị và offline | F11 toàn cục: FullScreenWindow ở độ phân giải native ↔ Windowed với **nửa chiều rộng và nửa chiều cao** màn hình. Single Player giữ WASD/Space/LMB/E, 10 HP và 1/2 DMG, Bot, Victory/Defeat và replay. Timer loot 30 s thuộc vòng chơi mạng. |
 
 Server runtime tạo snapshot `GameplayConfiguration` phù hợp arena 10 HP/1 DMG. Constructor mặc định của model TV2 `rules-v0.1` vẫn là 100 HP/25 damage; không dùng các giá trị đó để mô tả tuning arena hiện hành.
 
-M3.1 và vòng loot đã có kiểm chứng native; toàn bộ M3 chưa được nghiệm thu. Bảng điểm/phân thắng bằng score, matchmaking, reconnect token, host migration, NAT relay, client prediction/reconciliation và chứng nhận Dedicated Server build còn ngoài phần đã bàn giao. Harness native không chứng nhận mọi tình huống hai tiến trình KCP/LAN/latency; mẫu offline chỉ là bằng chứng hành vi.
+M3.1, vòng loot và M3.2 có suite kiểm chứng riêng. Matchmaking, reconnect token, host migration, NAT relay, client prediction/reconciliation và chứng nhận Dedicated Server build còn ngoài phần đã bàn giao. Harness native không chứng nhận mọi tình huống hai tiến trình KCP/LAN/latency; mẫu offline chỉ là bằng chứng hành vi. Kết quả và phạm vi nghiệm thu M3.2 ở [báo cáo scoreboard/rematch](docs/testing/m3.2-scoreboard-and-win-loop.md).
 
 ## 2. Kiến trúc và thư mục
 
@@ -83,7 +84,7 @@ SmallArena.PlayMode.Tests --------> Server, Client, Networking, Shared.Protocol,
 
 | Vai trò | Trách nhiệm và điểm tích hợp hiện hữu |
 |---|---|
-| **TV1 — Server/Networking/Integration** | KCP connection lifecycle/spawn/authority; server movement, validation và separation; lobby 4 slot, Ready/Start, pause/teardown; tích hợp melee geometry, E pickup và respawn Maximin 30 s. `ServerMatchLifecycleController` nối session/participant/life với model TV2; `NetworkMatchController`/HUD đồng bộ clock, `ArenaNetworkTransform` sửa teleport. Phối hợp UI/input/arena với TV3 và giữ luật/config theo TV2. |
+| **TV1 — Server/Networking/Integration** | KCP connection lifecycle/spawn/authority; server movement, validation và separation; lobby 4 slot, Ready/Start, pause/teardown; tích hợp melee geometry, E pickup và respawn Maximin 30 s. `ServerMatchLifecycleController` nối session/participant/life với model TV2; `NetworkMatchController` đồng bộ clock/score/feed/winner, `ArenaNetworkTransform` sửa teleport; điều phối Ended → Lobby và rematch. Phối hợp UI/input/arena với TV3 và giữ luật/config theo TV2. |
 | **TV2 — Domain/Rules** | Model thuần C# `GameplayConfiguration`, `OnlineCharacterState`, `OnlineMatch` và định nghĩa `rules-v0.1` (PR #9). Server runtime giữ snapshot config, dùng deadline/life/cooldown/HP contracts; TV2 tiếp tục sở hữu quy tắc combat/validation để tránh hai bộ luật mâu thuẫn. |
 | **TV3 — Client/UI/Arena** | Arena layout, `ArenaObstacles`, cover/collider và layout/collision verification (PR #7/#11); loading/recovery lobby → arena (PR #12). Giữ biên presentation/input/UI/scene/prefab, phối hợp TV1 để collider descriptions và vùng spawn được server kiểm chứng và client dựng nhất quán. |
 
@@ -121,21 +122,23 @@ Commit mã, asset + `.meta`, `Packages/`, `ProjectSettings/` và tài liệu. Kh
 3. Cả hai Ready; Host Start chỉ mở khi đủ ít nhất 2 người và tất cả Ready. Đợi loading và countdown 3 s, rồi kiểm tra movement/HP/clock trên cả hai. Phòng tối đa 4 người; người thứ 5 nhận room-full notice.
 4. Trong standalone, F11 chuyển fullscreen/native ↔ cửa sổ rộng/cao bằng nửa màn hình để đặt cạnh Editor. Kiểm tra độ phân giải cửa sổ ở standalone; Game view trong Editor không phải cửa sổ player độc lập.
 5. Đứng trong reach, phía +Z của người đánh; LMB mỗi 1 s, HP giảm 1 hoặc 2 khi có buff. E nhặt loot. Carrier chết: buff mất, avatar hồi sinh an toàn sau 3 s; hộp mới chỉ có sau **30 s từ lúc carrier chết/disconnect**, ở điểm Maximin an toàn. Khi sống giữ buff hơn 30 s không sinh thêm hộp.
-6. Escape → Leave Match dọn phiên về MainMenu; Host rời dừng server và client quay về menu. Hết giờ trận đóng input, hiện Match Ended. Thử tạo phòng mới để kiểm tra teardown không rò trạng thái.
+6. Giữ Tab xem Kills/Deaths/Damage và trạng thái; nhả để ẩn. Lethal hit hiện kill feed hai bên. Đạt 5 kills hoặc hết giờ: input khóa, hiện VICTORY / DEFEAT và bảng xếp hạng theo bốn khóa.
+7. Đợi 10 s hoặc Host bấm Return to Lobby: cả hai trở về phòng cũ, giữ slot nhưng Not Ready. Ready/Start lần nữa, điểm/feed phải reset. Escape → Leave Match vẫn dọn phiên; Host rời dừng server và client quay về menu.
 
-Chi tiết: [M1 nhiều client](docs/testing/m1-multi-client-testing.md), [lobby governance](docs/testing/m2-lobby-governance.md), [M3.1/TH2](docs/testing/m3.1-match-lifecycle.md), [Fair Weapon Respawn](docs/testing/weapon-respawn-fair-spawn.md).
+Chi tiết: [M1 nhiều client](docs/testing/m1-multi-client-testing.md), [lobby governance](docs/testing/m2-lobby-governance.md), [M3.1/TH2](docs/testing/m3.1-match-lifecycle.md), [Fair Weapon Respawn](docs/testing/weapon-respawn-fair-spawn.md), [M3.2 score và rematch](docs/testing/m3.2-scoreboard-and-win-loop.md).
 
 ## 5. Kiểm thử và biên dịch
 
-Baseline đã ghi nhận ngày 20/11/2026, có XML/log và hash 242 tệp nguồn/asset khớp bản sao kiểm chứng:
+Kết quả M3.2 ngày 21/11/2026, có XML/log và hash 252 tệp nguồn/asset/metadata khớp bản sao kiểm chứng:
 
 | Bộ kiểm chứng | Kết quả gần nhất |
 |---|---|
-| EditMode của nhóm | **205/205 đạt**, 0 lỗi, 0 skip |
-| PlayMode của nhóm | **337/337 đạt**, 0 lỗi, 0 skip |
-| PlayMode gồm package | **341 tổng: 339 đạt, 0 lỗi, 2 skip vendor** |
+| EditMode của nhóm | **236/236 đạt**, 0 lỗi, 0 skip |
+| PlayMode của nhóm | **344/344 đạt**, 0 lỗi, 0 skip |
+| PlayMode gồm package | **348 tổng: 346 đạt, 0 lỗi, 2 skip vendor** |
 | Strict compilation | **7/7 asmdef**, 0 lỗi/cảnh báo compiler mã nhóm; native import/Mirror weaving thành công |
 | Kiểm chứng loot mới | **25 Domain + 6 PlayMode**, đã nằm trong tổng; có ca đợi thật 30 s và 20 chu kỳ respawn |
+| Kiểm chứng M3.2 mới | **24 Domain + 7 PlayMode**, đã nằm trong tổng; thêm 7 ca cấu hình hợp lệ/không hợp lệ. Có scoring/replication, Tab/feed/result, nonzero-score reset và round hai giữ nguyên connection. |
 
 Hai skip thuộc package Input System, mouse Windows/RDP, lý do `Unstable due to 1252825`; không tính thành pass. Native M3.1/loot dùng Host hoặc client engine thật cùng connection/observer guest ảo. Kết quả hai cửa sổ/KCP và các giới hạn được ghi riêng trong từng báo cáo, không suy từ số test native.
 
@@ -177,7 +180,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/Run-DomainTests.ps1 -E
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/Verify-ArenaLayout.ps1 -EditorRoot $editorRoot
 ```
 
-Roslyn compiler coi cảnh báo mã nhóm là lỗi; Domain runner chạy 205 ca thuần C# bằng SDK của Editor. Layout verifier kiểm YAML/scene/prefab và có bước compile; các công cụ này bổ sung, không thay native PlayMode. Báo cáo thô ở `TestResults/WeaponRespawn/`, log ở `Logs/` được ignore; người clone mới xem kết quả bàn giao trong tài liệu và tự chạy lại, không cần tải cache của người khác.
+Roslyn compiler coi cảnh báo mã nhóm là lỗi; Domain runner chạy 236 ca thuần C# bằng SDK của Editor. Layout verifier kiểm YAML/scene/prefab và có bước compile; các công cụ này bổ sung, không thay native PlayMode. Báo cáo thô M3.2 ở `TestResults/M32/`, log ở `Logs/` được ignore; người clone mới xem kết quả bàn giao trong tài liệu và tự chạy lại, không cần tải cache của người khác.
 
 ## 6. Tài liệu liên quan
 
@@ -187,7 +190,7 @@ Roslyn compiler coi cảnh báo mã nhóm là lỗi; Domain runner chạy 205 ca
 | Kết nối và movement | [TV1.1](docs/architecture/tv1.1-network-lifecycle.md), [TV1.2](docs/architecture/tv1.2-server-movement.md), [M1 verification](docs/testing/tv1.3-results.md) |
 | Lobby, combat, navigation | [M2 lobby](docs/architecture/m2-lobby-rooms.md), [Combat/HUD](docs/architecture/network-combat-and-hud.md), [Melee/F11](docs/testing/melee-reliability-and-display.md), [Pause/teardown](docs/testing/in-game-menu-and-teardown.md) |
 | Arena và loading | [TV3.1 arena](docs/testing/tv3-1-open-arena.md), [Lobby → Arena](docs/testing/lobby-arena-loading.md) |
-| Runtime mới nhất | [M3.1 + TH2](docs/testing/m3.1-match-lifecycle.md), [Fair Weapon Respawn và kết quả 205/337](docs/testing/weapon-respawn-fair-spawn.md) |
+| Runtime và kết quả theo mốc | [M3.1 + TH2](docs/testing/m3.1-match-lifecycle.md), [Fair Weapon Respawn: 205/337](docs/testing/weapon-respawn-fair-spawn.md), [M3.2 score/rematch: 236/344](docs/testing/m3.2-scoreboard-and-win-loop.md) |
 | Vận hành và CI | [Runbook](docs/operations/runbook.md), [Test plan](docs/testing/test-plan.md), [CI setup](.github/workflows/README.md) |
 
-Một số tài liệu kiến trúc/kiểm chứng cũ chứa scaffold, ví dụ dự kiến hoặc trạng thái theo từng mốc. Đọc ngày/phạm vi của báo cáo; dùng README này cùng báo cáo M3.1/loot để xác định tính năng hiện hành, không coi mọi ví dụ trong lịch sử là tính năng đã triển khai.
+Một số tài liệu kiến trúc/kiểm chứng cũ chứa scaffold, ví dụ dự kiến hoặc trạng thái theo từng mốc. Đọc ngày/phạm vi của báo cáo; dùng README này cùng báo cáo M3.1/loot/M3.2 để xác định tính năng hiện hành, không coi mọi ví dụ trong lịch sử là tính năng đã triển khai.

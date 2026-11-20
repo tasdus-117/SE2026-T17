@@ -52,7 +52,7 @@ namespace SmallArena.Networking
                 var target = hit.GetComponentInParent<NetworkHealth>();
                 if (target == null || target == health || !target.isServer || !target.CanAct || !damaged.Add(target)) continue;
                 if (Physics.Linecast(center - Vector3.forward * Offset.z, hit.bounds.center, 1 << 6, QueryTriggerInteraction.Ignore)) continue;
-                target.TakeDamage(attackDamage);
+                target.TakeDamageFrom(health, attackDamage);
             }
         }
         private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
