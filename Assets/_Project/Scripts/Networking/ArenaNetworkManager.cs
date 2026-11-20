@@ -32,6 +32,8 @@ namespace SmallArena.Networking
         public event Action<NetworkConnectionToClient> ServerConnected;
         public event Action<NetworkConnectionToClient> ServerDisconnected;
         public event Action<string> ServerSceneLoaded;
+        public event Action<NetworkConnectionToClient, GameObject> ServerPlayerSpawned;
+        public Func<NetworkConnectionToClient, bool> ServerCanBindParticipant;
         public Func<bool> ServerCanSpawnPlayer { get; set; }
 
         public override void Awake()
@@ -281,6 +283,7 @@ namespace SmallArena.Networking
             // Mirror normally enforces this before dispatching the callback; keep direct calls safe too.
             if (!NetworkServer.active || conn == null || conn.identity != null || reservedSpawns.ContainsKey(conn)) return;
             if (ServerCanSpawnPlayer != null && !ServerCanSpawnPlayer()) return;
+            if (ServerCanBindParticipant != null && !ServerCanBindParticipant(conn)) return;
             if (playerPrefab == null || playerPrefab.GetComponent<NetworkPlayer>() == null
                 || playerPrefab.GetComponent<NetworkIdentity>() == null)
             {
@@ -320,6 +323,7 @@ namespace SmallArena.Networking
                     reservedSpawns.Remove(conn);
                     Destroy(player);
                 }
+                else ServerPlayerSpawned?.Invoke(conn, player);
             }
             catch
             {

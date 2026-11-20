@@ -13,6 +13,7 @@ namespace SmallArena.Server.Sessions
         private readonly LobbyRoom room = new LobbyRoom();
         private LobbyStartOperation startOperation;
         public LobbyRoom Room => room;
+        public string SessionId { get; private set; } = "";
 
         private void OnEnable()
         {
@@ -40,11 +41,17 @@ namespace SmallArena.Server.Sessions
         {
             if (!manager.RoomEnabled) return;
             room.Open();
-            startOperation = new LobbyStartOperation(room, manager.LoadRoomArena, Publish, error => manager.AbortRoomStart(error.Message));
+            SessionId = System.Guid.NewGuid().ToString("N");
+            startOperation = new LobbyStartOperation(room, () =>
+            {
+                var lifecycle = GetComponent<ServerMatchLifecycleController>();
+                if (lifecycle != null) lifecycle.BeginSession(SessionId, room.Members);
+                manager.LoadRoomArena();
+            }, Publish, error => manager.AbortRoomStart(error.Message));
             NetworkServer.RegisterHandler<LobbyReadyRequest>(Ready);
             NetworkServer.RegisterHandler<LobbyStartRequest>(StartMatch);
         }
-        private void Close() { startOperation = null; room.Close(); }
+        private void Close() { startOperation = null; room.Close(); SessionId = ""; }
         private void Join(NetworkConnectionToClient connection)
         {
             if (!manager.RoomEnabled) return;

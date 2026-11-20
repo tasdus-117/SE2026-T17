@@ -35,7 +35,8 @@ function Compile-Suite([string]$SourceFolder, [string]$Destination) {
         (Join-Path $testFolder 'AssemblyInfo.cs'),
         (Join-Path $testFolder 'MatchStateTests.cs'),
         (Join-Path $testFolder 'GameplayConfigurationTests.cs'),
-        (Join-Path $testFolder 'OnlineStateTests.cs')
+        (Join-Path $testFolder 'OnlineStateTests.cs'),
+        (Join-Path $testFolder 'MatchLifecycleDomainTests.cs')
     )
     Compile-Source (Join-Path $Destination 'SmallArena.EditMode.Tests.dll') $testSources (@($framework) + @($domainBinary, $nunit))
 }

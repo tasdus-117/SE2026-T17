@@ -19,7 +19,8 @@ namespace SmallArena.Domain
             double maxHorizontalSpeedMetresPerSecond = 5, double validInputTimeoutSeconds = 0.25,
             double matchDurationSeconds = 180, double respawnDelaySeconds = 3,
             double minimumSafeSpawnDistanceMetres = 5, double spawnRetryIntervalSeconds = 0.5,
-            double spawnProtectionSeconds = 1, double reconnectGraceSeconds = 15)
+            double spawnProtectionSeconds = 1, double reconnectGraceSeconds = 15,
+            double countdownDurationSeconds = 3, int maximumLives = 0, double spawnGraceSeconds = 10)
         {
             if (!string.Equals(revision, SupportedRevision, StringComparison.Ordinal))
                 throw new ArgumentException("Unsupported gameplay revision.", nameof(revision));
@@ -35,6 +36,9 @@ namespace SmallArena.Domain
             RequireValue(spawnRetryIntervalSeconds, nameof(spawnRetryIntervalSeconds));
             RequireValue(spawnProtectionSeconds, nameof(spawnProtectionSeconds));
             RequireValue(reconnectGraceSeconds, nameof(reconnectGraceSeconds));
+            RequireValue(countdownDurationSeconds, nameof(countdownDurationSeconds), true);
+            RequireValue(spawnGraceSeconds, nameof(spawnGraceSeconds));
+            if (maximumLives < 0) throw new ArgumentOutOfRangeException(nameof(maximumLives));
             Revision = revision;
             MaxHealth = maxHealth;
             ShotDamage = shotDamage;
@@ -48,6 +52,9 @@ namespace SmallArena.Domain
             SpawnRetryIntervalSeconds = spawnRetryIntervalSeconds;
             SpawnProtectionSeconds = spawnProtectionSeconds;
             ReconnectGraceSeconds = reconnectGraceSeconds;
+            CountdownDurationSeconds = countdownDurationSeconds;
+            MaximumLives = maximumLives;
+            SpawnGraceSeconds = spawnGraceSeconds;
         }
 
         public string Revision { get; }
@@ -63,6 +70,9 @@ namespace SmallArena.Domain
         public double SpawnRetryIntervalSeconds { get; }
         public double SpawnProtectionSeconds { get; }
         public double ReconnectGraceSeconds { get; }
+        public double CountdownDurationSeconds { get; }
+        public int MaximumLives { get; } // Zero means unlimited; positive values include the current life.
+        public double SpawnGraceSeconds { get; }
 
         private static void RequireValue(double value, string name, bool allowZero = false)
         {

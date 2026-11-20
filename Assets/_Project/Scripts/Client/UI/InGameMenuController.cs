@@ -73,9 +73,12 @@ namespace SmallArena.Client.UI
         }
         /// <summary>Presentation hook for a future authoritative M3 result; does not decide the outcome.</summary>
         public void ShowMatchResult(bool isWinner)
+            => ShowResult(isWinner ? "VICTORY" : "DEFEAT");
+        public void ShowMatchEnded() => ShowResult("MATCH ENDED");
+        private void ShowResult(string header)
         {
             if (leaving) return;
-            view.ShowResult(isWinner);
+            view.ShowResult(header);
             ApplyInputGate();
             SceneNavigation.ShowMenuCursor();
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(view.ResultReturnButton.gameObject);

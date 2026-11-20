@@ -19,6 +19,7 @@ namespace SmallArena.Server.Simulation
             {
                 if (identity == null || !identity.TryGetComponent<ServerPlayerSeparation>(out var player)
                     || !player.isActiveAndEnabled || !player.isServer || !player.body.enabled) continue;
+                if (identity.TryGetComponent<SmallArena.Networking.NetworkHealth>(out var health) && health.IsLifecycleBound && !health.CanAct) continue;
                 if (identity.netId < netId) return; // Lowest live netId owns this physics step; no static singleton.
                 players.Add(player);
             }

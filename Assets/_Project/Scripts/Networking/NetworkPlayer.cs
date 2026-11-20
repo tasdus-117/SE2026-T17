@@ -18,22 +18,26 @@ namespace SmallArena.Networking
 
         public void RequestAttack(Vector3 aimDirection)
         {
-            if (isLocalPlayer && isClient && NetworkClient.ready) CmdPerformAttack(aimDirection);
+            if (isLocalPlayer && isClient && NetworkClient.ready) CmdPerformAttack(aimDirection, GetComponent<NetworkHealth>()?.LifeId ?? 0);
         }
 
         [Command(requiresAuthority = true)]
-        private void CmdPerformAttack(Vector3 aimDirection)
+        private void CmdPerformAttack(Vector3 aimDirection, long lifeId)
         {
+            var health = GetComponent<NetworkHealth>();
+            if (health != null && health.IsLifecycleBound && health.LifeId != lifeId) return;
             if (TryGetComponent<NetworkCombat>(out var combat)) combat.PerformAttack(aimDirection);
         }
 
         public void RequestPickup(uint itemNetId)
         {
-            if (isLocalPlayer && isClient && NetworkClient.ready) CmdRequestPickup(itemNetId);
+            if (isLocalPlayer && isClient && NetworkClient.ready) CmdRequestPickup(itemNetId, GetComponent<NetworkHealth>()?.LifeId ?? 0);
         }
         [Command(requiresAuthority = true)]
-        private void CmdRequestPickup(uint itemNetId)
+        private void CmdRequestPickup(uint itemNetId, long lifeId)
         {
+            var health = GetComponent<NetworkHealth>();
+            if (health != null && health.IsLifecycleBound && health.LifeId != lifeId) return;
             if (NetworkServer.spawned.TryGetValue(itemNetId, out var item)
                 && item != null && item.TryGetComponent<NetworkLootItem>(out var loot)) loot.TryCollectServer(this);
         }
