@@ -30,11 +30,18 @@ namespace SmallArena.Input
         private bool interactPressed;
         private NetworkIdentity netIdentity;
         private bool menuInputBlocked;
+        private bool focused = true;
+        private bool paused;
+        public event Action GameplayInvalidated;
         public bool IsMenuInputBlocked => menuInputBlocked;
 
         public Vector2 MoveInput { get; private set; }
+        // Initialization readiness is also consumed during offline startup, independently of menu/focus gates.
         public bool IsInputReady => isActiveAndEnabled && CanReadInput && ownedActions != null;
+        public bool CanCollectGameplayInput => IsInputReady && focused && !paused && !menuInputBlocked
+            && gameplay != null && gameplay.enabled;
         private bool CanReadInput => netIdentity == null || netIdentity.isLocalPlayer;
+        private bool CanEnableGameplay => CanReadInput && focused && !paused;
 
         public void EndMatch() => enabled = false;
 
@@ -43,7 +50,31 @@ namespace SmallArena.Input
             if (menuInputBlocked == blocked) return;
             menuInputBlocked = blocked;
             if (blocked) DisableGameplay();
-            else if (isActiveAndEnabled && CanReadInput) EnableGameplay();
+            else if (isActiveAndEnabled && CanEnableGameplay) EnableGameplay();
+        }
+
+        public bool TryReadHeldFire(out bool held)
+        {
+            held = false;
+            if (!CanCollectGameplayInput || Mouse.current == null || PointerOverUI()) return false;
+            held = Mouse.current.leftButton.isPressed;
+            return true;
+        }
+
+        private void OnApplicationFocus(bool value)
+        {
+            focused = value;
+            RefreshAvailability();
+        }
+        private void OnApplicationPause(bool value)
+        {
+            paused = value;
+            RefreshAvailability();
+        }
+        private void RefreshAvailability()
+        {
+            DisableGameplay();
+            if (isActiveAndEnabled && CanEnableGameplay && !menuInputBlocked) EnableGameplay();
         }
 
         public bool ConsumeJumpPressed() => Consume(ref jumpPressed);
@@ -83,12 +114,12 @@ namespace SmallArena.Input
             ClearInput();
             NetworkPlayer.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
             NetworkPlayer.OnLocalPlayerDespawned += HandleLocalPlayerDespawned;
-            if (CanReadInput && !menuInputBlocked) EnableGameplay();
+            if (CanEnableGameplay && !menuInputBlocked) EnableGameplay();
         }
 
         private void HandleLocalPlayerSpawned(NetworkPlayer player)
         {
-            if (player.gameObject == gameObject && CanReadInput && !menuInputBlocked) EnableGameplay();
+            if (player.gameObject == gameObject && CanEnableGameplay && !menuInputBlocked) EnableGameplay();
         }
 
         private void HandleLocalPlayerDespawned(NetworkPlayer player)
@@ -122,6 +153,7 @@ namespace SmallArena.Input
 
         private void DisableGameplay()
         {
+            GameplayInvalidated?.Invoke();
             if (move != null) { move.performed -= OnMove; move.canceled -= OnMove; }
             if (jump != null) jump.performed -= OnJump;
             if (punch != null) punch.performed -= OnPunch;
