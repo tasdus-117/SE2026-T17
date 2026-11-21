@@ -423,6 +423,12 @@ namespace SmallArena.Tests.PlayMode
                     lobbyRejections[connectionId] = reader.Read<LobbyRejection>().Reason;
                     SendFromVirtual(connectionId, new LobbyRejectionAcknowledged());
                 }
+                else if (id == NetworkMessages.GetId<SceneMessage>())
+                {
+                    var scene = reader.Read<SceneMessage>();
+                    // Virtual observers have no Unity scene to unload; model normal scene replacement.
+                    if (scene.sceneOperation == SceneOperation.Normal) { visible[connectionId].Clear(); states[connectionId].Clear(); }
+                }
                 else if (id == NetworkMessages.GetId<SpawnMessage>()) visible[connectionId].Add(reader.Read<SpawnMessage>().netId);
                 else if (id == NetworkMessages.GetId<ObjectDestroyMessage>()) visible[connectionId].Remove(reader.Read<ObjectDestroyMessage>().netId);
                 else if (id == NetworkMessages.GetId<ObjectHideMessage>()) visible[connectionId].Remove(reader.Read<ObjectHideMessage>().netId);

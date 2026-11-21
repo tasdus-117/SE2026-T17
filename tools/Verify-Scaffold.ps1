@@ -17,8 +17,8 @@ function Assert-Scaffold([bool]$Condition, [string]$Message) {
 $expected = [ordered]@{
     'SmallArena.Shared.Domain' = @()
     'SmallArena.Shared.Protocol' = @('SmallArena.Shared.Domain')
-    'SmallArena.Networking' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol')
-    'SmallArena.Server' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol', 'SmallArena.Networking')
+    'SmallArena.Networking' = @('Mirror', 'Mirror.Components', 'SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol')
+    'SmallArena.Server' = @('Mirror', 'Mirror.Components', 'SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol', 'SmallArena.Networking')
     'SmallArena.Client' = @('Mirror', 'SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol', 'SmallArena.Networking', 'Unity.InputSystem', 'Unity.TextMeshPro', 'UnityEngine.UI')
     'SmallArena.EditMode.Tests' = @('SmallArena.Shared.Domain')
     'SmallArena.PlayMode.Tests' = @('Mirror', 'Mirror.Components', 'SmallArena.Shared.Domain', 'SmallArena.Shared.Protocol', 'SmallArena.Networking', 'SmallArena.Server', 'SmallArena.Client', 'Unity.InputSystem', 'Unity.InputSystem.TestFramework', 'Unity.TextMeshPro', 'UnityEngine.UI')

@@ -1,7 +1,7 @@
 {
   "name": "SmallArena.Server",
   "rootNamespace": "SmallArena.Server",
-  "references": ["Mirror","SmallArena.Shared.Domain","SmallArena.Shared.Protocol","SmallArena.Networking"],
+  "references": ["Mirror","Mirror.Components","SmallArena.Shared.Domain","SmallArena.Shared.Protocol","SmallArena.Networking"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

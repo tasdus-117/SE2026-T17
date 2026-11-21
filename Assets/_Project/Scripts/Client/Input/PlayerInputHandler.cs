@@ -32,7 +32,10 @@ namespace SmallArena.Input
         private bool menuInputBlocked;
         public bool IsMenuInputBlocked => menuInputBlocked;
 
-        public Vector2 MoveInput { get; private set; }
+        private Vector2 moveInput;
+        private NetworkHealth lifecycle;
+        private bool LifecycleAllowsInput => lifecycle == null || !lifecycle.IsLifecycleBound || lifecycle.CanAct;
+        public Vector2 MoveInput { get => LifecycleAllowsInput ? moveInput : Vector2.zero; private set => moveInput = value; }
         public bool IsInputReady => isActiveAndEnabled && CanReadInput && ownedActions != null;
         private bool CanReadInput => netIdentity == null || netIdentity.isLocalPlayer;
 
@@ -46,12 +49,12 @@ namespace SmallArena.Input
             else if (isActiveAndEnabled && CanReadInput) EnableGameplay();
         }
 
-        public bool ConsumeJumpPressed() => Consume(ref jumpPressed);
+        public bool ConsumeJumpPressed() => Consume(ref jumpPressed) && LifecycleAllowsInput;
         public bool ConsumePunchPressed()
         {
             var keyboard = Consume(ref punchPressed);
             var mouse = Consume(ref mousePunchPressed);
-            return keyboard || mouse && !PointerOverUI();
+            return LifecycleAllowsInput && (keyboard || mouse && !PointerOverUI());
         }
         private bool PointerOverUI()
         {
@@ -65,7 +68,7 @@ namespace SmallArena.Input
             system.RaycastAll(new PointerEventData(system) { position = pointer.position.ReadValue() }, uiHits);
             return uiHits.Count != 0;
         }
-        public bool ConsumeInteractPressed() => Consume(ref interactPressed);
+        public bool ConsumeInteractPressed() => Consume(ref interactPressed) && LifecycleAllowsInput;
 
         /// <summary>Optional composition seam; call while inactive, before the first enable.</summary>
         public void Configure(InputActionAsset actions)
@@ -76,11 +79,12 @@ namespace SmallArena.Input
             inputActions = actions;
         }
 
-        private void Awake() => netIdentity = GetComponent<NetworkIdentity>();
+        private void Awake() { netIdentity = GetComponent<NetworkIdentity>(); lifecycle = GetComponent<NetworkHealth>(); }
 
         private void OnEnable()
         {
             ClearInput();
+            if (lifecycle != null) lifecycle.OnLifecycleChanged += ClearInput;
             NetworkPlayer.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
             NetworkPlayer.OnLocalPlayerDespawned += HandleLocalPlayerDespawned;
             if (CanReadInput && !menuInputBlocked) EnableGameplay();
@@ -115,6 +119,7 @@ namespace SmallArena.Input
 
         private void OnDisable()
         {
+            if (lifecycle != null) lifecycle.OnLifecycleChanged -= ClearInput;
             NetworkPlayer.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
             NetworkPlayer.OnLocalPlayerDespawned -= HandleLocalPlayerDespawned;
             DisableGameplay();

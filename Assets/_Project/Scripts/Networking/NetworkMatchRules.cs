@@ -14,7 +14,7 @@ namespace SmallArena.Networking
             foreach (var identity in NetworkServer.spawned.Values)
             {
                 if (identity == null || !identity.TryGetComponent<NetworkPlayer>(out _)
-                    || !identity.TryGetComponent<NetworkHealth>(out var health)) continue;
+                    || !identity.TryGetComponent<NetworkHealth>(out var health) || health.IsLifecycleBound) continue;
                 participants++;
                 if (!health.IsDead) { living++; survivor = health; }
             }

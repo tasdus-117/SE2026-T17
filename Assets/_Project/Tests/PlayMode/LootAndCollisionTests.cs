@@ -38,7 +38,8 @@ namespace SmallArena.Tests.PlayMode
         {
             using (var writer = NetworkWriterPool.Get())
             {
-                writer.WriteVarUInt(item); // Mirror's woven uint Command argument uses compressed varuint.
+                writer.WriteVarUInt(item);
+                writer.WriteVarLong(0); // Mirror's woven uint Command argument uses compressed varuint.
                 var message = transport.PickupTemplate.Value;
                 message.netId = player.netId; message.payload = writer.ToArraySegment();
                 transport.SendFromVirtual(sender, message);

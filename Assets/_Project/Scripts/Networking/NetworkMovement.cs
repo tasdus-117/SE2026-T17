@@ -28,13 +28,16 @@ namespace SmallArena.Networking
         public void SubmitInput(Vector2 move, bool jumpPressed)
         {
             if (!isLocalPlayer || !isClient || !NetworkClient.ready) return;
+            var health = GetComponent<NetworkHealth>();
+            if (health != null && !health.CanAct) return;
             if (jumpPressed) jumpSequence = unchecked(jumpSequence + 1);
             var now = NetworkTime.localTime;
             if (now < nextSendTime) return;
             nextSendTime = now + SendInterval;
             CmdSubmitMovement(new MovementInput
             {
-                Sequence = unchecked(++sequence), MoveX = move.x, MoveZ = move.y, JumpSequence = jumpSequence
+                Sequence = unchecked(++sequence), MoveX = move.x, MoveZ = move.y, JumpSequence = jumpSequence,
+                LifeId = health != null ? health.LifeId : 0
             });
         }
 

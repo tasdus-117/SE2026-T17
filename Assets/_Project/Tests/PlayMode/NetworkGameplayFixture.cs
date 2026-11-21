@@ -112,6 +112,7 @@ namespace SmallArena.Tests.PlayMode
             using (var writer = NetworkWriterPool.Get())
             {
                 writer.WriteVector3(direction);
+                writer.WriteVarLong((target != null ? target : otherServer).GetComponent<NetworkHealth>().LifeId);
                 var command = transport.AttackTemplate.Value;
                 command.netId = target != null ? target.netId : otherServer.netId;
                 command.payload = writer.ToArraySegment();
