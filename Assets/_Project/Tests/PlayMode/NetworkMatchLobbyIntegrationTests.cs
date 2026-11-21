@@ -5,6 +5,7 @@ using NUnit.Framework;
 using SmallArena.Domain;
 using SmallArena.Networking;
 using SmallArena.Server.Sessions;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace SmallArena.Tests.PlayMode
@@ -33,16 +34,16 @@ namespace SmallArena.Tests.PlayMode
             yield return Until(() => runtime.Session.Phase == MatchLifecyclePhase.InProgress);
             Assert.That(player.CanAct, Is.True); Assert.That(runtime.Session.ClockRemaining(NetworkTime.localTime), Is.InRange(179, 180));
         }
-        [UnityTest] public IEnumerator LobbyDisconnectBeforeGuestSpawnReleasesBindingAndAllowsCountdown()
+        [UnityTest] public IEnumerator LobbyDisconnectBeforeGuestSpawnReleasesBindingAndReturnsInsufficientRosterToLobby()
         {
             yield return StartReadyRoom(); var runtime = manager.GetComponent<ServerMatchLifecycleController>();
-            var connection = NetworkServer.connections[2]; var participant = runtime.Session.ByConnection(2);
-            transport.DisconnectVirtual(2); yield return Until(() => runtime.Session.Phase == MatchLifecyclePhase.Countdown);
-            Assert.That(runtime.Session.ByConnection(2), Is.Null); Assert.That(participant.LifeState, Is.EqualTo(ParticipantLifeState.Disconnected));
-            Assert.That(runtime.Session.ActiveBindingCount, Is.EqualTo(1));
+            var connection = NetworkServer.connections[2]; var session = runtime.Session; var participant = session.ByConnection(2);
+            transport.DisconnectVirtual(2);
+            yield return Until(() => SceneManager.GetActiveScene().name == "MainMenu" && server.Room.Phase == LobbyPhase.Waiting);
+            Assert.That(session.ByConnection(2), Is.Null); Assert.That(participant.LifeState, Is.EqualTo(ParticipantLifeState.Disconnected));
+            Assert.That(session.ActiveBindingCount, Is.Zero); Assert.That(session.Match.State, Is.EqualTo(OnlineMatchState.Aborted));
             manager.OnServerAddPlayer(connection); Assert.That(connection.identity, Is.Null);
-            yield return Until(() => runtime.Session.Phase == MatchLifecyclePhase.InProgress);
-            Assert.That(NetworkClient.localPlayer.GetComponent<NetworkHealth>().CanAct, Is.True);
+            Assert.That(NetworkServer.spawned.Count, Is.Zero); Assert.That(server.Room.Members[0].IsReady, Is.False);
         }
     }
 }

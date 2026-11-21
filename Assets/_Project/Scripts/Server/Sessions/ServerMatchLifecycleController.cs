@@ -18,6 +18,7 @@ namespace SmallArena.Server.Sessions
         [SerializeField, Min(0)] private float countdownSeconds = 3;
         [SerializeField, Min(.01f)] private float respawnSeconds = 3;
         [SerializeField, Min(0)] private int maximumLives = 0;
+        [SerializeField, Min(.01f)] private float spawnGraceSeconds = 10;
         [SerializeField, Min(0)] private int targetKills = 5;
         [SerializeField, Min(.01f)] private float postMatchSeconds = 10;
         private ArenaNetworkManager manager;
@@ -52,15 +53,15 @@ namespace SmallArena.Server.Sessions
             manager.ServerCanBindParticipant = CanBind;
         }
         private bool CanBind(NetworkConnectionToClient connection) => Session == null ||
-            Session.Phase == MatchLifecyclePhase.WaitingForPlayers && connections.TryGetValue(connection.connectionId, out var expected)
-            && ReferenceEquals(expected, connection) && Session.ByConnection(connection.connectionId) != null;
+            connections.TryGetValue(connection.connectionId, out var expected)
+            && ReferenceEquals(expected, connection) && Session.CanBindSpawn(connection.connectionId, ServerNow);
         public void BeginSession(string id, LobbyMember[] members)
         {
             if (!NetworkServer.active || Session != null) throw new InvalidOperationException("One active server session required.");
             var config = configuration ?? new GameplayConfiguration(maxHealth: 10, shotDamage: 1, shotCooldownSeconds: 1,
                 shotRangeMetres: 1.8, matchDurationSeconds: matchDurationSeconds, respawnDelaySeconds: respawnSeconds,
                 minimumSafeSpawnDistanceMetres: 1.5, countdownDurationSeconds: countdownSeconds, maximumLives: maximumLives,
-                targetKills: targetKills, postMatchDurationSeconds: postMatchSeconds);
+                targetKills: targetKills, postMatchDurationSeconds: postMatchSeconds, spawnGraceSeconds: spawnGraceSeconds);
             Session = new MatchSessionRuntime(id, config);
             Session.Eliminated += Eliminated;
             foreach (var member in members)
@@ -137,7 +138,8 @@ namespace SmallArena.Server.Sessions
                 }
             }
             Publish();
-            if (Session != null && Session.Phase == MatchLifecyclePhase.Ended && now >= postMatchDeadline
+            if (Session != null && Session.Phase == MatchLifecyclePhase.Ended
+                && (Session.Match.State == OnlineMatchState.Aborted || now >= postMatchDeadline)
                 && manager.RoomEnabled) GetComponent<ServerLobbyController>()?.ReturnToLobby();
         }
         private bool TrySpawnPosition(NetworkHealth actor, int slot, out Vector3 position)

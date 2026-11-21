@@ -22,7 +22,9 @@ namespace SmallArena.Tests.EditMode
             {
                 var now = n * .137;
                 var s = new MatchSessionRuntime("clock", new GameplayConfiguration(countdownDurationSeconds: 0));
-                s.AddParticipant("P", 0, 0, now); s.LockRoster(now); s.BindSpawn(0, now); s.Tick(now);
+                s.AddParticipant("P", 0, 0, now); s.AddParticipant("Q", 1, 1, now);
+                s.LockRoster(now); s.BindSpawn(0, now); s.BindSpawn(1, now); s.Tick(now);
+                Assert.That(s.Phase, Is.EqualTo(MatchLifecyclePhase.InProgress));
                 Assert.That(s.ClockRemaining(now), Is.InRange(0d, s.Configuration.MatchDurationSeconds));
             }
         }

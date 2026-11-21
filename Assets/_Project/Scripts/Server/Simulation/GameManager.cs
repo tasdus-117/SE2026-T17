@@ -40,18 +40,27 @@ namespace SmallArena.Core
             sceneCamera = camera;
             injectedProbe = fullReadinessProbe;
             autoStart = startAutomatically;
+            SetGameplayAllowed(IsPlaying && isActiveAndEnabled);
             if (isActiveAndEnabled) BindBotDeath();
         }
 
-        private void Awake() => EnsureEventForwarding();
+        private void Awake() { EnsureEventForwarding(); SetGameplayAllowed(IsPlaying && isActiveAndEnabled); }
 
         private void OnEnable()
         {
+            SetGameplayAllowed(IsPlaying);
             BindBotDeath();
             if (observedBotHealth != null && observedBotHealth.IsDead) ReportBotDefeated();
         }
 
-        private void OnDisable() => UnbindBotDeath();
+        private void OnDisable() { SetGameplayAllowed(false); UnbindBotDeath(); }
+
+        private void SetGameplayAllowed(bool allowed)
+        {
+            if (playerInstance == null) return;
+            foreach (var component in playerInstance.GetComponents<MonoBehaviour>())
+                if (component is IMatchGameplayParticipant participant) participant.SetGameplayAllowed(allowed);
+        }
 
         private void BindBotDeath()
         {
@@ -195,6 +204,7 @@ namespace SmallArena.Core
 
         private void ForwardState(MatchState state)
         {
+            SetGameplayAllowed(state == MatchState.Playing && isActiveAndEnabled);
             // Stop local actions before publishing terminal state to any observers.
             if ((state == MatchState.Victory || state == MatchState.Defeat) && playerInstance != null)
             {

@@ -157,6 +157,7 @@ MonoBehaviour:
   countdownSeconds: 3
   respawnSeconds: 3
   maximumLives: 0
+  spawnGraceSeconds: 10
   targetKills: 5
   postMatchSeconds: 10
 --- !u!114 &8500310001

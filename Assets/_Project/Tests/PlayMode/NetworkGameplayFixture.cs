@@ -55,7 +55,7 @@ namespace SmallArena.Tests.PlayMode
             while (!condition() && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.That(condition(), Is.True, "Timed out waiting for actual Mirror Command/SyncVar delivery.");
         }
-        protected IEnumerator StartWorld()
+        protected IEnumerator StartWorld(bool spawnSecond = true)
         {
             // The authoring project may open Arena_MVP before Test Runner enters PlayMode.
             // Its offline input/EventSystem must not share this fixture's virtual devices.
@@ -78,8 +78,9 @@ namespace SmallArena.Tests.PlayMode
             manager.headlessStartMode = HeadlessStartOptions.DoNothing;
             root.SetActive(true); manager.StartServer(); manager.StartClient();
             yield return Until(() => NetworkClient.localPlayer != null);
-            transport.ConnectVirtual(2); transport.SendFromVirtual(2, new ReadyMessage()); transport.SendFromVirtual(2, new AddPlayerMessage());
-            yield return Until(() => NetworkClient.spawned.Count == 2);
+            transport.ConnectVirtual(2);
+            if (spawnSecond) { transport.SendFromVirtual(2, new ReadyMessage()); transport.SendFromVirtual(2, new AddPlayerMessage()); }
+            yield return Until(() => NetworkClient.spawned.Count == (spawnSecond ? 2 : 1) && NetworkServer.connections.ContainsKey(2));
             ownerServer = NetworkServer.connections[1].identity; otherServer = NetworkServer.connections[2].identity;
             foreach (var identity in NetworkServer.spawned.Values)
             {
@@ -88,10 +89,10 @@ namespace SmallArena.Tests.PlayMode
             }
             foreach (var identity in NetworkClient.spawned.Values) Track(identity.gameObject);
             owner = NetworkClient.localPlayer.GetComponent<NetworkHealth>();
-            other = NetworkClient.spawned[otherServer.netId].GetComponent<NetworkHealth>();
+            other = spawnSecond ? NetworkClient.spawned[otherServer.netId].GetComponent<NetworkHealth>() : null;
             NetworkClient.localPlayer.GetComponent<PlayerController>().enabled = false;
             NetworkClient.localPlayer.GetComponent<NetworkCombatInput>().enabled = false;
-            Arrange(false);
+            if (spawnSecond) Arrange(false);
             // Capture the woven method/index/hash without accepting an attack or spending cooldown.
             NetworkClient.localPlayer.GetComponent<NetworkPlayer>().RequestAttack(Vector3.zero);
             yield return Until(() => transport.AttackTemplate.HasValue);
