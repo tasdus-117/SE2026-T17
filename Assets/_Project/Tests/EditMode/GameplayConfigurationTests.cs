@@ -45,12 +45,15 @@ namespace SmallArena.Tests.EditMode
                 if (parameter.ParameterType == typeof(int))
                 {
                     foreach (var value in new[] { int.MinValue, -1, 0 })
+                    {
+                        if ((parameter.Name == "maximumLives" || parameter.Name == "targetKills") && value == 0) continue; // M3: zero explicitly means unlimited stocks.
                         yield return new TestCaseData(parameter.Name, value).SetName("Reject_" + parameter.Name + "_" + value);
+                    }
                 }
                 if (parameter.ParameterType != typeof(double)) continue;
                 foreach (var value in new[] { -1.0, double.NaN, double.PositiveInfinity, double.NegativeInfinity })
                     yield return new TestCaseData(parameter.Name, value).SetName("Reject_" + parameter.Name + "_" + value);
-                if (parameter.Name != "maxHorizontalSpeedMetresPerSecond" && parameter.Name != "minimumSafeSpawnDistanceMetres")
+                if (parameter.Name != "maxHorizontalSpeedMetresPerSecond" && parameter.Name != "minimumSafeSpawnDistanceMetres" && parameter.Name != "countdownDurationSeconds")
                     yield return new TestCaseData(parameter.Name, 0.0).SetName("Reject_" + parameter.Name + "_Zero");
             }
         }

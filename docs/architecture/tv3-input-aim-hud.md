@@ -3,7 +3,28 @@
 Status: draft integration; implementation choices below are TV3 proposals for review,
 not signatures or agreement by TV1/TV2. See [execution evidence](../testing/tv3-input-aim-hud.md).
 
-## Baseline audit (21 Nov 2026)
+## Main integration update (21 Nov 2026)
+
+PR #22 now targets main. Main `7723ea9b9ff125242215a273208bb758bd4fc807`
+includes merged #21; it is merged into this TV3 branch without rewriting history.
+The original baseline audit below is historical and is superseded for integration
+status by this update.
+
+Resolved the two overlapping edits:
+- PlayerInputHandler retains TV1's lifecycle-aware MoveInput and action gates,
+  plus TV3 focus/menu/pause cleanup. CanCollectGameplayInput also requires
+  LifecycleAllowsInput. OnLifecycleChanged clears pending input and synchronously
+  emits GameplayInvalidated, so a held-fire collector resets even between frames.
+- NetworkCombat uses CombatAim validation before TryBeginRuntimeAttack, retains
+  health.AttackCooldownSeconds and TakeDamageFrom from main. Invalid aim cannot
+  consume the runtime attack gate/cooldown.
+
+Main now supplies its authoritative runtime lifecycle/config/clock/scoreboard
+implementation. The explicit IShotIntentSink and IPlayerPresentationSource adapters,
+raycast path and retained-session reconnect remain pending; this merge does not
+install fake providers or replace main's current HUD. PR stays draft.
+
+## Original baseline audit (21 Nov 2026)
 
 - Fetched main: `9ee7ea715b6fc5d07156411aac543a481585cee8`.
 - PR #14 open/draft: `24bdf3eddc2975a7a8646f343ca62af0311badec`,

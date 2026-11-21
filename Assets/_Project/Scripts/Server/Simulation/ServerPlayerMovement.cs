@@ -24,6 +24,7 @@ namespace SmallArena.Server.Simulation
         private float verticalVelocity;
         private bool pendingJump;
         private bool hasInput;
+        private bool hasSequence;
         private uint lastSequence;
         private uint lastJumpSequence;
         private double lastInputTime;
@@ -45,6 +46,7 @@ namespace SmallArena.Server.Simulation
             move = Vector2.zero;
             verticalVelocity = 0f;
             pendingJump = hasInput = false;
+            hasSequence = false;
             lastSequence = lastJumpSequence = SimulationTick = 0;
             character.enabled = true;
             bridge.ServerInputReceived += ReceiveInput;
@@ -62,15 +64,22 @@ namespace SmallArena.Server.Simulation
             move = Vector2.zero;
             pendingJump = hasInput = false;
         }
+        public void ClearRuntimeInput()
+        {
+            if (!isServer) return;
+            move = Vector2.zero; verticalVelocity = 0; hasInput = pendingJump = false;
+        }
 
         private void ReceiveInput(MovementInput input)
         {
-            if (!isServer || !isActiveAndEnabled || health != null && !health.CanAct || (hasInput && !MovementInputValidator.IsNewer(input.Sequence, lastSequence))) return;
+            if (!isServer || !isActiveAndEnabled || health != null && !health.CanAct || (hasSequence && !MovementInputValidator.IsNewer(input.Sequence, lastSequence))) return;
+            if (health != null && health.IsLifecycleBound && input.LifeId != health.LifeId) return;
             if (!MovementInputValidator.TryClamp(input.MoveX, input.MoveZ, out var accepted)) return;
             move = accepted;
             lastSequence = input.Sequence;
             lastInputTime = NetworkTime.localTime;
             hasInput = true;
+            hasSequence = true;
             if (MovementInputValidator.IsNewer(input.JumpSequence, lastJumpSequence))
             {
                 lastJumpSequence = input.JumpSequence;
@@ -82,7 +91,8 @@ namespace SmallArena.Server.Simulation
         private void FixedUpdate()
         {
             if (!isServer || !NetworkServer.active || !character.enabled) return;
-            var fresh = (health == null || health.CanAct) && hasInput && NetworkTime.localTime - lastInputTime <= InputTimeout;
+            if (health != null && health.IsLifecycleBound && !health.CanAct) { ClearRuntimeInput(); return; }
+            var fresh = (health == null || health.CanAct) && hasInput && NetworkTime.localTime - lastInputTime <= (health?.InputTimeoutSeconds ?? InputTimeout);
             var direction = fresh ? move : Vector2.zero;
             var jump = fresh && pendingJump;
             pendingJump = false;
@@ -92,7 +102,8 @@ namespace SmallArena.Server.Simulation
             // Only the trusted server fixed delta advances position, once per physics tick.
             verticalVelocity += Gravity * Time.fixedDeltaTime;
             transform.rotation = Quaternion.identity;
-            var velocity = new Vector3(direction.x * MoveSpeed, verticalVelocity, direction.y * MoveSpeed);
+            var speed = (float)(health?.MovementSpeed ?? MoveSpeed);
+            var velocity = new Vector3(direction.x * speed, verticalVelocity, direction.y * speed);
             var collisions = character.Move(velocity * Time.fixedDeltaTime);
             if ((collisions & CollisionFlags.Above) != 0 && verticalVelocity > 0f) verticalVelocity = 0f;
             SimulationTick = unchecked(SimulationTick + 1);

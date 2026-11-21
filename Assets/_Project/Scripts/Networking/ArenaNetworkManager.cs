@@ -32,6 +32,8 @@ namespace SmallArena.Networking
         public event Action<NetworkConnectionToClient> ServerConnected;
         public event Action<NetworkConnectionToClient> ServerDisconnected;
         public event Action<string> ServerSceneLoaded;
+        public event Action<NetworkConnectionToClient, GameObject> ServerPlayerSpawned;
+        public Func<NetworkConnectionToClient, bool> ServerCanBindParticipant;
         public Func<bool> ServerCanSpawnPlayer { get; set; }
 
         public override void Awake()
@@ -99,6 +101,16 @@ namespace SmallArena.Networking
         public void RequestRoomStart()
         {
             if (roomEnabled && NetworkClient.isConnected) NetworkClient.Send(new LobbyStartRequest());
+        }
+        public void RequestReturnToLobby()
+        { if (roomEnabled && NetworkClient.isConnected) NetworkClient.Send(new LobbyReturnRequest()); }
+        public void LoadRoomMenu()
+        {
+            if (!NetworkServer.active || !roomEnabled || NetworkServer.isLoadingScene) throw new InvalidOperationException("Active room required.");
+            autoCreatePlayer = false; onlineScene = "";
+            foreach (var connection in NetworkServer.connections.Values.ToArray()) NetworkServer.DestroyPlayerForConnection(connection);
+            reservedSpawns.Clear(); releasedSpawns.Clear();
+            ServerChangeScene("Assets/_Project/Scenes/MainMenu.unity");
         }
         // Called only by the server session coordinator after its host/readiness checks.
         public void LoadRoomArena()
@@ -223,7 +235,7 @@ namespace SmallArena.Networking
         }
         public override void OnClientSceneChanged()
         {
-            if (roomEnabled) autoCreatePlayer = true;
+            if (roomEnabled) autoCreatePlayer = IsArena(networkSceneName);
             base.OnClientSceneChanged();
             EndClientArenaLoad(true);
         }
@@ -281,6 +293,7 @@ namespace SmallArena.Networking
             // Mirror normally enforces this before dispatching the callback; keep direct calls safe too.
             if (!NetworkServer.active || conn == null || conn.identity != null || reservedSpawns.ContainsKey(conn)) return;
             if (ServerCanSpawnPlayer != null && !ServerCanSpawnPlayer()) return;
+            if (ServerCanBindParticipant != null && !ServerCanBindParticipant(conn)) return;
             if (playerPrefab == null || playerPrefab.GetComponent<NetworkPlayer>() == null
                 || playerPrefab.GetComponent<NetworkIdentity>() == null)
             {
@@ -320,6 +333,7 @@ namespace SmallArena.Networking
                     reservedSpawns.Remove(conn);
                     Destroy(player);
                 }
+                else ServerPlayerSpawned?.Invoke(conn, player);
             }
             catch
             {

@@ -26,7 +26,7 @@ namespace SmallArena.Client
             // Consume early clicks without queuing them. This is traffic control, never hit authority.
             if (input.ConsumePunchPressed() && health != null && health.CanAct && Time.unscaledTimeAsDouble >= nextAttackRequestTime)
             {
-                nextAttackRequestTime = Time.unscaledTimeAsDouble + NetworkCombat.Cooldown;
+                nextAttackRequestTime = Time.unscaledTimeAsDouble + health.AttackCooldownSeconds;
                 player.RequestAttack(Vector3.forward);
             }
         }

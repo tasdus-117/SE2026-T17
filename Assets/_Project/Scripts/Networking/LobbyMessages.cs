@@ -22,6 +22,7 @@ namespace SmallArena.Networking
 
     public struct LobbyReadyRequest : NetworkMessage { public bool IsReady; }
     public struct LobbyStartRequest : NetworkMessage { }
+    public struct LobbyReturnRequest : NetworkMessage { }
     public static class LobbyLimits
     {
         public const int Capacity = 4;

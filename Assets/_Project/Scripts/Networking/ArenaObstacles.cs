@@ -28,6 +28,7 @@ namespace SmallArena.Networking
         private List<ArenaObstacle> offlineLayout = new List<ArenaObstacle>();
         public IReadOnlyList<ArenaObstacle> Layout => NetworkServer.active || NetworkClient.active ? networkLayout : offlineLayout;
         public IReadOnlyList<Bounds> ReservedBounds => GetReservations();
+        public BoxCollider FloorCollider => floor;
 
         private void Awake()
         {

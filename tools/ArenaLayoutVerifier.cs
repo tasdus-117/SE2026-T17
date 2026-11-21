@@ -146,7 +146,7 @@ internal static class ArenaLayoutVerifier
         Check(Number(networkHud.Only("Canvas").Data, "m_SortingOrder") == 20, "Network HUD must remain below the pause menu.");
         var networkMovementGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/NetworkMovement.cs.meta"));
         var simulationGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Server/Simulation/ServerPlayerMovement.cs.meta"));
-        var transformGuid = ReadGuid(System.IO.Path.Combine(root, "Assets/Mirror/Components/NetworkTransform/NetworkTransformReliable.cs.meta"));
+        var transformGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/ArenaNetworkTransform.cs.meta"));
         Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == networkMovementGuid) == 1, "Network movement command bridge missing.");
         Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == simulationGuid) == 1, "Server movement simulation missing.");
         var replication = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == transformGuid);

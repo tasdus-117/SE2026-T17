@@ -8,5 +8,6 @@ namespace SmallArena.Protocol
         public float MoveZ;
         // Repeated in heartbeats so a lost unreliable packet does not lose a fresh jump edge.
         public uint JumpSequence;
+        public long LifeId;
     }
 }

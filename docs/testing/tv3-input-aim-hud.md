@@ -1,5 +1,50 @@
 # TV3 verification and delivery
 
+## Current verification after resolving main conflicts
+
+Integration baseline: main `7723ea9b9ff125242215a273208bb758bd4fc807`
+(merged #21), merged into the TV3 branch. The original delivery results below
+are retained as history; the following results verify the resolved source.
+
+| Current run | Discovered / passed / failed / skipped / inconclusive | Exit |
+| --- | --- | --- |
+| Focused input, TV3, combat/HUD and network match lifecycle | 83 / 83 / 0 / 0 / 0 | 0 |
+| Project PlayMode | 386 / 386 / 0 / 0 / 0 | 0 |
+| Project EditMode | 236 / 236 / 0 / 0 / 0 | 0 |
+
+Unity remains 6000.6.8f1. Commands use the same runner arguments as the original
+delivery, with ignored `TestResults/Run-Tv3Main.ps1` writing to
+`TestResults/TV3Main/`. Full filters: `SmallArena.Tests.PlayMode` and
+`SmallArena.Tests.EditMode`. XML/logs, focused.xml/log, lifecycle-red.xml/log
+and tested-source.json remain local/ignored. Source manifest covers 124 C#/asmdef
+files, unchanged between focused/full runs and final review.
+
+New regression checks:
+- A bound lifecycle that cannot act blocks CanCollectGameplayInput.
+- Lifecycle notification clears pending buttons/movement and invalidates held-fire.
+- A real owner Command with invalid aim does not consume the runtime attack
+  cooldown; an immediate valid Command still damages the target.
+
+Red/green evidence: the two lifecycle assertions failed before the gate/notification
+bridge and passed after it. An initial fixture setup incorrectly added NetworkHealth
+after NetworkIdentity.Awake, causing a NullReferenceException; corrected the test
+to construct components while inactive so Mirror initializes them together. The
+initial focused run was 81/82, followed by corrected assertion failures 0/2 and
+the final focused83/83. No original assertion was weakened or test skipped.
+
+PlayMode includes NetworkMatchLifecycle15, NetworkMatchLobbyIntegration2,
+NetworkScoreboardAndRematch5, NetworkedCombatAndHUD14, PlayerInputHandler39,
+and the retained TV3 fixtures. This verifies in-process serialized Mirror gameplay
+plus unit/fake boundary tests. Standalone build/smoke and visual QA were not rerun
+for this conflict-resolution update; the older standalone results below belong
+to the earlier baseline. No claim of new raycast/reconnect end-to-end validation.
+
+The PR targets main, so the normal synchronize push is eligible for CI. Exact new
+head/merge SHA, run link and current status are recorded in PR #22 metadata after
+push. Old #14 CI does not verify this merge.
+
+## Original delivery evidence (historical)
+
 21 November 2026. Draft integration; automated inspection is not human review.
 Contract, baseline and provider ownership: [TV3 integration](../architecture/tv3-input-aim-hud.md).
 Base #14: `24bdf3eddc2975a7a8646f343ca62af0311badec`; main inspected at

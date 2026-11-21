@@ -31,6 +31,7 @@ namespace SmallArena.Client.UI
             ArenaLoadingOverlay.Observe(manager);
             var notice = MatchSessionNavigation.TakeNotice();
             if (!string.IsNullOrEmpty(notice)) view.ShowSessionError(notice);
+            if (NetworkClient.isConnected && manager != null) ShowConnectionPanel();
         }
         private void OnDisable()
         {

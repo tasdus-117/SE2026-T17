@@ -408,6 +408,56 @@ namespace SmallArena.Tests.PlayMode
             }
         }
 
+        [Test]
+        public void LifecycleBlocked_CannotCollectHeldFire()
+        {
+            var healthOwner = new GameObject("replicated lifecycle");
+            healthOwner.SetActive(false);
+            healthOwner.AddComponent<Mirror.NetworkIdentity>();
+            healthOwner.AddComponent<SmallArena.Networking.NetworkHealth>();
+            healthOwner.SetActive(true);
+            try
+            {
+                var health = healthOwner.GetComponent<SmallArena.Networking.NetworkHealth>();
+                typeof(SmallArena.Networking.NetworkHealth).GetField("sessionId",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(health, "bound-session");
+                typeof(PlayerInputHandler).GetField("lifecycle",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(handler, health);
+                Assert.That(health.CanAct, Is.False);
+                Assert.That(handler.CanCollectGameplayInput, Is.False);
+                Assert.That(handler.TryReadHeldFire(out _), Is.False);
+            }
+            finally { Object.DestroyImmediate(healthOwner); }
+        }
+
+        [Test]
+        public void LifecycleNotification_ClearsPendingInputAndInvalidatesCollector()
+        {
+            var healthOwner = new GameObject("replicated lifecycle");
+            healthOwner.SetActive(false);
+            healthOwner.AddComponent<Mirror.NetworkIdentity>();
+            healthOwner.AddComponent<SmallArena.Networking.NetworkHealth>();
+            healthOwner.SetActive(true);
+            try
+            {
+                handler.enabled = false;
+                var health = healthOwner.GetComponent<SmallArena.Networking.NetworkHealth>();
+                typeof(PlayerInputHandler).GetField("lifecycle",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(handler, health);
+                handler.enabled = true;
+                var invalidations = 0;
+                handler.GameplayInvalidated += () => invalidations++;
+                SetKeys(Key.W, Key.Space, Key.J, Key.E);
+                var changed = (Action)typeof(SmallArena.Networking.NetworkHealth).GetField("OnLifecycleChanged",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(health);
+                changed();
+                AssertMove(0, 0);
+                AssertNoButtons();
+                Assert.That(invalidations, Is.EqualTo(1));
+            }
+            finally { Object.DestroyImmediate(healthOwner); }
+        }
+
         private void ReplaceSource(string json, bool activate = true)
         {
             if (owner != null) Object.DestroyImmediate(owner);

@@ -56,6 +56,13 @@ namespace SmallArena.Domain
             State = OnlineMatchState.Aborted;
             return true;
         }
+        public bool TryFinishEarly(double serverTimeSeconds)
+        {
+            RequireTime(serverTimeSeconds);
+            if (State != OnlineMatchState.Playing || serverTimeSeconds < StartedAtSeconds.Value) return false;
+            State = OnlineMatchState.Finished;
+            return true;
+        }
 
         internal static void RequireTime(double time)
         {
