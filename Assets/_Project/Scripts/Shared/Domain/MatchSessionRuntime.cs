@@ -87,9 +87,16 @@ namespace SmallArena.Domain
         }
         public bool BindSpawn(int connectionId, double now)
         {
-            Observe(now); var p = ByConnection(connectionId);
-            if (Phase != MatchLifecyclePhase.WaitingForPlayers || p == null || p.IsSpawned || !p.IsConnected) return false;
+            Observe(now);
+            if (!CanBindSpawn(connectionId, now)) return false;
+            var p = ByConnection(connectionId);
             p.IsSpawned = true; return true;
+        }
+        public bool CanBindSpawn(int connectionId, double now)
+        {
+            OnlineMatch.RequireTime(now); var p = ByConnection(connectionId);
+            return sealedRoster && Phase == MatchLifecyclePhase.WaitingForPlayers && now < spawnDeadline
+                && p != null && !p.IsSpawned && p.IsConnected;
         }
         public bool Disconnect(int connectionId, double now)
         {
@@ -108,11 +115,13 @@ namespace SmallArena.Domain
                 if (now >= spawnDeadline)
                     foreach (var p in Participants.Where(p => p.IsConnected && !p.IsSpawned)) Disconnect(p.ConnectionId, now);
                 var connected = Participants.Where(p => p.IsConnected).ToArray();
-                if (connected.Length == 0) { End(now); return; }
+                if (connected.Length < 2) { End(now); return; }
                 if (connected.Any(p => !p.IsSpawned)) return;
                 Phase = MatchLifecyclePhase.Countdown;
                 PhaseDeadline = Configuration.CountdownDurationSeconds == 0 ? now : OnlineMatch.AddDuration(now, Configuration.CountdownDurationSeconds);
             }
+            if (Phase == MatchLifecyclePhase.Countdown && Participants.Count(p => p.IsConnected && p.IsSpawned) < 2)
+            { End(now); return; }
             if (Phase == MatchLifecyclePhase.Countdown && now >= PhaseDeadline)
             {
                 // Start from the observed transition, never grant gameplay time before all spawns/countdown.

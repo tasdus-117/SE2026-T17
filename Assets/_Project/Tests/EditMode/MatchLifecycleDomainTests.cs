@@ -80,7 +80,30 @@ namespace SmallArena.Tests.EditMode
             var s = new MatchSessionRuntime("s", new GameplayConfiguration(spawnGraceSeconds: 2));
             s.AddParticipant("A", 1, 0, 0); s.AddParticipant("B", 2, 1, 0); s.LockRoster(0); s.BindSpawn(1, 0);
             s.Tick(1.99); Assert.That(s.Phase, Is.EqualTo(MatchLifecyclePhase.WaitingForPlayers)); s.Tick(2);
-            Assert.That(s.ByConnection(2), Is.Null); Assert.That(s.Phase, Is.EqualTo(MatchLifecyclePhase.Countdown));
+            Assert.That(s.ByConnection(2), Is.Null); Assert.That(s.Phase, Is.EqualTo(MatchLifecyclePhase.Ended));
+            Assert.That(s.Match.State, Is.EqualTo(OnlineMatchState.Aborted)); Assert.That(s.WinnerParticipantId, Is.Empty);
+        }
+        [TestCase(1.999, true)] [TestCase(2d, false)] [TestCase(2.001, false)]
+        public void F2_SpawnAdmissionEnforcesDeadlineEvenBeforeNextTick(double now, bool accepted)
+        {
+            var s = new MatchSessionRuntime("deadline", new GameplayConfiguration(spawnGraceSeconds: 2));
+            s.AddParticipant("A", 1, 0, 0); s.AddParticipant("B", 2, 1, 0); s.LockRoster(0); s.BindSpawn(1, 0);
+            Assert.That(s.BindSpawn(2, now), Is.EqualTo(accepted));
+            s.Tick(now);
+            Assert.That(s.Phase, Is.EqualTo(accepted ? MatchLifecyclePhase.Countdown : MatchLifecyclePhase.Ended));
+        }
+        [Test] public void F2_TwoSpawnedParticipantsProceedAfterThirdTimesOutWithoutScoring()
+        {
+            var s = new MatchSessionRuntime("deadline", new GameplayConfiguration(spawnGraceSeconds: 2));
+            for (var i = 0; i < 3; i++) s.AddParticipant("P" + i, i, i, 0);
+            s.LockRoster(0); s.BindSpawn(0, 0); s.BindSpawn(1, 0); s.Tick(2);
+            Assert.That(s.Phase, Is.EqualTo(MatchLifecyclePhase.Countdown)); Assert.That(s.ByConnection(2), Is.Null);
+            Assert.That(s.ByParticipant("P2").Deaths, Is.Zero); Assert.That(s.ByParticipant("P2").Kills, Is.Zero);
+        }
+        [Test] public void F2_DisconnectDuringCountdownAbortsBeforeSinglePlayerGameplay()
+        {
+            var s = Create(); s.Disconnect(2, 1); s.Tick(3);
+            Assert.That(s.Match.State, Is.EqualTo(OnlineMatchState.Aborted)); Assert.That(s.WinnerParticipantId, Is.Empty);
         }
         [Test] public void EmptySpawnedRosterAbortsAtDeadline()
         {

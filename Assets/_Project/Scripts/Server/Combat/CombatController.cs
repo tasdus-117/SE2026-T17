@@ -12,7 +12,7 @@ namespace SmallArena.Player
 {
     /// <summary>Local intent composition for melee and weapon interaction.</summary>
     [DisallowMultipleComponent]
-    public sealed class CombatController : MonoBehaviour, IDamageSource, IMatchEndParticipant
+    public sealed class CombatController : MonoBehaviour, IDamageSource, IMatchEndParticipant, IMatchGameplayParticipant
     {
         [SerializeField] private MonoBehaviour inputHandler = null;
         [SerializeField] private float punchCooldown = MeleeHitGeometry.Cooldown;
@@ -23,13 +23,15 @@ namespace SmallArena.Player
 
         private float lastPunchTime = -999f;
         private bool matchEnded;
+        private bool gameplayAllowed;
         private ICombatInputSource inputSource;
         private NetworkIdentity netIdentity;
         private readonly HashSet<Health> damagedTargets = new HashSet<Health>();
 
         public int CurrentDamage => punchDamage;
-        public bool CanInteract => !matchEnded;
-        public bool CanPunch => !matchEnded && Time.time >= lastPunchTime + punchCooldown;
+        public bool IsCombatReady => isActiveAndEnabled && !matchEnded;
+        public bool CanInteract => gameplayAllowed && !matchEnded;
+        public bool CanPunch => CanInteract && Time.time >= lastPunchTime + punchCooldown;
         public event Action<int> OnDamageChanged;
 
         public void SetDamage(int newDamage)
@@ -40,6 +42,7 @@ namespace SmallArena.Player
         }
 
         public void EndMatch() => matchEnded = true;
+        public void SetGameplayAllowed(bool allowed) => gameplayAllowed = allowed;
 
         private void Reset() => BindInput();
 
@@ -72,7 +75,7 @@ namespace SmallArena.Player
             damagedTargets.Clear();
             foreach (var hit in hits)
             {
-                if (matchEnded) break;
+                if (!CanInteract) break;
                 if (hit.transform.IsChildOf(transform)
                     || !MeleeHitGeometry.InReach(transform.position, transform.forward, hit.bounds.center)
                     || !MeleeHitGeometry.TouchesSphere(hit, center, hitSphereRadius)) continue;

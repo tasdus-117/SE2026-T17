@@ -24,7 +24,7 @@ namespace SmallArena.Core
                 return MatchReadinessResult.Fail("Bot Health must start alive at 10 / 10 HP.");
             var input = playerCombat.GetComponent<ICombatInputSource>();
             var movement = playerCombat.GetComponent<IMovementReadiness>();
-            if (!playerCombat.isActiveAndEnabled || playerCombat.CurrentDamage != 1 || !playerCombat.CanInteract
+            if (!playerCombat.IsCombatReady || playerCombat.CurrentDamage != 1
                 || input == null || !input.IsInputReady || movement == null || !movement.IsMovementReady)
                 return MatchReadinessResult.Fail("Player input, movement and unarmed combat must be initialized.");
             if (!weaponPickup.isActiveAndEnabled || weaponPickup.IsCollected)

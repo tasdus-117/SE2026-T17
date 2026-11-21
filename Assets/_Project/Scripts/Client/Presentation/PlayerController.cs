@@ -10,7 +10,7 @@ namespace SmallArena.Client
     /// <summary>Local character locomotion from input intent; no combat or match rules.</summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CharacterController), typeof(PlayerInputHandler))]
-    public sealed class PlayerController : MonoBehaviour, IMovementReadiness, IMatchEndParticipant
+    public sealed class PlayerController : MonoBehaviour, IMovementReadiness, IMatchEndParticipant, IMatchGameplayParticipant
     {
         [SerializeField] private CharacterController characterController;
         [SerializeField] private PlayerInputHandler inputHandler;
@@ -20,6 +20,7 @@ namespace SmallArena.Client
         [SerializeField] private float groundedGravity = -2.0f;
 
         private float verticalVelocity;
+        private bool gameplayAllowed;
         private NetworkIdentity netIdentity;
         private NetworkMovement networkMovement;
 
@@ -27,6 +28,7 @@ namespace SmallArena.Client
             && characterController.enabled && inputHandler != null && inputHandler.IsInputReady;
 
         public void EndMatch() => enabled = false;
+        public void SetGameplayAllowed(bool allowed) { gameplayAllowed = allowed; if (!allowed) verticalVelocity = 0; }
 
         private void Reset() => BindComponents();
 
@@ -50,6 +52,8 @@ namespace SmallArena.Client
                     networkMovement.SubmitInput(inputHandler.MoveInput, inputHandler.ConsumeJumpPressed());
                 return;
             }
+            // Keep input/readiness initialized, but discard jump intent while startup is blocked.
+            if (!gameplayAllowed) { inputHandler.ConsumeJumpPressed(); return; }
             // Heading never follows movement or camera rotation.
             transform.rotation = Quaternion.identity;
             var moveInput = Vector2.ClampMagnitude(inputHandler.MoveInput, 1f);

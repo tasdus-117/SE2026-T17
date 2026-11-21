@@ -4,13 +4,14 @@ using SmallArena.Server.Simulation;
 using UnityEngine;
 using SmallArena.Client;
 using SmallArena.Client.Presentation;
+using SmallArena.Domain;
 
 namespace SmallArena.Tests.PlayMode
 {
     internal static class OfflinePlayerFixture
     {
         // Match Arena_MVP's explicit removed-component overrides when testing offline mechanics.
-        public static GameObject Instantiate(GameObject prefab, Vector3 position, Quaternion rotation)
+        public static GameObject Instantiate(GameObject prefab, Vector3 position, Quaternion rotation, bool allowGameplay = true)
         {
             var player = Object.Instantiate(prefab, position, rotation);
             player.SetActive(false);
@@ -24,6 +25,10 @@ namespace SmallArena.Tests.PlayMode
             Object.DestroyImmediate(player.GetComponent<NetworkTransformReliable>());
             Object.DestroyImmediate(player.GetComponent<NetworkPlayer>());
             Object.DestroyImmediate(player.GetComponent<NetworkIdentity>());
+            // Isolated mechanics tests authorize play explicitly; scene tests leave this to GameManager.
+            if (allowGameplay)
+                foreach (var component in player.GetComponents<MonoBehaviour>())
+                    if (component is IMatchGameplayParticipant participant) participant.SetGameplayAllowed(true);
             player.SetActive(true);
             return player;
         }

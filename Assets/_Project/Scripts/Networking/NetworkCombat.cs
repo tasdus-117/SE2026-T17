@@ -31,10 +31,10 @@ namespace SmallArena.Networking
         [Server]
         internal void PerformAttack(Vector3 aimDirection)
         {
-            // Scene loads finish at different times. Do not resolve a match while a member
-            // is still waiting for its authoritative avatar to spawn.
-            foreach (var connection in NetworkServer.connections.Values)
-                if (connection.isAuthenticated && connection.identity == null) return;
+            // Bound matches use the sealed session roster and its spawn deadline, not transport-wide counts.
+            if (!health.IsLifecycleBound)
+                foreach (var connection in NetworkServer.connections.Values)
+                    if (connection.isAuthenticated && connection.identity == null) return;
             // This arena keeps world +Z facing. Requests cannot extend range or rotate the hitbox.
             if (!isServer || !health.CanAct || !Finite(aimDirection.x) || !Finite(aimDirection.y) || !Finite(aimDirection.z)
                 || aimDirection.sqrMagnitude < 0.99f || aimDirection.sqrMagnitude > 1.01f

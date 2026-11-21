@@ -27,6 +27,11 @@ namespace SmallArena.Domain
         void EndMatch();
     }
 
+    public interface IMatchGameplayParticipant
+    {
+        void SetGameplayAllowed(bool allowed);
+    }
+
     public interface IMatchHudReadiness
     {
         bool IsReady { get; }

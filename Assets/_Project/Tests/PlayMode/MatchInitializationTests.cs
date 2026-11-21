@@ -5,6 +5,14 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using SmallArena.Core;
 using SmallArena.Domain;
+using SmallArena.Client;
+using SmallArena.Input;
+using SmallArena.Player;
+using SmallArena.Pickups;
+using SmallArena.Server.Combat;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -13,7 +21,7 @@ using Object = UnityEngine.Object;
 namespace SmallArena.Tests.PlayMode
 {
     // AC-001/017, TC-001/029 foundation. Stub probes exist only in this test assembly.
-    public sealed class MatchInitializationTests
+    public sealed class MatchInitializationTests : InputTestFixture
     {
         private readonly List<Scene> scenes = new List<Scene>();
         private Scene scene;
@@ -24,6 +32,8 @@ namespace SmallArena.Tests.PlayMode
         private Camera camera;
         private GameManager manager;
         private Probe probe;
+        private Keyboard keyboard;
+        private float previousCaptureDeltaTime;
 
         private sealed class Probe : IMatchReadinessProbe
         {
@@ -41,6 +51,9 @@ namespace SmallArena.Tests.PlayMode
         [SetUp]
         public void SetUp()
         {
+            previousCaptureDeltaTime = Time.captureDeltaTime;
+            Time.captureDeltaTime = 1f / 60f;
+            InputSystem.settings.updateMode = InputSettings.UpdateMode.ProcessEventsInDynamicUpdate;
             scenes.Clear();
             scene = NewScene();
             player = Create("Player", "Player");
@@ -55,17 +68,87 @@ namespace SmallArena.Tests.PlayMode
         }
 
         [UnityTearDown]
-        public IEnumerator TearDown()
+        public IEnumerator UnloadScenes()
         {
             foreach (var item in scenes)
                 if (item.IsValid() && item.isLoaded) yield return SceneManager.UnloadSceneAsync(item);
+            Time.captureDeltaTime = previousCaptureDeltaTime;
         }
 
-        [Test]
-        public void InitialState_IsInitializing_WithGameplayBlocked()
+        [UnityTest]
+        public IEnumerator InitialState_IsInitializing_WithGameplayBlocked()
         {
+            InstallRealActorsWithFailedReadiness();
             Assert.That(manager.CurrentState, Is.EqualTo(MatchState.Initializing));
             Assert.That(manager.IsPlaying, Is.False);
+            var before = player.transform.position;
+            Keys(Key.W, Key.D, Key.Space);
+            for (var frame = 0; frame < 5; frame++) yield return null;
+            Assert.That(player.transform.position, Is.EqualTo(before), "Initializing must block movement, gravity and jump execution.");
+            Assert.That(player.GetComponent<PlayerInputHandler>().IsInputReady, Is.True);
+            Assert.That(player.GetComponent<PlayerController>().IsMovementReady, Is.True, "Readiness cannot depend on Playing.");
+        }
+
+        private void InstallRealActorsWithFailedReadiness()
+        {
+            Object.DestroyImmediate(player); Object.DestroyImmediate(bot); Object.DestroyImmediate(pickup);
+            player = OfflinePlayerFixture.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Characters/Player.prefab"),
+                new Vector3(1000, 1, 1000), Quaternion.identity, allowGameplay: false);
+            bot = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Characters/Bot.prefab"),
+                new Vector3(1000, 1, 1001.2f), Quaternion.identity);
+            pickup = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Combat/WeaponPickup.prefab"),
+                new Vector3(1000.7f, 1, 1000), Quaternion.identity);
+            foreach (var actor in new[] { player, bot, pickup }) SceneManager.MoveGameObjectToScene(actor, scene);
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube); floor.layer = 6;
+            floor.transform.position = new Vector3(1000, -.5f, 1000); floor.transform.localScale = new Vector3(20, 1, 20);
+            SceneManager.MoveGameObjectToScene(floor, scene); Physics.SyncTransforms();
+            keyboard = InputSystem.AddDevice<Keyboard>();
+            probe.Result = MatchReadinessResult.Fail("HUD wiring is incomplete");
+            manager.Configure(player, bot, pickup, camera, probe); owner.SetActive(true);
+            LogAssert.Expect(LogType.Error, "Match startup blocked: HUD wiring is incomplete");
+            Assert.That(manager.TryStartMatch(), Is.False);
+        }
+        private void Keys(params Key[] keys)
+        { InputSystem.QueueStateEvent(keyboard, new KeyboardState(keys)); InputSystem.Update(); }
+
+        [UnityTest] public IEnumerator F3_FailedReadinessBlocksFreshAttackWithoutDisablingInput()
+        {
+            InstallRealActorsWithFailedReadiness();
+            var mouse = InputSystem.AddDevice<Mouse>(); Press(mouse.leftButton); InputSystem.Update();
+            yield return null; yield return null;
+            Assert.That(bot.GetComponent<Health>().CurrentHealth, Is.EqualTo(10));
+            Assert.That(player.GetComponent<CombatController>().CanPunch, Is.False);
+            Assert.That(player.GetComponent<PlayerInputHandler>().IsInputReady, Is.True);
+        }
+        [UnityTest] public IEnumerator F3_FailedReadinessBlocksInputAndDirectPickup()
+        {
+            InstallRealActorsWithFailedReadiness(); Keys(Key.E); yield return null; yield return null;
+            var item = pickup.GetComponent<WeaponPickup>(); var combat = player.GetComponent<CombatController>();
+            Assert.That(item.IsCollected, Is.False); Assert.That(combat.CurrentDamage, Is.EqualTo(1));
+            Assert.That(item.TryCollect(combat, player.transform.position), Is.False);
+            Assert.That(pickup.GetComponent<Renderer>().enabled, Is.True);
+        }
+        [UnityTest] public IEnumerator F3_ReadinessRetryEnablesRealActionsWithoutReplayingBlockedPresses()
+        {
+            InstallRealActorsWithFailedReadiness(); Keys(Key.J, Key.E); yield return null; yield return null;
+            Keys(); yield return null; probe.Result = MatchReadinessResult.Success(); Assert.That(manager.TryStartMatch(), Is.True);
+            yield return null; yield return null;
+            Assert.That(bot.GetComponent<Health>().CurrentHealth, Is.EqualTo(10)); Assert.That(pickup.GetComponent<WeaponPickup>().IsCollected, Is.False);
+            var before = player.transform.position; Keys(Key.D);
+            for (var frame = 0; frame < 5; frame++) yield return null;
+            Assert.That(player.transform.position.x, Is.GreaterThan(before.x + .1f));
+            Keys(Key.J); yield return null; yield return null;
+            Assert.That(bot.GetComponent<Health>().CurrentHealth, Is.EqualTo(9));
+            Keys(Key.E); yield return null; yield return null;
+            Assert.That(pickup.GetComponent<WeaponPickup>().IsCollected, Is.True); Assert.That(player.GetComponent<CombatController>().CurrentDamage, Is.EqualTo(2));
+        }
+        [UnityTest] public IEnumerator F3_DisablingMatchOwnerStopsActionsWhileInputRemainsInitialized()
+        {
+            InstallRealActorsWithFailedReadiness(); probe.Result = MatchReadinessResult.Success(); Assert.That(manager.TryStartMatch(), Is.True);
+            owner.SetActive(false); var before = player.transform.position; Keys(Key.W, Key.Space, Key.J, Key.E);
+            for (var frame = 0; frame < 5; frame++) yield return null;
+            Assert.That(player.transform.position, Is.EqualTo(before)); Assert.That(bot.GetComponent<Health>().CurrentHealth, Is.EqualTo(10));
+            Assert.That(pickup.GetComponent<WeaponPickup>().IsCollected, Is.False); Assert.That(player.GetComponent<PlayerInputHandler>().IsInputReady, Is.True);
         }
 
         [Test]
