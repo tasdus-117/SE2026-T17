@@ -286,6 +286,178 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(EnabledGameplayActions(), Is.EqualTo(0));
         }
 
+        [Test]
+        public void FocusLoss_ConsumesPendingButtonsAndMovement()
+        {
+            SetKeys(Key.W, Key.Space, Key.J, Key.E);
+            owner.SendMessage("OnApplicationFocus", false, SendMessageOptions.DontRequireReceiver);
+            AssertMove(0, 0);
+            AssertNoButtons();
+            Assert.That(handler.CanCollectGameplayInput, Is.False);
+            Assert.That(handler.IsInputReady, Is.True);
+            owner.SendMessage("OnApplicationFocus", true, SendMessageOptions.DontRequireReceiver);
+            AssertNoButtons();
+        }
+        [Test]
+        public void MenuBlocked_CannotCollectGameplayInput()
+        {
+            handler.SetMenuInputBlocked(true);
+            Assert.That(handler.CanCollectGameplayInput, Is.False);
+            Assert.That(handler.IsInputReady, Is.True);
+        }
+        private sealed class ShotSink : SmallArena.Protocol.IShotIntentSink
+        {
+            public bool CanSubmit { get; set; } = true;
+            public double RequestIntervalSeconds => .000001;
+            public event Action Invalidated;
+            public int Shots;
+            public Vector2 Aim;
+            public void SubmitAim(float x, float z) { Shots++; Aim = new Vector2(x, z); }
+            public void Invalidate() => Invalidated?.Invoke();
+        }
+        [UnityEngine.TestTools.UnityTest]
+        public System.Collections.IEnumerator HeldFireAdapter_ReadsFreshAimAndClearsOnContextMenuAndDestroyedMuzzle()
+        {
+            var mouse = InputSystem.AddDevice<Mouse>();
+            var cameraOwner = new GameObject("aim camera", typeof(Camera));
+            var muzzle = new GameObject("explicit muzzle");
+            try
+            {
+                var camera = cameraOwner.GetComponent<Camera>();
+                camera.transform.position = new Vector3(3, 10, 4);
+                camera.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
+                Set(mouse.position, new Vector2(Screen.width / 2f, Screen.height / 2f));
+                var sink = new ShotSink();
+                var adapter = owner.AddComponent<SmallArena.Client.HeldFireInput>();
+                adapter.Configure(handler, camera, muzzle.transform, sink);
+                yield return null; // observe release
+                Press(mouse.leftButton);
+                yield return null;
+                Assert.That(sink.Shots, Is.GreaterThan(0));
+                Assert.That(Vector2.Distance(sink.Aim, new Vector2(.6f, .8f)), Is.LessThan(.001));
+                sink.Invalidate();
+                var before = sink.Shots;
+                yield return null;
+                Assert.That(sink.Shots, Is.EqualTo(before));
+                Release(mouse.leftButton);
+                yield return null;
+                camera.transform.position = new Vector3(-3, 10, 4);
+                Press(mouse.leftButton);
+                yield return null;
+                Assert.That(sink.Shots, Is.GreaterThan(before));
+                Assert.That(sink.Aim.x, Is.LessThan(0));
+                adapter.enabled = false;
+                adapter.enabled = true;
+                before = sink.Shots;
+                yield return null;
+                Assert.That(sink.Shots, Is.EqualTo(before));
+                Release(mouse.leftButton);
+                yield return null;
+                Press(mouse.leftButton);
+                yield return null;
+                sink.CanSubmit = false;
+                yield return null;
+                sink.CanSubmit = true;
+                before = sink.Shots;
+                yield return null;
+                Assert.That(sink.Shots, Is.EqualTo(before));
+                Release(mouse.leftButton);
+                yield return null;
+                Press(mouse.leftButton);
+                yield return null;
+                owner.SendMessage("OnApplicationFocus", false);
+                owner.SendMessage("OnApplicationFocus", true);
+                before = sink.Shots;
+                yield return null;
+                Assert.That(sink.Shots, Is.EqualTo(before));
+                Time.timeScale = 0;
+                yield return null;
+                Time.timeScale = 1;
+                yield return null;
+                Assert.That(sink.Shots, Is.EqualTo(before));
+                var replacement = new ShotSink();
+                adapter.Configure(handler, camera, muzzle.transform, replacement);
+                yield return null;
+                Assert.That(replacement.Shots, Is.Zero);
+                Release(mouse.leftButton);
+                yield return null;
+                Press(mouse.leftButton);
+                yield return null;
+                before = replacement.Shots;
+                sink.Invalidate(); // old source must no longer reset the new collector
+                yield return null;
+                Assert.That(replacement.Shots, Is.GreaterThan(before));
+                sink = replacement;
+                handler.SetMenuInputBlocked(true);
+                handler.SetMenuInputBlocked(false);
+                before = sink.Shots;
+                yield return null;
+                Assert.That(sink.Shots, Is.EqualTo(before));
+                Release(mouse.leftButton);
+                yield return null;
+                Object.DestroyImmediate(muzzle);
+                Press(mouse.leftButton);
+                yield return null;
+                Assert.That(sink.Shots, Is.EqualTo(before));
+            }
+            finally
+            {
+                Time.timeScale = 1;
+                Object.DestroyImmediate(cameraOwner);
+                if (muzzle != null) Object.DestroyImmediate(muzzle);
+            }
+        }
+
+        [Test]
+        public void LifecycleBlocked_CannotCollectHeldFire()
+        {
+            var healthOwner = new GameObject("replicated lifecycle");
+            healthOwner.SetActive(false);
+            healthOwner.AddComponent<Mirror.NetworkIdentity>();
+            healthOwner.AddComponent<SmallArena.Networking.NetworkHealth>();
+            healthOwner.SetActive(true);
+            try
+            {
+                var health = healthOwner.GetComponent<SmallArena.Networking.NetworkHealth>();
+                typeof(SmallArena.Networking.NetworkHealth).GetField("sessionId",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(health, "bound-session");
+                typeof(PlayerInputHandler).GetField("lifecycle",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(handler, health);
+                Assert.That(health.CanAct, Is.False);
+                Assert.That(handler.CanCollectGameplayInput, Is.False);
+                Assert.That(handler.TryReadHeldFire(out _), Is.False);
+            }
+            finally { Object.DestroyImmediate(healthOwner); }
+        }
+
+        [Test]
+        public void LifecycleNotification_ClearsPendingInputAndInvalidatesCollector()
+        {
+            var healthOwner = new GameObject("replicated lifecycle");
+            healthOwner.SetActive(false);
+            healthOwner.AddComponent<Mirror.NetworkIdentity>();
+            healthOwner.AddComponent<SmallArena.Networking.NetworkHealth>();
+            healthOwner.SetActive(true);
+            try
+            {
+                handler.enabled = false;
+                var health = healthOwner.GetComponent<SmallArena.Networking.NetworkHealth>();
+                typeof(PlayerInputHandler).GetField("lifecycle",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(handler, health);
+                handler.enabled = true;
+                var invalidations = 0;
+                handler.GameplayInvalidated += () => invalidations++;
+                SetKeys(Key.W, Key.Space, Key.J, Key.E);
+                var changed = (Action)typeof(SmallArena.Networking.NetworkHealth).GetField("OnLifecycleChanged",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(health);
+                changed();
+                AssertMove(0, 0);
+                AssertNoButtons();
+                Assert.That(invalidations, Is.EqualTo(1));
+            }
+            finally { Object.DestroyImmediate(healthOwner); }
+        }
+
         private void ReplaceSource(string json, bool activate = true)
         {
             if (owner != null) Object.DestroyImmediate(owner);

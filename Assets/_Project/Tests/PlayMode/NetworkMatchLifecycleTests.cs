@@ -59,6 +59,18 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(ServerOther.CurrentHealth, Is.EqualTo(10)); yield return Live();
             AttackOwner(Vector3.forward); yield return Until(() => other.CurrentHealth == 9);
         }
+        [UnityTest] public IEnumerator RuntimeRejectedAim_DoesNotConsumeAttackCooldown()
+        {
+            yield return StartSession();
+            yield return Live();
+            AttackOwner(Vector3.zero);
+            yield return null;
+            yield return null;
+            Assert.That(ServerOther.CurrentHealth, Is.EqualTo(10));
+            AttackOwner(Vector3.forward);
+            yield return Until(() => other.CurrentHealth == 9);
+        }
+
         [UnityTest] public IEnumerator CountdownRejectsPickupCommand_AndLiveAcceptsSameItem()
         {
             yield return StartSession(countdown: 1);
