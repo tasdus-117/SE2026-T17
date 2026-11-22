@@ -27,13 +27,42 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: git diff --check "$BASE_SHA" HEAD --
 
+  static:
+    name: Static quality (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: XML validator regression tests (PowerShell 7)
+        shell: pwsh
+        run: ./tools/Test-AssertUnityTestResults.ps1
+      - name: XML validator regression tests (Windows PowerShell 5.1)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./tools/Test-AssertUnityTestResults.ps1
+      - name: Assembly graph, metadata, GUIDs, scene order and package closure
+        shell: pwsh
+        run: ./tools/Verify-Scaffold.ps1 -SkipEditorCheck
+      - name: Saved Input Actions and input boundaries
+        shell: pwsh
+        run: ./tools/Verify-Input.ps1 -SkipCompilation
+
   unity:
     name: Unity EditMode and PlayMode
     # Fork PRs do not have access to the repository's Unity credentials.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: windows-2022
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Check Unity license configuration
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -44,9 +73,19 @@ jobs:
             Write-Output '::error::Configure UNITY_LICENSE, UNITY_EMAIL and UNITY_PASSWORD in repository Actions secrets. See .github/workflows/README.md.'
             exit 1
           }
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
+      - name: Resolve one Editor image for tests and static compilation
+        id: image
+        shell: pwsh
+        run: |
+          $version = [regex]::Match((Get-Content ProjectSettings/ProjectVersion.txt -Raw), '(?m)^m_EditorVersion:\s*(\S+)').Groups[1].Value
+          if ($version -notmatch '^\d+\.\d+\.\d+[abfp]\d+$') { throw 'Invalid Unity Editor version.' }
+          $tag = "unityci/editor:windows-$version-windows-il2cpp-3"
+          docker pull $tag
+          if ($LASTEXITCODE -ne 0) { throw "Cannot pull Editor image $tag" }
+          $image = docker image inspect --format '{{index .RepoDigests 0}}' $tag
+          if ($LASTEXITCODE -ne 0 -or $image -notmatch '^unityci/editor@sha256:[a-f0-9]{64}$') { throw 'Cannot resolve immutable Editor image digest.' }
+          "image=$image" >> $env:GITHUB_OUTPUT
+          "UNITY_CI_IMAGE=$image" >> $env:GITHUB_ENV
       - name: Run Unity tests
         id: tests
         uses: game-ci/unity-test-runner@fa6ced25861c16ef56187828c43f76d00df43a23 # v4.3.2
@@ -55,18 +94,71 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
+          customImage: ${{ steps.image.outputs.image }}
           testMode: all
           artifactsPath: TestResults/CI
           customParameters: -nographics
-      - name: Verify both Unity XML reports
-        if: ${{ !cancelled() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+      - name: Validate EditMode XML (minimum 261 passed)
+        if: always()
         shell: pwsh
-        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI
+        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI -TestPlatform editmode -MinPassedCount 261
+      - name: Validate PlayMode XML (minimum 408 passed, including 406 project tests)
+        if: always()
+        shell: pwsh
+        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI -TestPlatform playmode -MinPassedCount 408
+      # GameCI's Editor is inside Docker, not installed on the Windows host.
+      # The mounted checkout now contains Library/PackageCache and ScriptAssemblies.
+      - name: Verify installed Editor and scaffold in the Editor container
+        if: ${{ always() && !cancelled() && steps.image.outcome == 'success' && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        shell: pwsh
+        run: |
+          docker run --rm --volume "${env:GITHUB_WORKSPACE}:C:\github\workspace" --workdir C:\github\workspace $env:UNITY_CI_IMAGE powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-UnityCIGate.ps1 -Gate Scaffold
+          if ($LASTEXITCODE -ne 0) { throw 'Editor/scaffold gate failed.' }
+      - name: Strict compilation of all seven project assemblies
+        if: ${{ always() && !cancelled() && steps.image.outcome == 'success' && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        shell: pwsh
+        run: |
+          docker run --rm --volume "${env:GITHUB_WORKSPACE}:C:\github\workspace" --workdir C:\github\workspace $env:UNITY_CI_IMAGE powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-UnityCIGate.ps1 -Gate Compilation
+          if ($LASTEXITCODE -ne 0) { throw 'Strict project compilation failed.' }
+      - name: Verify physics layers, collision matrix and URP configuration
+        if: ${{ always() && !cancelled() && steps.image.outcome == 'success' && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        shell: pwsh
+        run: |
+          docker run --rm --volume "${env:GITHUB_WORKSPACE}:C:\github\workspace" --workdir C:\github\workspace $env:UNITY_CI_IMAGE powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-UnityCIGate.ps1 -Gate ArenaConfiguration
+          if ($LASTEXITCODE -ne 0) { throw 'Arena configuration gate failed.' }
+      - name: Verify saved arena, prefabs and UI wiring
+        if: ${{ always() && !cancelled() && steps.image.outcome == 'success' && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        shell: pwsh
+        run: |
+          docker run --rm --volume "${env:GITHUB_WORKSPACE}:C:\github\workspace" --workdir C:\github\workspace $env:UNITY_CI_IMAGE powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-UnityCIGate.ps1 -Gate ArenaLayout
+          if ($LASTEXITCODE -ne 0) { throw 'Saved arena layout gate failed.' }
       - name: Upload Unity test results
-        if: ${{ !cancelled() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: unity-test-results
-          path: TestResults/CI
+          path: |
+            TestResults/CI
+            TestResults/Compilation
+            TestResults/ArenaConfiguration
+            TestResults/ArenaLayout
           if-no-files-found: warn
           retention-days: 7
+
+  quality:
+    name: CI Quality Gate
+    if: always()
+    needs: [diff, static, unity]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every verification job to succeed
+        env:
+          DIFF_RESULT: ${{ needs.diff.result }}
+          STATIC_RESULT: ${{ needs.static.result }}
+          UNITY_RESULT: ${{ needs.unity.result }}
+        shell: pwsh
+        run: |
+          foreach ($name in @('DIFF_RESULT', 'STATIC_RESULT', 'UNITY_RESULT')) {
+            $result = [Environment]::GetEnvironmentVariable($name)
+            if ($result -ne 'success') { throw "$name=$result; all gates must succeed, including licensed Unity verification." }
+          }

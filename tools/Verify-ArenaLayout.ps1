@@ -1,6 +1,7 @@
-param([string]$EditorRoot = 'C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor')
+param([string]$EditorRoot = '', [switch]$SkipCompilation)
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
+$EditorRoot = & (Join-Path $PSScriptRoot 'Resolve-UnityEditor.ps1') -EditorRoot $EditorRoot
 $output = Join-Path $taskRoot 'TestResults/ArenaLayout'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $dotnet = Join-Path $EditorRoot 'Data/NetCoreRuntime/dotnet.exe'
@@ -28,7 +29,9 @@ $messages | Set-Content -LiteralPath (Join-Path $output 'results.log')
 $messages | Write-Output
 if ($result -ne 0) { throw 'Saved arena layout verification failed.' }
 
-& (Join-Path $PSScriptRoot 'Compile-UnityAssemblies.ps1') -EditorRoot $EditorRoot -OutputDirectory (Join-Path $output 'Assemblies')
-Copy-Item -LiteralPath (Join-Path $output 'Assemblies/SmallArena.PlayMode.Tests.compile.log') -Destination (Join-Path $output 'PlayMode.compile.log') -Force
-Write-Output 'PASS: all PlayMode fixture sources compile against installed Unity/NUnit APIs (compile only).'
+if (-not $SkipCompilation) {
+    & (Join-Path $PSScriptRoot 'Compile-UnityAssemblies.ps1') -EditorRoot $EditorRoot -OutputDirectory (Join-Path $output 'Assemblies')
+    Copy-Item -LiteralPath (Join-Path $output 'Assemblies/SmallArena.PlayMode.Tests.compile.log') -Destination (Join-Path $output 'PlayMode.compile.log') -Force
+    Write-Output 'PASS: all PlayMode fixture sources compile against installed Unity/NUnit APIs (compile only).'
+}
 Write-Output "Report: $report"
