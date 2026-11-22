@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SmallArena.Protocol;
 using Mirror;
 using UnityEngine;
 using System;
@@ -13,7 +14,7 @@ namespace SmallArena.Networking
         public const int UnarmedDamage = 1;
         [SyncVar(hook = nameof(DamageChanged))] private int attackDamage = UnarmedDamage;
         public int CurrentDamage => attackDamage;
-        public bool CanReceiveWeapon => isServer && health != null && health.CanAct && attackDamage == UnarmedDamage;
+        public bool CanReceiveWeapon => isServer && health != null && health.CanAct && attackDamage == health.BaseDamage;
         public event Action<int> OnDamageChanged;
         private static readonly Vector3 Offset = MeleeHitGeometry.Offset;
         private const float Radius = MeleeHitGeometry.Radius;
@@ -24,21 +25,22 @@ namespace SmallArena.Networking
         public override void OnStartServer() { nextAttackTime = double.NegativeInfinity; attackDamage = UnarmedDamage; }
         public override void OnStartClient() => OnDamageChanged?.Invoke(attackDamage);
         [Server]
-        internal void GrantWeapon() { if (CanReceiveWeapon) attackDamage = UnarmedDamage + 1; }
+        internal void GrantWeapon() { if (CanReceiveWeapon) attackDamage = health.BaseDamage + 1; }
+        [Server] public void ResetForLife() { if (isServer) { attackDamage = health.BaseDamage; nextAttackTime = double.NegativeInfinity; } }
         private void DamageChanged(int previous, int current) => OnDamageChanged?.Invoke(current);
 
         [Server]
         internal void PerformAttack(Vector3 aimDirection)
         {
-            // Scene loads finish at different times. Do not resolve a match while a member
-            // is still waiting for its authoritative avatar to spawn.
-            foreach (var connection in NetworkServer.connections.Values)
-                if (connection.isAuthenticated && connection.identity == null) return;
+            // Bound matches use the sealed session roster and its spawn deadline, not transport-wide counts.
+            if (!health.IsLifecycleBound)
+                foreach (var connection in NetworkServer.connections.Values)
+                    if (connection.isAuthenticated && connection.identity == null) return;
             // This arena keeps world +Z facing. Requests cannot extend range or rotate the hitbox.
-            if (!isServer || !health.CanAct || !Finite(aimDirection.x) || !Finite(aimDirection.y) || !Finite(aimDirection.z)
-                || aimDirection.sqrMagnitude < 0.99f || aimDirection.sqrMagnitude > 1.01f
-                || Vector3.Dot(aimDirection, Vector3.forward) < 0.99f || NetworkTime.localTime < nextAttackTime) return;
-            nextAttackTime = NetworkTime.localTime + Cooldown;
+            if (!isServer || !health.CanAct
+                || !CombatAim.IsLegacyMeleeDirection(aimDirection.x, aimDirection.y, aimDirection.z)
+                || NetworkTime.localTime < nextAttackTime || !health.TryBeginRuntimeAttack()) return;
+            nextAttackTime = NetworkTime.localTime + health.AttackCooldownSeconds;
             var center = MeleeHitGeometry.Center(transform, Offset);
             var hits = Physics.OverlapSphere(center, MeleeHitGeometry.CandidateRadius(Radius), (1 << 7) | (1 << 8), QueryTriggerInteraction.Ignore);
             damaged.Clear();
@@ -50,9 +52,8 @@ namespace SmallArena.Networking
                 var target = hit.GetComponentInParent<NetworkHealth>();
                 if (target == null || target == health || !target.isServer || !target.CanAct || !damaged.Add(target)) continue;
                 if (Physics.Linecast(center - Vector3.forward * Offset.z, hit.bounds.center, 1 << 6, QueryTriggerInteraction.Ignore)) continue;
-                target.TakeDamage(attackDamage);
+                target.TakeDamageFrom(health, attackDamage);
             }
         }
-        private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
     }
 }

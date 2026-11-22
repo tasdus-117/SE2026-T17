@@ -1,5 +1,71 @@
 # TV2-003 — movement intent revocation
 
+## Integrated candidate — 22-Nov-2026
+
+This section supersedes the 17-Nov dependency/status claims below; earlier evidence
+is retained as history. Updated **existing PR #13**, preserving its history by
+merging main `995e6a47931637fdcb1cd9a90a47a5c377f8f46a` into `db133b0`.
+Worktree: `.tv2-completion-003` (isolated detached checkout of the assigned branch;
+published to `feature/TV2-003-server-movement-input`). Original worktrees/settings
+are preserved. Only the motor conflict was present; resolved using the M3 motor
+with life rejection, configured speed/timeout, current CanAct and ClearRuntimeInput.
+No legacy motor replacement or wire change.
+
+ClearIntent now clears direction, freshness timestamp, hasInput and pending jump
+on component disable/server stop and observed disabled CharacterController or
+control loss at ingress/fixed step. ClearRuntimeInput delegates to it and retains
+M3's vertical reset. Temporary revocation retains sequence/jump watermarks;
+OnStartServer remains the new-avatar reset. Lifecycle publication already invokes
+ClearRuntimeInput on death/revoke and before respawn teleport, including transitions
+between observations. No new session store, config provider or clock adapter.
+
+### FR-202 / AC-202 acceptance and evidence
+
+| Criterion | Status / actual evidence | Owner / next action |
+| --- | --- | --- |
+| Disable/enable before another input/step cannot replay held movement/jump | Verified: NetworkMovementTests.DisableEnable_CannotReactivateHeldDirectionOrJump; synchronous Unity OnDisable, old input still fresh, replay rejected and fresh sequence accepted | TV2 regression; TV3 restore UI #26 |
+| Real runtime revoke/restore between ingress/physics | Verified: NetworkMatchLifecycleTests.RuntimeDeathRespawnBetweenObservations_ClearsFreshIntentAndRetainsWatermarks drives NetworkHealth.TakeDamage → production lifecycle Damage/Publish, then production Update at trusted respawn deadline without yielding. Old input is within .25s; life increments, CharacterController disables/enables, tick unchanged until explicit step; freshness/jump cleared and no movement resumes | TV1 review; #27 integrated run |
+| Duplicate/out-of-order/old-life and jump watermarks | Verified in new runtime regression (100/99/current sequence with old LifeId rejected; 101/current LifeId accepted without repeating jump7), existing actual Mirror Command ordering/wrap/forged-owner tests and five-death runtime test | TV1 confirm continuity; temporary revocation retains counters, new avatar resets |
+| Configured speed/timeout including zero and inclusive boundary | Verified: ConfiguredMovement_UsesZeroSpeedAndInclusiveCustomTimeout, actual M3 binding + zero speed; trusted runtime publication 2m/s/.125s and .124/.125/.126 boundary steps. Existing .249/.25/.251 test retained. Server-owned speed min(5, config); no client delta/speed | TV1 review |
+| Real lifecycle gates/protection/ClearRuntimeInput | Verified: countdown freeze/live replication; death/respawn/old-life/deadline/disconnect/rematch suites; new callback regression checks protection allows movement but rejects fire and ClearRuntimeInput clears freshness while retaining counters | TV1/TV3 human confirmation pending |
+| Grounded jump and authority/replication | Verified regressions: JumpCounter_ProducesGroundedJump_AndDropsAirborneOrRepeatedEdges; actual Command flood/owner/observer/forged target tests; world-XZ unchanged | TV3 review axes/jump; #26 real windows |
+| Retained-session reconnect/rebind | Outside current melee scope under #29. Domain connection methods do not establish token/proof or restore protocol; not implemented or certified here | TV1 + team approve separate scope |
+| Four-player three rounds + visual/LAN | Pending #25/#27 and #26 on same integrated SHA. In-process fixtures do not certify LAN/visual QA | TV1 + TV3 |
+
+### Fresh verification
+
+Pinned Unity **6000.6.8f1 (237b6593792b)**. Base + final source patch tested before
+merge commit. Local ignored artifacts: `TestResults/Completion/` in this worktree.
+
+| Run | Passed/discovered | Exit | Failed/skipped/inconclusive |
+| --- | --- | --- | --- |
+| Focused movement + M3 lifecycle | 55/55 (38 + 17) | 0 | 0/0/0 |
+| Project PlayMode | 414/414 | 0 | 0/0/0 |
+| Project EditMode | 241/241 | 0 | 0/0/0 |
+| Independent compiler | Seven project assemblies + Mirror compiled | 0 | Project warnings treated as errors |
+
+XML case/fixture discovery and fresh logs inspected. Project namespace filters
+exclude vendor suites. Verify.ps1 records exact arguments, times, head/status and
+C#/asmdef source manifests; summary JSON records exit/discovery/pass/fail/skip and
+XML hash. Source parity is checked against final commit before publication.
+Initial sandbox attempt exited198 without XML/discovery (no accessible license);
+licensed retry passed. No security or license settings changed.
+
+Reproduce via pinned Editor `-batchmode -nographics -projectPath <worktree>
+-runTests -testPlatform <PlayMode|EditMode> -testFilter <SmallArena.Tests.PlayMode|
+SmallArena.Tests.EditMode> -testResults <fresh.xml> -logFile <fresh.log>`; no -quit.
+Focused filter joins NetworkMovementTests and NetworkMatchLifecycleTests with `;`.
+Compiler: `powershell -NoProfile -ExecutionPolicy Bypass -File
+tools/Compile-UnityAssemblies.ps1 -EditorRoot <6000.6.8f1/Editor>`.
+
+KCP/build results, final exact head, CI and Codex review are recorded in the PR and
+local handoff after publication. Human reviews remain distinct and pending; no
+merge/issue closure. TV1 @xzviett reviews binding/clock/revocation/counters; TV3
+@tasdus-117 reviews world axes/grounded jump/input restore/HUD. #26 restore cases
+and #27 integrated acceptance must use the eventual same merged SHA.
+
+## Historical candidate — 17-Nov-2026
+
 Candidate base: `9ee7ea715b6fc5d07156411aac543a481585cee8` (origin/main fetched 2026-11-17).
 PR #9 merge `d939568aae110668df5f0114541e4498593b6108` is an ancestor.
 Status: partial FR-202 implementation; draft pending the integration decisions below.

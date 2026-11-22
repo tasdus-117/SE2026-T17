@@ -10,6 +10,8 @@ namespace SmallArena.Networking
         public const float InteractionRadius = 1.5f;
         [SyncVar] private bool isCollected;
         public bool IsCollected => isCollected;
+        private System.Func<NetworkPlayer, bool> serverClaim;
+        [Server] public void SetServerClaim(System.Func<NetworkPlayer, bool> claim) { if (isServer) serverClaim = claim; }
 
         [Server]
         public bool TryCollectServer(NetworkPlayer player)
@@ -21,6 +23,7 @@ namespace SmallArena.Networking
                 || (player.transform.position - transform.position).sqrMagnitude > InteractionRadius * InteractionRadius) return false;
             // Never invoke user code or publish the buff before claiming the item.
             isCollected = true;
+            if (serverClaim != null && !serverClaim(player)) { isCollected = false; return false; }
             foreach (var collider in GetComponents<Collider>()) collider.enabled = false;
             combat.GrantWeapon();
             NetworkServer.Destroy(gameObject);

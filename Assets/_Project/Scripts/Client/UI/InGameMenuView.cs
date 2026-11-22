@@ -22,9 +22,11 @@ namespace SmallArena.Client.UI
 
         public void ShowPause(bool show) => pausePanel.SetActive(show);
         public void ShowResult(bool winner)
+            => ShowResult(winner ? "VICTORY" : "DEFEAT");
+        public void ShowResult(string header)
         {
             pausePanel.SetActive(false);
-            resultHeader.text = winner ? "VICTORY" : "DEFEAT";
+            resultHeader.text = header;
             resultPanel.SetActive(true);
         }
         public void SetLeaving()

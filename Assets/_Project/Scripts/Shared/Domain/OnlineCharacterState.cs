@@ -68,6 +68,9 @@ namespace SmallArena.Domain
         public double NextShotAtSeconds { get; }
         public double ProtectionUntilSeconds { get; }
         public double? RespawnAtSeconds { get; }
+        internal OnlineCharacterState WithStatistics(int kills, int deaths) => new OnlineCharacterState(Match,
+            ParticipantId, LifeId, LifeState, ConnectionState, Health, kills, deaths,
+            NextShotAtSeconds, ProtectionUntilSeconds, RespawnAtSeconds);
 
         public bool IsCurrentLife(string participantId, long lifeId) => ParticipantId == participantId && LifeId == lifeId;
 
@@ -80,6 +83,16 @@ namespace SmallArena.Domain
 
         public bool CanReceiveDamage(double serverTimeSeconds) => Match.IsGameplayActive(serverTimeSeconds)
             && LifeState == CharacterLifeState.Alive && serverTimeSeconds >= ProtectionUntilSeconds;
+
+        public bool TryBeginAttack(long expectedLifeId, double serverTimeSeconds, out OnlineCharacterState next)
+        {
+            next = this;
+            if (expectedLifeId != LifeId || !CanFire(serverTimeSeconds)) return false;
+            next = new OnlineCharacterState(Match, ParticipantId, LifeId, LifeState, ConnectionState, Health,
+                Score, Deaths, OnlineMatch.AddDuration(serverTimeSeconds, Match.Configuration.ShotCooldownSeconds),
+                ProtectionUntilSeconds, RespawnAtSeconds);
+            return true;
+        }
 
         /// <summary>TV1 has already checked the session/proof. Reconnect changes no life data or clocks.</summary>
         public bool TrySetConnection(CharacterConnectionState connectionState, out OnlineCharacterState next)

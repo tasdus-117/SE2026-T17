@@ -85,6 +85,25 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(other.CurrentHealth, Is.EqualTo(10));
         }
         [UnityTest]
+        public IEnumerator RejectedAim_DoesNotConsumeCooldownOrChangePresentation_ValidCommandStillWorks()
+        {
+            yield return StartWorld();
+            foreach (var aim in new[] { Vector3.zero, Vector3.back, Vector3.forward * 10,
+                new Vector3(float.NaN, 0, 1), new Vector3(0, float.PositiveInfinity, 1),
+                new Vector3(0, 0, float.NegativeInfinity), new Vector3(float.MaxValue, 0, 1) })
+                AttackOwner(aim);
+            for (var i = 0; i < 8; i++) yield return null;
+            Assert.That(otherServer.GetComponent<NetworkHealth>().CurrentHealth, Is.EqualTo(10));
+            Assert.That(other.CurrentHealth, Is.EqualTo(10));
+            Assert.That(other.GetComponentInChildren<NetworkHealthBarView>().HealthText, Is.EqualTo("HP: 10/10"));
+            Assert.That(hud.HealthView.HealthText, Is.EqualTo("HP: 10/10"));
+            // Through the same real owner Command, without waiting for the one-second cooldown.
+            AttackOwner(Vector3.forward);
+            yield return Until(() => other.CurrentHealth == 9);
+            Assert.That(other.GetComponentInChildren<NetworkHealthBarView>().HealthText, Is.EqualTo("HP: 9/10"));
+            Assert.That(hud.HealthView.HealthText, Is.EqualTo("HP: 10/10"));
+        }
+        [UnityTest]
         public IEnumerator EnvironmentWall_BlocksHitEvenWithinSphere()
         {
             yield return StartWorld();
