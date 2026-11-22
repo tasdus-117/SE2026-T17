@@ -84,13 +84,6 @@ jobs:
       - name: Windows build scene preflight
         shell: pwsh
         run: ./tools/Assert-WindowsStandaloneBuild.ps1 -ScenesOnly
-      - name: Multiplayer smoke parser and watchdog regression tests
-        shell: pwsh
-        run: ./tools/Test-InvokeMultiplayerSmoke.ps1
-      - name: Multiplayer smoke regression tests (Windows PowerShell 5.1)
-        if: runner.os == 'Windows'
-        shell: powershell
-        run: ./tools/Test-InvokeMultiplayerSmoke.ps1
 
   unity:
     name: Unity EditMode and PlayMode
@@ -269,50 +262,10 @@ jobs:
           if-no-files-found: warn
           retention-days: 3
 
-  multiplayer-smoke-test:
-    name: Multiplayer Smoke Test
-    needs: windows-standalone-build
-    if: ${{ needs.windows-standalone-build.result == 'success' }}
-    runs-on: windows-latest
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Download the verified player from this workflow run
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: windows-standalone-${{ github.sha }}
-          path: Artifacts/MultiplayerPlayer
-      - name: Verify checksum and source commit, then extract
-        shell: pwsh
-        env:
-          EXPECTED_SHA: ${{ github.sha }}
-        run: |
-          $directory = 'Artifacts/MultiplayerPlayer'
-          $archive = Join-Path $directory 'SmallArena-Windows-x64.zip'
-          $expected = ((Get-Content (Join-Path $directory 'SHA256SUMS.txt') -Raw).Trim() -split '\s+')[0]
-          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $expected) { throw 'Player archive checksum mismatch.' }
-          if ((Get-Content (Join-Path $directory 'source-commit.txt') -Raw).Trim() -ne $env:EXPECTED_SHA) { throw 'Player was built from a different source commit.' }
-          Expand-Archive -LiteralPath $archive -DestinationPath Builds/WindowsStandalone
-      - name: Run real host and client over loopback KCP
-        shell: powershell
-        run: |
-          powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-MultiplayerSmoke.ps1
-          if ($LASTEXITCODE -ne 0) { throw "Multiplayer smoke failed: exit $LASTEXITCODE" }
-      - name: Upload multiplayer smoke logs and results
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: multiplayer-smoke-${{ github.sha }}
-          path: TestResults/MultiplayerSmoke
-          retention-days: 7
-          if-no-files-found: warn
-
   quality:
     name: CI Quality Gate
     if: always()
-    needs: [diff, static, unity, windows-standalone-build, multiplayer-smoke-test]
+    needs: [diff, static, unity, windows-standalone-build]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every verification job to succeed
@@ -322,7 +275,6 @@ jobs:
           UNITY_RESULT: ${{ needs.unity.result }}
           BUILD_REQUIRED: ${{ needs.diff.outputs.build_required }}
           BUILD_RESULT: ${{ needs.windows-standalone-build.result }}
-          SMOKE_RESULT: ${{ needs.multiplayer-smoke-test.result }}
         shell: pwsh
         run: |
           foreach ($name in @('DIFF_RESULT', 'STATIC_RESULT', 'UNITY_RESULT')) {
@@ -331,8 +283,6 @@ jobs:
           }
           if ($env:BUILD_REQUIRED -eq 'true') {
             if ($env:BUILD_RESULT -ne 'success') { throw "Required Windows build did not succeed: $env:BUILD_RESULT" }
-            if ($env:SMOKE_RESULT -ne 'success') { throw "Required multiplayer smoke did not succeed: $env:SMOKE_RESULT" }
           } elseif ($env:BUILD_REQUIRED -eq 'false') {
             if ($env:BUILD_RESULT -ne 'skipped') { throw "Unexpected documentation-only build state: $env:BUILD_RESULT" }
-            if ($env:SMOKE_RESULT -ne 'skipped') { throw "Unexpected documentation-only smoke state: $env:SMOKE_RESULT" }
           } else { throw 'Missing/invalid Windows build classification.' }

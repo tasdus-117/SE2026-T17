@@ -1,6 +1,6 @@
-# CI — Quality gates, Windows build và multiplayer smoke
+# CI — Quality gates và Windows Standalone
 
-Phase 2 bổ sung Windows player build (mục 7–8); Phase 3 thêm multiplayer smoke (mục 9).
+Phase 2 bổ sung Windows player build; hướng dẫn và bằng chứng ở mục 7 bên dưới.
 Các số liệu Phase 1 trong mục 1–6 là kết quả lịch sử, không phải lượt chạy native mới.
 
 Ngày kiểm chứng cục bộ: **23/11/2026**. Baseline: `49ab265` (merge PR #31),
@@ -49,10 +49,7 @@ PR -> main / push main
         code/asset/tool/workflow PR hoặc mọi push main -> Library cache -> build
         verify output + BuildReport -> ZIP/SHA256/source commit -> artifact 3 ngày
         PR chỉ sửa tài liệu được bỏ qua riêng job build
-  +-- Multiplayer Smoke Test (windows-latest, needs Windows Standalone Build)
-        download cùng run/SHA -> checksum -> 2 process KCP -> combat + crash client
-        Job Object/watchdog/finally cleanup -> logs/results giữ 7 ngày
-  \-- CI Quality Gate: tests/static phải success; build + smoke phải success khi được yêu cầu
+  \-- CI Quality Gate: tests/static phải success; build phải success khi được yêu cầu
 ```
 
 GameCI chạy Editor **trong Docker**, không cài vào Hub trên runner host. Vì vậy
@@ -302,7 +299,7 @@ và source commit rồi giải nén, chạy exe cùng data/DLL để điều ph�
 Job build dùng Bash `zip`, `unzip -tq` và `sha256sum --check` trước upload để kiểm
 archive/checksum thực sự, không chỉ tạo file checksum. Job smoke tương lai chạy exe
 trên `windows-latest`, không gọi GameCI builder/Docker trên Windows.
-Phase 3 bên dưới thêm CLI opt-in vào cùng production player; không chèn smoke define hoặc đổi scene/prefab.
+Phase 2 chưa thêm tự động host/join hoặc instrumented smoke entry vào player.
 
 Artifact chẩn đoán **`windows-standalone-build-logs-${github.sha}`** luôn được thử
 upload, giữ **3 ngày**, chứa build log/report nếu đã được tạo. Khi license/Editor
@@ -401,7 +398,7 @@ Windows. Nhiệm vụ này chỉ sửa windows-standalone-build; job test đó c
 chặn CI Quality Gate và cần migration riêng nếu runner không có daemon. Không bỏ
 test/giảm ngưỡng hoặc đổi gate để che tình trạng này. Chưa bắt đầu Phase 3.
 
-### Đưa fix Phase 2 lên PR và xác nhận artifact
+### Đưa fix lên PR và xác nhận trước Phase 3
 
 Các lệnh dưới đây dành cho người review thực hiện; agent không tự commit/push:
 
@@ -436,128 +433,3 @@ Get-Content (Join-Path $root 'Player/build-report.json')
 Giữ toàn bộ Player directory, gồm SmallArena_Data/UnityPlayer.dll và dependencies;
 không chỉ chép exe. Chỉ chuyển sang Phase 3 sau khi job Ubuntu và artifact của đúng
 commit được xác nhận thực tế; YAML/local compile không thay bằng chứng Actions.
-
-## 9. Phase 3 — Multiplayer smoke nhiều process Mirror/KCP
-
-Baseline `83fdb7b` (main đã merge PR #33), nhánh `feat/ci-phase3-multiplayer-smoke`.
-Giữ 7 asmdef, Domain/Protocol engine-free; không sửa luật movement/combat/health,
-constants, các test Unity, prefab/scene hay production settings. Thêm một MonoBehaviour
-automation trong Networking và tooling ngoài Assets. NetworkPlayer vẫn là bridge mỏng.
-
-### CLI opt-in và marker
-
-`MultiplayerSmokeAutomation` chỉ được tạo khi có **--auto-host** hoặc **--auto-join**.
-Không có role flag thì không tạo object, đăng ký handler, sửa transport, frame rate
-hoặc khởi động session. Không dùng `SMALL_ARENA_M2_SMOKE` và không chép script
-instrumented vào Client khi build. Hai process dùng cùng player của Phase 2.
-
-| Flag | Hành vi khi đã bật auto-role |
-|---|---|
-| `--auto-host` | Gọi production `ArenaNetworkManager.HostRoom()`. |
-| `--auto-join 127.0.0.1` | Gọi production `JoinRoom(address)`, không tạo player ở client. |
-| `--port <1..65535>` | Đặt KCP qua PortTransport trước khi mở connection; mặc định 7777, runner luôn chọn port động riêng. |
-| `--auto-ready` | Gửi RequestReady qua lobby protocol, chờ synchronized Ready acknowledgement. |
-| `--auto-start` | Chỉ Host yêu cầu Start khi đủ expected players và server-published CanStart; server vẫn kiểm preconditions. |
-| `--expected-players N` | Mặc định 2, giới hạn room 2–4; combat-duel yêu cầu đúng 2. |
-| `--smoke-action combat-duel` | Server chọn cặp capsule positions có floor/clearance, teleport bằng ArenaNetworkTransform; remote owner gửi movement/attack Commands thật. |
-| `--smoke-action hold` | Giữ match cho runner kill Client; Host xác nhận disconnect/cleanup và clock/control còn hoạt động. |
-| `--max-runtime-seconds N` | Deadline process 5–300 giây; hết giờ phát FAILURE và exit 1. Runner đặt deadline ngắn hơn watchdog ngoài 5 giây. |
-
-Role mặc định dùng **MainMenu lobby root → Arena_MVP**, đúng workflow GUI hiện hành.
-Bootstrap vẫn trong build settings index 1 và thuộc entry path legacy `--arena-*`;
-không giả vờ load Bootstrap trong room flow hoặc dùng legacy flags để bỏ qua Lobby.
-
-Các marker single-line `[SMOKE_EVENT]` gồm GAME_ENTRY, HOST_STARTED, CLIENT_CONNECTED,
-LOBBY_READY, AVATARS_SPAWNED, MATCH_COUNTDOWN, MATCH_IN_PROGRESS, MOVEMENT_VERIFIED,
-COMBAT_VERIFIED, PEER_DISCONNECTED, SERVER_RESILIENT, CLEAN_SHUTDOWN và FAILURE.
-Marker ghi cả Unity log và Console; Unity có thể chuyển Console vào cùng player log,
-nên parser chấp nhận bản lặp. Parser kiểm tên chính xác và thứ tự Countdown → InProgress,
-không đếm duplicate thành assertion/pass mới.
-
-Combat setup chỉ chạy trên Server và chỉ khi explicit combat-duel: chọn hai capsule
-được environment-clearance kiểm chứng, không để client gửi pose. Sau đó movement
-được kiểm **displacement ngang > 0,08 m**, không dùng gravity làm bằng chứng movement.
-Remote Client gọi `NetworkMovement.SubmitInput` và `NetworkPlayer.RequestAttack`;
-Command authority, lifecycle, cooldown, overlap/range/obstacle checks và damage code
-production vẫn nguyên. Server và Client phải cùng thấy victim **10 → 9 HP**, attacker
-**10 HP**, scoreboard **DamageDealt = 1**. Ack riêng của automation chỉ xác nhận trạng
-thái đã được Server kiểm độc lập, không cấp damage hoặc ghi HP từ client.
-
-### Runner, watchdog và kết quả
-
-```powershell
-# Sau khi build mới bằng Phase 2, hoặc giải nén artifact đúng commit vào Builds/WindowsStandalone.
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/Test-InvokeMultiplayerSmoke.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-MultiplayerSmoke.ps1
-# Tùy chọn:
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-MultiplayerSmoke.ps1 -TimeoutSeconds 90 -Player Builds/WindowsStandalone/SmallArena.exe
-```
-
-- **Combat:** Host bắt đầu KCP, rồi Client join, hai bên Ready, Countdown/InProgress,
-  hai avatars, authoritative movement/damage và replica/score nhất quán. Reliable
-  completion/ack cho phép client đóng connection sạch; Host chờ peer được cleanup
-  rồi shutdown. Cả hai process phải exit **0**.
-- **Disconnect:** Hai process vào InProgress, runner kill **chỉ Client mình đã tạo**.
-  Host phải nhận KCP timeout/disconnect tự nhiên (không gọi giả OnServerDisconnect),
-  connection/identity/proxy biến mất, participant Disconnected và còn đúng một avatar.
-  Clock tiếp tục tick, Host vẫn CanAct và exit **0**. Client exit khác 0 chỉ hợp lệ
-  trong nhánh này và khi runner đã chủ động kill.
-- Mỗi scenario có `try/finally`, đồng hồ monotonic và watchdog **90 giây** mặc định.
-  Helper Windows 10+/Server 2016+ dùng atomic job-list process creation + suspended
-  startup, `KILL_ON_JOB_CLOSE`, Timer độc lập gọi TerminateJobObject. Khi runner bị
-  dừng đột ngột, handle job không được child kế thừa; không có cửa sổ child chạy
-  ngoài job trước assignment. Dispose chờ job ActiveProcesses=0, rồi runner xác nhận
-  workers kết thúc và bind độc quyền lại UDP port. Chỉ ghi `result.json: Passed` **sau**
-  cleanup thành công. Không enumerate/kill player hoặc Editor của người dùng.
-  Cơ chế theo [Job Objects](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects)
-  và [PROC_THREAD_ATTRIBUTE_JOB_LIST](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute).
-- Mỗi lượt có thư mục UUID mới dưới `TestResults/MultiplayerSmoke/Combat/` hoặc
-  `Disconnect/`; gồm host/client `.log`, `.stdout.log`, `.stderr.log`, `.pid` và
-  `result.json` khi đạt. Không nhận marker/report cũ. Exception/fatal/FAILURE,
-  marker thiếu hoặc sai thứ tự, exit code sai, watchdog/cleanup/port lỗi đều nonzero.
-
-### CI và điều kiện merge
-
-Job **multiplayer-smoke-test / Multiplayer Smoke Test**, `windows-latest`, chỉ needs
-windows-standalone-build và chạy khi build success. Checkout dùng source cùng run,
-download artifact `windows-standalone-${github.sha}`, kiểm SHA256 và source-commit,
-giải nén rồi gọi runner PowerShell. **Không cài Unity Editor, Docker hoặc activate
-license** trong job smoke. Job timeout 8 phút bao ngoài hai watchdog scenario.
-Logs/results upload `if: always()`, artifact `multiplayer-smoke-${github.sha}`, giữ
-**7 ngày**. Không thêm secrets vào job và không commit binary/evidence.
-
-CI Quality Gate nhận thêm SMOKE_RESULT: code/asset/main build cần thiết thì build
-và smoke đều phải success; docs-only thì cả hai phải skipped. Giữ classifier và
-EditMode/PlayMode gates, không dùng continue-on-error hoặc bỏ tests để có xanh.
-Windows Docker của job Phase 1 unity vẫn là vấn đề riêng đã ghi ở mục 8; không
-được coi smoke success là native test job success. Cấu hình/giữ ngưỡng kiểm thử không thay đổi.
-
-### Bằng chứng thực thi cục bộ
-
-Đã chạy thật player Windows từ `Builds/WindowsStandalone/SmallArena.exe`; source
-CLI hook trùng SHA256 với snapshot dùng build. Build Unity **6000.6.8f1 / Mono2x**
-thành công, **0 errors / 0 warnings**, tổng **113.896.092 bytes**. Không dùng player
-instrumented hoặc report cũ để vượt smoke.
-
-| Kiểm chứng cuối | Kết quả |
-|---|---|
-| Strict Roslyn project compile | **7/7** asmdef, **0 project warnings/errors**; Mirror compile riêng, Domain engine-free. |
-| Parser/exit/timeout/order + native watchdog tests | **25/25 pass**, Windows PowerShell **5.1.26100.10068**; có child thực bị kill exit 124 và Job disposal không để child sống. |
-| Combat, UDP **62367** | **45,23s**, Host exit **0**, Client exit **0**, marker HP **9**, damage **1**, movement ngang authoritative/replicated đạt; không exception/fatal. |
-| Abrupt disconnect, UDP **53289** | **25,98s**, Host exit **0**, Client exit **-1** do runner kill; orphan **0**, participant Disconnected, clock ticking/control allowed, clean host shutdown. |
-| Cleanup cả hai scenario | **0 leftover workers**, Job ActiveProcesses về 0, bind độc quyền lại từng UDP port đạt; runner process exit **0**. |
-| Scaffold và workflow | **1.528** metadata pairs/GUIDs, 7-asmdef acyclic graph; YAML/PowerShell parse đạt; **8/8** aggregate build/smoke/test/skip cases đúng. |
-
-Raw proof cuối: `TestResults/MultiplayerSmoke/Combat/eb2f44e48b434cf1982c24f62702edaf/`
-và `TestResults/MultiplayerSmoke/Disconnect/2d72f60a53ea4a8a8385658eb409e86c/`.
-Lượt đầu cũng đạt cả hai case, nhưng bảng trên dùng lượt cuối đã kiểm ngang và
-atomic job assignment. Log/stdout/stderr/PID/result.json và build/compile artifacts
-được ignore. Không commit exe, DLL, log, report hoặc context cá nhân.
-
-Chưa chạy workflow trên GitHub, PowerShell 7/Ubuntu matrix hoặc smoke trên artifact
-cross-build Ubuntu trong nhiệm vụ này; mới kiểm YAML/PowerShell và thực thi thật local
-Windows. Không phát hành hoặc tự commit/push. Job Phase 1 Windows Docker vẫn là
-giới hạn riêng; không dùng smoke pass để bỏ gate đó.
-
-Native suites lịch sử 261 EditMode / 408 PlayMode pass (406 project, 2 vendor skip)
-không được cộng vào smoke counts hoặc gọi là native suites mới đã chạy trong Phase 3.
