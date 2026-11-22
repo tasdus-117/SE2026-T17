@@ -1,4 +1,7 @@
-# CI Phase 1 — Kiểm thử và kiểm tra kiến trúc bắt buộc
+# CI — Quality gates và Windows Standalone
+
+Phase 2 bổ sung Windows player build; hướng dẫn và bằng chứng ở mục 7 bên dưới.
+Các số liệu Phase 1 trong mục 1–6 là kết quả lịch sử, không phải lượt chạy native mới.
 
 Ngày kiểm chứng cục bộ: **23/11/2026**. Baseline: `49ab265` (merge PR #31),
 nhánh `feat/ci-phase1-hardening`, Unity **6000.6.8f1**.
@@ -42,7 +45,11 @@ PR -> main / push main
         cùng image + checkout/Library đã import:
           Editor/scaffold -> strict 7-asmdef compile -> physics/URP -> arena/prefab/UI
         upload kết quả luôn chạy
-  \-- CI Quality Gate: mọi job phải có result == success
+  +-- Windows Standalone Build (windows-latest, nhánh nội bộ)
+        code/asset/tool/workflow PR hoặc mọi push main -> Library cache -> build
+        verify output + BuildReport -> ZIP/SHA256/source commit -> artifact 3 ngày
+        PR chỉ sửa tài liệu được bỏ qua riêng job build
+  \-- CI Quality Gate: tests/static phải success; build phải success khi được yêu cầu
 ```
 
 GameCI chạy Editor **trong Docker**, không cài vào Hub trên runner host. Vì vậy
@@ -163,8 +170,10 @@ full suites không được chạy lại; chỉ kiểm report native cũ và th�
 ## 6. Đề xuất bảo vệ `main`
 
 **Required check tối thiểu: `CI Quality Gate`.** Job này dùng `if: always()` và chỉ
-chấp nhận `success` của Git diff, toàn bộ static matrix và Unity; `skipped`, `failure`,
-`cancelled` không đạt. Có thể chọn thêm các check chi tiết sau để review trực quan:
+chấp nhận `success` của Git diff, toàn bộ static matrix và Unity. Windows build cũng
+phải `success` khi classifier yêu cầu; chỉ được `skipped` nếu PR chỉ sửa tài liệu.
+`failure`/`cancelled`, thiếu classifier hoặc skip build của PR code đều không đạt.
+Có thể chọn thêm các check chi tiết sau để review trực quan:
 
 1. `Git diff`
 2. `Static quality (ubuntu-24.04)`
@@ -177,3 +186,152 @@ yêu cầu PR + review, resolve conversations, nhánh cập nhật với main v�
 Không coi một job Unity bị skip là đủ điều kiện merge. Với fork, thành viên review
 rồi đưa commit lên nhánh nội bộ để có license và mở PR; không dùng `pull_request_target`
 để chạy mã fork với secrets. Đây là **đề xuất**, không phải cấu hình remote đã áp dụng.
+
+## 7. Phase 2 — Windows Standalone Build
+
+### Baseline và phạm vi
+
+Nhánh `feat/ci-phase2-standalone-build` ban đầu ở `49ab265`, chưa chứa Phase 1.
+Đã fast-forward nhánh hiện tại đến commit Phase 1 có sẵn **`53e4741`**, không tạo
+merge commit, không sửa main và không tự push. Không coi Phase 1 đã merge vào main
+chỉ dựa vào mô tả nhiệm vụ. Sau đó chỉ thêm Editor builder, verifier/wrapper/tests,
+workflow và tài liệu. Kiến trúc giữ **7 asmdef**; helper ở thư mục Editor dùng assembly
+Editor do Unity tạo, không thêm asmdef hay tham chiếu vào runtime.
+
+`tools/Build-LobbyStandalone.cs` hiện hữu là builder instrumented cho smoke tests:
+hardcode scenes, đổi backend/stripping và thêm `SMALL_ARENA_M2_SMOKE`. Production
+builder mới không gọi helper đó, không chèn smoke code/defines và không đổi
+PlayerSettings, scenes hoặc gameplay. Backend hiện hành được giữ và ghi trong report.
+
+### Entry point và chạy cục bộ
+
+`SmallArena.Tools.SmallArenaBuildPipeline.BuildWindowsStandalone` nằm tại
+`Assets/_Project/Scripts/Editor/Build/SmallArenaBuildPipeline.cs` (có `.meta`). Method:
+
+1. Lấy **enabled scenes từ `EditorBuildSettings.scenes`**; bắt buộc đúng thứ tự
+   **MainMenu 0 → Bootstrap 1 → Arena_MVP 2**. Kiểm scene asset tồn tại/import được
+   và GUID khớp. Repository không có `LobbyRoom.unity`; lobby dùng UI hiện hành.
+2. Xác nhận Windows Build Support; dọn **chỉ** thư mục output cố định
+   `Builds/WindowsStandalone/`, rồi gọi `BuildPipeline.BuildPlayer` với
+   `StandaloneWindows64`, `BuildOptions.StrictMode`, output `SmallArena.exe`.
+3. Ghi `build-report.json` (Unity version, target, backend, scenes, result, errors,
+   warnings, bytes) và `Logs/WindowsStandalone/build.log` từ BuildReport messages.
+4. Chỉ thành công khi `BuildResult.Succeeded`, `totalErrors == 0` và size > 0;
+   exception/failure gọi exit 1 trong batchmode. Không tắt hoặc che warning.
+
+Từ root repo, dùng Windows PowerShell 5.1 hoặc PowerShell 7:
+
+```powershell
+# Chỉ kiểm scenes, Editor version, Windows Build Support và entry point; không build.
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Build-WindowsStandalone.ps1 -ValidateOnly
+
+# Đóng Editor của project trước khi chạy. Có thể thêm -EditorRoot <Editor directory>.
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Build-WindowsStandalone.ps1
+
+# Hoặc dùng một bản sao riêng đã đồng bộ source để giữ Editor chính đang mở.
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Build-WindowsStandalone.ps1 -ProjectPath C:/path/to/validation-project
+
+# Saved-scene/output checks và regression synthetic, không cần Unity license.
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Assert-WindowsStandaloneBuild.ps1 -ScenesOnly
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Test-WindowsStandaloneBuild.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Assert-WindowsStandaloneBuild.ps1
+```
+
+Wrapper khởi chạy đúng Editor với `-quit -batchmode -nographics`,
+`-buildTarget StandaloneWindows64` và `-executeMethod`; full Editor log ở
+`Logs/WindowsStandalone/editor.log`. Wrapper từ chối project đang có Unity lock,
+xóa report/log cũ trước lượt build thật, kiểm process exit code rồi kiểm output;
+không dùng thành công của bản build trước khi một lượt mới thất bại. `ValidateOnly`
+không kiểm chứng license/native build và không được dùng làm CI build step.
+
+`Assert-WindowsStandaloneBuild.ps1` yêu cầu exe không rỗng/có MZ signature,
+`UnityPlayer.dll` không rỗng, `SmallArena_Data` có file dữ liệu không rỗng,
+BuildReport đúng Unity version/target/scenes, `Succeeded`, errors 0, bytes > 0 và
+build log có nội dung/không có project compiler warning/error. Đây là kiểm cấu trúc,
+không chứng minh exe đã chạy hoặc KCP nhiều process đã hoạt động.
+
+### CI, cache và gate
+
+- Job **`windows-standalone-build` / Windows Standalone Build** chạy trên
+  `windows-latest`, song song với Unity tests sau job Git diff; timeout **60 phút**.
+  Dùng GameCI unity-builder SHA `4423ee75828dff56037d1d1cfdac6b68e3a6ba00`, Unity
+  **6000.6.8f1**, `StandaloneWindows64`, production buildMethod và `versioning: None`.
+  Action có sẵn `-quit -batchmode -nographics`; không dùng `manualExit` hay GPU mode.
+- Dùng đúng ba secrets hiện hữu `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`.
+  Không in giá trị, không upload license/environment dump. Report log chỉ ghi bước
+  build sau khi Editor đã khởi động; lỗi license/import trước entry point xem Actions
+  log của GameCI. Full local Editor log không được in tự động ra terminal.
+- Cache **chỉ `Library/`** bằng actions/cache SHA pin. Key bao gồm OS/architecture,
+  Unity version, hash `Packages/manifest.json`, `Packages/packages-lock.json`,
+  `ProjectSettings/**` và commit SHA. Restore prefix cùng config hash cho phép reuse
+  cache khi chỉ source/assets thay đổi; Unity vẫn kiểm dependency/import hiện hành.
+  Không cache Builds, ZIP, Logs, Secrets hoặc xem cache hit là build đã đạt.
+- Classifier mặc định yêu cầu build cho mọi path ngoài allowlist `docs/**`,
+  `README.md`, `.github/workflows/README.md`. Git diff dùng `--no-renames` để asset/code
+  bị chuyển vào docs vẫn tính là xóa code, không bị nhận nhầm thành docs-only.
+  Mọi **push main luôn build**, kể cả tài liệu. PR fork không được cấp secrets và
+  code PR fork không vượt gate; quy trình review/nhánh nội bộ giữ như Phase 1.
+- `CI Quality Gate` giữ kiểm tra O(1), không chạy lại tests/build. Nó chờ build cần thiết
+  hoàn tất; chỉ chấp nhận skip khi classifier nói docs-only, không có default-green
+  khi thiếu output hoặc job lỗi. Nên required **CI Quality Gate**; không cần required
+  riêng Windows Standalone Build vì docs-only PR hợp lệ có job bị skip.
+
+### Artifact cho Phase 3
+
+Sau build và output verification thành công, CI tạo artifact
+**`windows-standalone-${github.sha}`**, giữ **3 ngày**:
+
+```text
+SmallArena-Windows-x64.zip
+SHA256SUMS.txt
+source-commit.txt
+```
+
+Giải nén ZIP vào một thư mục riêng sẽ có `SmallArena.exe`, `SmallArena_Data/`,
+`UnityPlayer.dll`, các dependency build thực tế khác và `build-report.json` ngay
+ở root. ZIP chứa trọn player output, không chỉ exe; upload dùng compression-level 0
+để không nén lại ZIP. Phase 3 tải artifact **cùng workflow run/commit**, kiểm SHA256
+và source commit rồi giải nén, chạy exe cùng data/DLL để điều phối Mirror/KCP.
+Phase 2 chưa thêm tự động host/join hoặc instrumented smoke entry vào player.
+
+Artifact chẩn đoán **`windows-standalone-build-logs-${github.sha}`** luôn được thử
+upload, giữ **3 ngày**, chứa build log/report nếu đã được tạo. Khi license/Editor
+không khởi động được, artifact có thể thiếu; job vẫn thất bại, không xem thiếu log
+là thành công. `.gitignore` hiện hữu đã ignore root `Builds/`, `Logs/`, `Artifacts/`
+và `TestResults/`; không thêm exe, DLL output, ZIP hoặc log vào Git.
+
+### Kiểm chứng Phase 2
+
+- Scene preflight và wrapper `ValidateOnly` đạt trên Unity 6000.6.8f1 có Windows support.
+- **21/21** regression cases đạt trên Windows PowerShell **5.1.26100.10068**:
+  valid scenes/player layout; sai order/disabled/missing scene/GUID; missing/empty/bad
+  exe; thiếu DLL/data/report/log; report hỏng/failed/errors/version/scenes sai và
+  compiler warning và Unity analyzer warning. Fixture là dữ liệu synthetic, không phải player chạy thật.
+- Strict Roslyn **7/7** project asmdefs đạt; Editor helper compile riêng với Unity
+  6000.6.8f1 APIs, **0 warning/error**, không suppress. Scaffold **1.527** metadata pairs,
+  GUID/build settings/packages và graph 7 asmdef đạt. PowerShell scripts và embedded
+  workflow steps parse; YAML/needs/retention/path classification và ignore rules đạt.
+- Native build **đã thành công**, process exit **0**, trên checkout riêng
+  `TestResults/CIPhase2/ValidationProject`, dùng lại Library cache để giữ project
+  chính đang có lock. `StandaloneWindows64`, backend **Mono2x**, Unity **6000.6.8f1**,
+  **113.882.093 bytes**, `Succeeded`, **0 errors**, exe **667.136 bytes**; cả ba scene
+  đúng order. Verifier chạy lại trên player thật và đạt.
+- BuildReport có **15 warning từ `Assets/Mirror/`**, mã analyzer UAC0007/UAC0009/
+  UAC1001/UAC1009/UAC1010. Chúng được giữ nguyên trong log, không suppress hay sửa vendor.
+  **0 project compiler/analyzer diagnostics**; không mô tả thành zero warnings toàn build.
+- Lượt Editor đầu bị `OutOfMemoryException`, exit **-2147483645**; probe helper cũng
+  phát hiện kiểu count Unity API là `int`, đã sửa trước xác minh cuối. Retry tuần tự
+  dùng source cuối compile đạt và tạo player thành công. Không dùng report từ lượt lỗi.
+- Chạy chính block packaging trong YAML trên output thật: ZIP **44.652.528 bytes**,
+  **203 entries**, có exe/runtime/data/report; SHA256 khớp file checksum. Marker local
+  ghi `53e4741-local-phase2-uncommitted`, không giả là artifact đã commit/chạy GitHub.
+  CI sẽ ghi `${github.sha}` thật. Raw proof nằm trong `TestResults/CIPhase2/` và output/log
+  của validation copy, đều ignore. Đã kiểm **7/7** tình huống gate tổng hợp: required
+  success, docs-only skip được nhận; required skip/failure/cancelled, mất classifier,
+  Unity skipped đều bị từ chối.
+- Classifier chạy bằng Git Bash với **7/7** ca: docs-only, asset, code, tool, workflow,
+  asset chuyển vào docs và push main chỉ sửa README; kết quả build/skip đúng chính sách.
+- Không chạy lại native EditMode/PlayMode trong Phase 2. Baseline lịch sử vẫn
+  **261 EditMode pass / 408 PlayMode pass (406 project) / 2 vendor skips**, không gán
+  số đó cho lượt chạy mới. GitHub Windows-latest/container/cache/artifact handoff
+  chưa thực thi trong nhiệm vụ cục bộ này.
