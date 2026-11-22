@@ -561,3 +561,85 @@ giới hạn riêng; không dùng smoke pass để bỏ gate đó.
 
 Native suites lịch sử 261 EditMode / 408 PlayMode pass (406 project, 2 vendor skip)
 không được cộng vào smoke counts hoặc gọi là native suites mới đã chạy trong Phase 3.
+
+## 10. Gia cố bộ nhớ Ubuntu cho Windows cross-build — exit 137
+
+Baseline `bcafcd8cc682ffd3c3c3fe00b515d31862e16b7e` (merge PR #34), nhánh
+`fix/ci-ubuntu-oom-137`, ngày 23/11/2026. Incident xảy ra sau khi license được chấp
+nhận, trước khi build hoàn tất; job smoke bị skip vì phụ thuộc build. Exit **137**
+biểu thị SIGKILL; thiếu RAM/swap hoặc shared memory là hướng điều tra, nhưng phải
+đối chiếu kernel log để xác nhận OOM, không kết luận chỉ từ exit code.
+
+Chỉ sửa job `windows-standalone-build`; giữ nguyên các job khác, dependency graph,
+docs-only skip, test thresholds, Mono backend, Editor build helper và wrapper Windows.
+Không thêm Dockerfile hay yêu cầu Docker Desktop trên máy lập trình viên.
+
+| Thay đổi | Cấu hình và lý do |
+|---|---|
+| Swap của runner | Tạo thêm **8 GiB** tại `/swapfile-smallarena-unity-ci` trước GameCI; `chmod 600`, `mkswap`, `swapon`. Giữ swap có sẵn. Kiểm còn đủ 8 GiB cộng **4 GiB** dự phòng trên `/`; thiếu dung lượng hoặc trùng đường dẫn thì fail rõ ràng, không ghi đè. |
+| Giới hạn RAM container | `dockerMemoryLimit: 12g`, thay mặc định khoảng 95% RAM host, chừa RAM cho runner/Docker trên máy khoảng 16 GiB. Không vô hiệu hóa OOM killer. |
+| Shared memory | `dockerShmSize: 2g` tạo `--shm-size=2g`; không dùng input không được hỗ trợ `dockerRunOptions`. Đây là giới hạn tmpfs, không phải RAM được cấp thêm. |
+| Unity jobs | `customParameters: -job-worker-count 2` giảm song song của Unity job workers trong import/build; không khẳng định giới hạn mọi tiến trình importer/shader riêng biệt. |
+| Library cache | Tách `actions/cache/restore` và `actions/cache/save`, cùng SHA pin và nguyên key/prefix Linux/Mono/Unity/config/commit. Log exact hit và matched key. Prefix hit vẫn là cache đã restore dù `cache-hit` không phải `true`. Chỉ save khi Unity build success và chưa exact-hit; không lưu Library bị ngắt giữa chừng bởi SIGKILL. |
+| Diagnostics | `if: failure()` in RAM/swap/disk, tối đa 80 dòng kernel có `killed process/oom/out of memory` nếu được phép, và 80 dòng cuối của BuildReport/build log. Log chưa được tạo trước executeMethod hoặc kernel bị chặn đều có thông báo riêng. Không dump environment, ULF hay license credentials. |
+
+Input được đối chiếu trực tiếp với [action.yml của GameCI tại SHA đang pin](https://github.com/game-ci/unity-builder/blob/4423ee75828dff56037d1d1cfdac6b68e3a6ba00/action.yml)
+và [cách tạo Docker flags](https://github.com/game-ci/unity-builder/blob/4423ee75828dff56037d1d1cfdac6b68e3a6ba00/src/model/docker.ts).
+Theo [Docker memory/swap constraints](https://docs.docker.com/engine/containers/resource_constraints/),
+khi đặt `--memory` mà không đặt `--memory-swap`, container có thể dùng swap đến mức
+tương ứng giới hạn memory nếu host có swap. Vì vậy swap runner có thể giúp container
+vượt đỉnh RAM tạm thời; không bảo đảm mọi build sẽ tránh OOM hoặc tránh timeout.
+Swap chỉ áp dụng VM CI dùng một lần, không chạy trên máy Windows của lập trình viên.
+
+### Kiểm chứng cục bộ của bản sửa
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Test-AssertUnityTestResults.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Test-WindowsStandaloneBuild.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Test-InvokeMultiplayerSmoke.ps1
+git diff --check
+```
+
+| Kiểm tra mới thực thi | Kết quả |
+|---|---|
+| XML validator, Windows PowerShell 5.1 | **34/34 pass**, 0 failed |
+| Windows build validator, Windows PowerShell 5.1 | **30/30 pass**, 0 failed |
+| Smoke parser/exit/watchdog/native child cleanup | **25/25 pass**, 0 failed |
+| YAML + contract theo metadata GameCI SHA pin | Đạt; inputs hợp lệ, cache key giữ nguyên, các job khác không đổi |
+| `bash -n` trên các Bash blocks của job | **4/4** blocks riêng biệt đạt (6 tệp kiểm tra gồm 2 bản sao dùng cho mock) |
+| Bash checks có mock, không chạy sudo/swap thật | **7/7** đạt: swap success, thiếu disk, path tồn tại, swapon lỗi, kernel OOM/không OOM/bị từ chối; diagnostics chịu được report/log chưa tồn tại |
+
+Bằng chứng tạm tại `TestResults/CI-OOM137/` bị ignore. Đây là kiểm tra workflow và
+validator; không phải lượt chạy Unity build, compilation hay EditMode/PlayMode mới.
+Chưa cấp swap, chạy Docker Unity Ubuntu hoặc chạy GitHub Actions trong nhiệm vụ này.
+Không dùng số liệu native suites lịch sử làm kết quả kiểm thử mới.
+
+### Push và xác nhận artifact-to-smoke trên GitHub
+
+Các lệnh dưới đây dành cho người review thực thi; chỉ stage hai tệp được sửa, không
+stage `AGENTS.md`, `PROJECT_CONTEXT.md`, logs, license hoặc binaries:
+
+```powershell
+git switch fix/ci-ubuntu-oom-137
+git diff --check
+git diff -- .github/workflows/unity-ci.yml docs/ci/ci-pipeline.md
+git add -- .github/workflows/unity-ci.yml docs/ci/ci-pipeline.md
+git commit -m "fix(ci): reduce Unity cross-build memory pressure and diagnose SIGKILL"
+git push -u origin fix/ci-ubuntu-oom-137
+# Tạo PR nếu nhánh chưa có PR; workflow chạy theo trigger pull_request hiện có.
+gh pr create --base main --head fix/ci-ubuntu-oom-137 --title "Fix Unity cross-build exit 137" --body "Add runner swap, bounded Unity workers/container memory, safe Library caching and failure diagnostics."
+gh run list --branch fix/ci-ubuntu-oom-137 --workflow unity-ci.yml --limit 5
+# Thay RUN_ID bằng ID của run chứa commit vừa push:
+gh run watch RUN_ID --exit-status
+gh run view RUN_ID --json headSha,jobs
+```
+
+Trong logs: swap tăng thêm 8 GiB, cache matched key/exact hit rõ ràng, Docker nhận
+`--shm-size=2g`/`--memory=12g`, Unity nhận `-job-worker-count 2`, không còn exit 137.
+Xác nhận **windows-standalone-build success**, ZIP chứa `SmallArena.exe` và
+`SmallArena_Data`, BuildReport success/0 errors, SHA256/source commit hợp lệ. Sau đó
+**multiplayer-smoke-test success** với cả Combat và Disconnect, exit 0 và cleanup
+không còn process/port bị giữ. Build artifact giữ 3 ngày, smoke logs giữ 7 ngày.
+Nếu thất bại, xem failure diagnostics và `gh run view RUN_ID --log-failed` trước khi
+thay đổi thêm; không bỏ quality gate. Vấn đề Docker Windows của job Phase 1 vẫn
+độc lập với bản sửa này và có thể ảnh hưởng aggregate gate.

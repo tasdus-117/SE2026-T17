@@ -209,13 +209,45 @@ jobs:
         run: |
           ./tools/Assert-WindowsStandaloneBuild.ps1 -ScenesOnly
           New-Item -ItemType Directory -Path Logs/WindowsStandalone -Force | Out-Null
-      - name: Cache Linux-to-Windows Mono Library
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      - name: Configure runner swap for Unity import peaks
+        shell: bash
+        run: |
+          set -euo pipefail
+          swapfile=/swapfile-smallarena-unity-ci
+          swap_bytes=$((8 * 1024 * 1024 * 1024))
+          reserve_bytes=$((4 * 1024 * 1024 * 1024))
+          free -h
+          df -h /
+          available=$(df -B1 --output=avail / | tail -n 1 | tr -d ' ')
+          if (( available < swap_bytes + reserve_bytes )); then
+            echo '::error::Insufficient runner disk for 8 GiB swap plus 4 GiB reserve.'
+            exit 1
+          fi
+          if sudo test -e "$swapfile"; then
+            echo '::error::Reserved Unity swap path already exists; refusing to overwrite it.'
+            exit 1
+          fi
+          sudo fallocate -l "$swap_bytes" "$swapfile"
+          sudo chmod 600 "$swapfile"
+          sudo mkswap "$swapfile"
+          sudo swapon "$swapfile"
+          sudo swapon --show
+          free -h
+      - name: Restore Linux-to-Windows Mono Library
+        id: library-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: Library
           key: windows-mono-cross-v2-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-${{ github.sha }}
           restore-keys: |
             windows-mono-cross-v2-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-
+      - name: Report Library cache restore
+        shell: bash
+        env:
+          CACHE_EXACT_HIT: ${{ steps.library-cache.outputs.cache-hit }}
+          CACHE_MATCHED_KEY: ${{ steps.library-cache.outputs.cache-matched-key }}
+        run: |
+          printf 'Library exact hit: %s; restored key: %s\n' "$CACHE_EXACT_HIT" "$CACHE_MATCHED_KEY"
       - name: Cross-build production Windows x64 Mono player
         id: build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4 (pinned)
@@ -231,6 +263,15 @@ jobs:
           buildsPath: Builds
           buildMethod: SmallArena.Tools.SmallArenaBuildPipeline.BuildWindowsStandalone
           versioning: None
+          customParameters: -job-worker-count 2
+          dockerShmSize: 2g
+          dockerMemoryLimit: 12g
+      - name: Save successfully imported Library
+        if: ${{ always() && !cancelled() && steps.build.outcome == 'success' && steps.library-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: Library
+          key: ${{ steps.library-cache.outputs.cache-primary-key }}
       - name: Verify executable, player data and successful BuildReport
         shell: pwsh
         run: ./tools/Assert-WindowsStandaloneBuild.ps1
@@ -258,6 +299,32 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 3
+      - name: Diagnose Unity SIGKILL or build failure
+        if: failure()
+        shell: bash
+        run: |
+          set -uo pipefail
+          free -h
+          sudo swapon --show
+          df -h /
+          kernel_log="$RUNNER_TEMP/unity-oom-kernel.log"
+          if sudo dmesg -T > "$kernel_log" 2>/dev/null; then
+            if grep -i -E 'killed process|oom|out of memory' "$kernel_log" | tail -n 80; then
+              echo 'Kernel memory-related messages shown above.'
+            else
+              echo 'No kernel OOM messages found; exit 137 alone does not prove OOM.'
+            fi
+          else
+            echo 'Kernel log access denied; inspect GameCI output and the runner memory figures.'
+          fi
+          for report in Builds/WindowsStandalone/build-report.json Logs/WindowsStandalone/build.log; do
+            if [[ -s "$report" ]]; then
+              printf '\n--- %s (last 80 lines) ---\n' "$report"
+              tail -n 80 "$report"
+            else
+              printf 'Not created: %s (Unity may not have reached the build entry point).\n' "$report"
+            fi
+          done
       - name: Upload Windows build diagnostics
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
