@@ -17,6 +17,8 @@ jobs:
   diff:
     name: Git diff
     runs-on: ubuntu-24.04
+    outputs:
+      build_required: ${{ steps.changes.outputs.build_required }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -26,6 +28,26 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: git diff --check "$BASE_SHA" HEAD --
+      - name: Classify Windows build changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          required=false
+          if [[ "$EVENT_NAME" == push ]]; then
+            required=true
+          else
+            git diff --no-renames --name-only -z "$BASE_SHA" HEAD -- > "$RUNNER_TEMP/windows-build-paths"
+            while IFS= read -r -d '' file; do
+              case "$file" in
+                docs/*|README.md|.github/workflows/README.md) ;;
+                *) required=true ;;
+              esac
+            done < "$RUNNER_TEMP/windows-build-paths"
+          fi
+          echo "build_required=$required" >> "$GITHUB_OUTPUT"
 
   static:
     name: Static quality (${{ matrix.os }})
@@ -52,6 +74,16 @@ jobs:
       - name: Saved Input Actions and input boundaries
         shell: pwsh
         run: ./tools/Verify-Input.ps1 -SkipCompilation
+      - name: Windows builder scene and output regression tests
+        shell: pwsh
+        run: ./tools/Test-WindowsStandaloneBuild.ps1
+      - name: Windows builder regression tests (Windows PowerShell 5.1)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./tools/Test-WindowsStandaloneBuild.ps1
+      - name: Windows build scene preflight
+        shell: pwsh
+        run: ./tools/Assert-WindowsStandaloneBuild.ps1 -ScenesOnly
 
   unity:
     name: Unity EditMode and PlayMode
@@ -145,10 +177,95 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+  windows-standalone-build:
+    name: Windows Standalone Build
+    needs: diff
+    if: ${{ needs.diff.outputs.build_required == 'true' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check Unity license configuration
+        shell: pwsh
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if (-not $env:UNITY_LICENSE -or -not $env:UNITY_EMAIL -or -not $env:UNITY_PASSWORD) {
+            throw 'Configure the existing Unity CI license secrets. No credentials will be printed.'
+          }
+      - name: Verify production scene order
+        shell: pwsh
+        run: |
+          ./tools/Assert-WindowsStandaloneBuild.ps1 -ScenesOnly
+          New-Item -ItemType Directory -Path Logs/WindowsStandalone -Force | Out-Null
+      - name: Cache Linux-to-Windows Mono Library
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: Library
+          key: windows-mono-cross-v2-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-${{ github.sha }}
+          restore-keys: |
+            windows-mono-cross-v2-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-
+      - name: Cross-build production Windows x64 Mono player
+        id: build
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4 (pinned)
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.6.8f1
+          customImage: unityci/editor:ubuntu-6000.6.8f1-windows-mono-3
+          targetPlatform: StandaloneWindows64
+          buildName: SmallArena
+          buildsPath: Builds
+          buildMethod: SmallArena.Tools.SmallArenaBuildPipeline.BuildWindowsStandalone
+          versioning: None
+      - name: Verify executable, player data and successful BuildReport
+        shell: pwsh
+        run: ./tools/Assert-WindowsStandaloneBuild.ps1
+      - name: Package Phase 3 handoff
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p Artifacts/WindowsStandalone
+          archive="$GITHUB_WORKSPACE/Artifacts/WindowsStandalone/SmallArena-Windows-x64.zip"
+          (cd Builds/WindowsStandalone && zip -q -r "$archive" .)
+          unzip -tq "$archive"
+          (
+            cd Artifacts/WindowsStandalone
+            sha256sum SmallArena-Windows-x64.zip > SHA256SUMS.txt
+            sha256sum --check SHA256SUMS.txt
+            printf '%s\n' "$SOURCE_SHA" > source-commit.txt
+          )
+      - name: Upload verified Windows player
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-standalone-${{ github.sha }}
+          path: Artifacts/WindowsStandalone
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 3
+      - name: Upload Windows build diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-standalone-build-logs-${{ github.sha }}
+          path: |
+            Logs/WindowsStandalone
+            Builds/WindowsStandalone/build-report.json
+          if-no-files-found: warn
+          retention-days: 3
+
   quality:
     name: CI Quality Gate
     if: always()
-    needs: [diff, static, unity]
+    needs: [diff, static, unity, windows-standalone-build]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every verification job to succeed
@@ -156,9 +273,16 @@ jobs:
           DIFF_RESULT: ${{ needs.diff.result }}
           STATIC_RESULT: ${{ needs.static.result }}
           UNITY_RESULT: ${{ needs.unity.result }}
+          BUILD_REQUIRED: ${{ needs.diff.outputs.build_required }}
+          BUILD_RESULT: ${{ needs.windows-standalone-build.result }}
         shell: pwsh
         run: |
           foreach ($name in @('DIFF_RESULT', 'STATIC_RESULT', 'UNITY_RESULT')) {
             $result = [Environment]::GetEnvironmentVariable($name)
             if ($result -ne 'success') { throw "$name=$result; all gates must succeed, including licensed Unity verification." }
           }
+          if ($env:BUILD_REQUIRED -eq 'true') {
+            if ($env:BUILD_RESULT -ne 'success') { throw "Required Windows build did not succeed: $env:BUILD_RESULT" }
+          } elseif ($env:BUILD_REQUIRED -eq 'false') {
+            if ($env:BUILD_RESULT -ne 'skipped') { throw "Unexpected documentation-only build state: $env:BUILD_RESULT" }
+          } else { throw 'Missing/invalid Windows build classification.' }

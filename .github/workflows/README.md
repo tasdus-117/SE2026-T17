@@ -8,7 +8,14 @@ architecture, metadata/GUID, scene order, Input Actions và regression XML khôn
 Job **Unity EditMode and PlayMode** chạy native tests và strict compilation/layout
 trong cùng Editor container trên Windows. Phiên bản lấy từ
 [ProjectVersion.txt](../../ProjectSettings/ProjectVersion.txt); image được cố định bằng digest trong mỗi lượt chạy.
-**CI Quality Gate** chỉ đạt nếu mọi job trên đều thành công.
+Job **Windows Standalone Build** dùng Unity 6000.6.8f1 trên `ubuntu-latest`, image
+`unityci/editor:ubuntu-6000.6.8f1-windows-mono-3` để cross-build Windows x64 Mono,
+cache Library riêng Linux và upload ZIP/checksum + diagnostics giữ 3 ngày.
+Máy Windows phát triển dùng wrapper native, không cần Docker Desktop.
+Job chạy cho code/asset/tool/
+workflow PR và mọi push main; PR chỉ sửa tài liệu được skip riêng build.
+**CI Quality Gate** chỉ đạt nếu tests/static thành công và build cần thiết thành công;
+skip build chỉ hợp lệ khi classifier xác nhận docs-only.
 
 ## Thiết lập giấy phép một lần
 
@@ -27,6 +34,6 @@ Unity cho đóng góp từ fork, thành viên có quyền ghi cần review thay 
 chúng lên một nhánh của repo và mở PR từ nhánh đó.
 
 Kiến trúc gate, lệnh chạy cục bộ, kết quả thực tế và danh sách status checks đề xuất
-ở [CI Phase 1](../../docs/ci/ci-pipeline.md). Sau khi các job xuất hiện trong Checks,
+ở [CI Phase 1–2](../../docs/ci/ci-pipeline.md). Sau khi các job xuất hiện trong Checks,
 quản trị viên có thể yêu cầu **CI Quality Gate** qua quy tắc bảo vệ `main`. Xem
 [cấu hình kiểm tra bắt buộc](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging).
