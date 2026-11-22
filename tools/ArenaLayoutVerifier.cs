@@ -25,6 +25,7 @@ internal static class ArenaLayoutVerifier
         public Dictionary<long, Record> Records;
         public IEnumerable<Record> OfType(string type) => Records.Values.Where(item => item.Type == type);
         public Record Only(string type) => OfType(type).Single();
+        public Record RootTransform => OfType("Transform").Single(item => Id(Field(item.Data, "m_Father")) == 0);
         public Record Named(string name) => OfType("GameObject").Where(item => !item.Stripped).Single(item => Text(item.Data, "m_Name") == name);
         public Record Component(Record owner, string type) => Sequence(Field(owner.Data, "m_Component"))
             .Select(node => Records[Id(Field(Map(node), "component"))]).Single(item => item.Type == type);
@@ -107,21 +108,34 @@ internal static class ArenaLayoutVerifier
         foreach (var name in names)
         {
             var prefab = prefabs[name];
-            Check(prefab.OfType("GameObject").Count() == 1 && prefab.OfType("Transform").Count() == 1, "Expected one primitive root per prefab.");
+            var objectCount = name == "Player" ? 2 : 1;
+            Check(prefab.OfType("GameObject").Count() == objectCount && prefab.OfType("Transform").Count() == objectCount,
+                "Expected primitive root and only the Player's explicit muzzle anchor.");
             Check(prefab.Records.Values.All(item => allowedTypes.Contains(item.Type)), "Non-structural component in " + name);
             var expectedTypes = new HashSet<string> { "GameObject", "Transform", "MeshFilter", "MeshRenderer" };
             expectedTypes.Add(name == "Player" ? "CharacterController" : name == "Bot" ? "CapsuleCollider" : "BoxCollider");
             if (name == "WeaponPickup") expectedTypes.Add("Rigidbody");
             expectedTypes.Add("MonoBehaviour");
-            var expectedCount = expectedTypes.Count + (name == "Player" ? 14 : name == "Bot" ? 2 : 1);
+            var expectedCount = expectedTypes.Count + (name == "Player" ? 19 : name == "Bot" ? 2 : 1);
             Check(prefab.Records.Count == expectedCount && expectedTypes.SetEquals(prefab.Records.Values.Select(item => item.Type)), "Unexpected/duplicate prefab component.");
             var owner = prefab.Named(name);
             var layerName = name == "WeaponPickup" ? "Pickup" : name;
             Check(Number(owner.Data, "m_Layer") == expectedLayers[layerName], "Wrong entity layer: " + name);
             Check(Number(owner.Data, "m_IsActive") == 1, "Inactive prefab: " + name);
             var transform = prefab.Component(owner, "Transform");
+            var muzzle = name == "Player" ? prefab.Named("ShotMuzzle") : null;
+            var muzzleTransform = muzzle != null ? prefab.Component(muzzle, "Transform") : null;
+            if (muzzle != null)
+            {
+                Check(Id(Field(muzzleTransform.Data, "m_Father")) == transform.Id && Number(muzzle.Data, "m_Layer") == 0,
+                    "Shot muzzle must be attached to the official player transform.");
+                Check(Sequence(Field(muzzle.Data, "m_Component")).Count() == 1 && !Sequence(Field(muzzleTransform.Data, "m_Children")).Any(),
+                    "Muzzle must be a transform-only anchor.");
+                var position = Map(Field(muzzleTransform.Data, "m_LocalPosition"));
+                Near(Number(position, "x"), 0); Near(Number(position, "y"), .25); Near(Number(position, "z"), 0);
+            }
             foreach (var component in prefab.Records.Values.Where(item => item.Type != "GameObject"))
-                Check(Id(Field(component.Data, "m_GameObject")) == owner.Id, "Component ownership mismatch.");
+                Check(Id(Field(component.Data, "m_GameObject")) == (component == muzzleTransform ? muzzle.Id : owner.Id), "Component ownership mismatch.");
             Check(Id(Field(transform.Data, "m_Father")) == 0, "Prefab root must have no parent.");
             IdentityRotation(transform);
             Check(Vector(transform.Data, "m_LocalPosition") == Vector3.Zero, "Prefab must store origin-relative pose.");
@@ -151,7 +165,7 @@ internal static class ArenaLayoutVerifier
         Check(player.OfType("MonoBehaviour").Count(item => Text(Map(Field(item.Data, "m_Script")), "guid") == simulationGuid) == 1, "Server movement simulation missing.");
         var replication = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == transformGuid);
         Check(Number(replication.Data, "syncDirection") == 0 && Number(replication.Data, "syncMode") == 0, "Transform must synchronize ServerToClient to all observers, including owner.");
-        Check(Id(Field(replication.Data, "target")) == player.Only("Transform").Id && Number(replication.Data, "coordinateSpace") == 1, "Replication must target the official world transform.");
+        Check(Id(Field(replication.Data, "target")) == player.RootTransform.Id && Number(replication.Data, "coordinateSpace") == 1, "Replication must target the official world transform.");
         Check(Number(replication.Data, "syncPosition") == 1 && Number(replication.Data, "syncRotation") == 1 && Number(replication.Data, "syncScale") == 0, "Replication position/rotation configuration mismatch.");
         Check(Number(replication.Data, "interpolatePosition") == 1 && Number(replication.Data, "interpolateRotation") == 1, "Client transform interpolation must remain enabled.");
         var controller = player.Only("CharacterController");
@@ -161,6 +175,16 @@ internal static class ArenaLayoutVerifier
         var movement = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == movementGuid);
         Check(Number(inputAdapter.Data, "m_Enabled") == 1 && Number(movement.Data, "m_Enabled") == 1, "Player adapters must be enabled.");
         Check(Id(Field(movement.Data, "characterController")) == controller.Id && Id(Field(movement.Data, "inputHandler")) == inputAdapter.Id, "Player locomotion references are not wired.");
+        var shotGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/NetworkShotIntentAdapter.cs.meta"));
+        var presentationGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Networking/NetworkPlayerPresentationAdapter.cs.meta"));
+        var heldGuid = ReadGuid(System.IO.Path.Combine(prefix, "Scripts/Client/Input/HeldFireInput.cs.meta"));
+        var shot = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == shotGuid);
+        var presentation = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == presentationGuid);
+        var held = player.OfType("MonoBehaviour").Single(item => Text(Map(Field(item.Data, "m_Script")), "guid") == heldGuid);
+        Check(Number(shot.Data, "m_Enabled") == 1 && Number(presentation.Data, "m_Enabled") == 1 && Number(held.Data, "m_Enabled") == 1,
+            "Production shot/presentation adapters must be enabled.");
+        Check(Id(Field(held.Data, "input")) == inputAdapter.Id && Id(Field(held.Data, "sinkProvider")) == shot.Id
+            && Id(Field(held.Data, "muzzle")) == player.Component(player.Named("ShotMuzzle"), "Transform").Id, "Held-fire production references mismatch.");
         Check(Text(Map(Field(inputAdapter.Data, "inputActions")), "guid") == ReadGuid(System.IO.Path.Combine(prefix, "Input/SmallArena.inputactions.meta")), "Input action asset is not wired.");
         Near(Number(movement.Data, "moveSpeed"), 5); Near(Number(movement.Data, "jumpHeight"), 1.2);
         Near(Number(movement.Data, "gravity"), -20); Near(Number(movement.Data, "groundedGravity"), -2);
@@ -253,13 +277,13 @@ internal static class ArenaLayoutVerifier
             Check(Id(Field(modification, "m_TransformParent")) == 0, "Entity must be a scene root.");
             var removed = Sequence(Field(modification, "m_RemovedComponents")).ToArray();
             if (name == "Player")
-                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018 }), "Offline player must remove all network simulation, health, combat, separation and presentation components.");
+                Check(removed.Select(Id).OrderBy(id => id).SequenceEqual(new long[] { 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1021, 1022, 1023 }), "Offline player must remove all network simulation, health, combat, separation and presentation components.");
             else Check(removed.Length == 0, "Unexpected removed prefab component.");
             foreach (var key in new[] { "m_RemovedGameObjects", "m_AddedGameObjects", "m_AddedComponents" })
                 Check(!Sequence(Field(modification, key)).Any(), "Unexpected structural prefab override.");
             var changes = Sequence(Field(modification, "m_Modifications")).Select(Map).ToArray();
             Check(changes.Length == 3, "Only XYZ spawn overrides are allowed.");
-            var transform = prefab.Only("Transform");
+            var transform = prefab.RootTransform;
             foreach (var change in changes) Check(Id(Field(change, "target")) == transform.Id && Text(Map(Field(change, "target")), "guid") == guid, "Invalid prefab override target.");
             float Coordinate(string axis) => (float)Number(changes.Single(item => Text(item, "propertyPath") == "m_LocalPosition." + axis), "value");
             var position = new Vector3(Coordinate("x"), Coordinate("y"), Coordinate("z"));
@@ -268,7 +292,7 @@ internal static class ArenaLayoutVerifier
             foreach (var strippedTransform in scene.OfType("Transform").Where(item => item.Stripped && Id(Field(item.Data, "m_PrefabInstance")) == instance.Id))
                 Check(Id(Field(strippedTransform.Data, "m_CorrespondingSourceObject")) == transform.Id, "Stripped transform source mismatch.");
             var strippedObject = scene.OfType("GameObject").Single(item => item.Stripped && Id(Field(item.Data, "m_PrefabInstance")) == instance.Id);
-            Check(Id(Field(strippedObject.Data, "m_CorrespondingSourceObject")) == prefab.Only("GameObject").Id,
+            Check(Id(Field(strippedObject.Data, "m_CorrespondingSourceObject")) == prefab.Named(name).Id,
                 "Stripped GameObject source mismatch.");
             Check(Text(Map(Field(strippedObject.Data, "m_CorrespondingSourceObject")), "guid") == guid,
                 "Stripped GameObject prefab GUID mismatch.");
