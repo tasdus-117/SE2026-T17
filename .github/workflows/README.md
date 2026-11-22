@@ -14,8 +14,11 @@ cache Library riêng Linux và upload ZIP/checksum + diagnostics giữ 3 ngày.
 Máy Windows phát triển dùng wrapper native, không cần Docker Desktop.
 Job chạy cho code/asset/tool/
 workflow PR và mọi push main; PR chỉ sửa tài liệu được skip riêng build.
-**CI Quality Gate** chỉ đạt nếu tests/static thành công và build cần thiết thành công;
-skip build chỉ hợp lệ khi classifier xác nhận docs-only.
+Job **Multiplayer Smoke Test** tải đúng ZIP/SHA từ build job, chạy Host + Client thật
+trên Windows qua KCP, kiểm combat và abrupt disconnect rồi cleanup bằng Job Object/
+watchdog; không cài Editor/Docker hoặc activate license. Smoke logs giữ 7 ngày.
+**CI Quality Gate** chỉ đạt nếu tests/static thành công và build + smoke cần thiết
+đều thành công; skip build/smoke chỉ hợp lệ khi classifier xác nhận docs-only.
 
 ## Thiết lập giấy phép một lần
 
