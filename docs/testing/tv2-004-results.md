@@ -49,6 +49,19 @@ counters; TV3 reviews axes/jump/invalidation/HUD. No actual responses received a
 of preparation. #21's technical notes contain placeholder commit hashes; they
 cannot certify this revision. CI/Codex review are separate from human sign-off.
 
+Post-publication checks: CI run44994703276 on initial docs head19d179a passed both
+Unity and Git diff jobs. Codex reviewed that head and correctly identified that
+kill feed uses retained SyncList state, not an elimination RPC; CT-203 was corrected
+after reading NetworkMatchController.PublishElimination/KillFeedHudView.Update.
+Subsequent final-head CI/review is recorded in the PR, not inferred from this run.
+
+Fresh saved-config verifier attempt with pinned EditorRoot exited1 at collision
+pair7/7: tools/ArenaConfigurationVerifier.cs still omits Player from Player's
+allowed partners. Actual DynamicsManager and ArenaConfigurationTests require the
+enabled pair. This baseline tool mismatch is recorded, not counted as a passing
+check, and no gameplay/config/tool code is changed by docs-only #20. Tool-owner
+follow-up under #29 is needed; artifacts remain TestResults/ArenaConfiguration.
+
 ## Historical delivery record — 19/20-Nov-2026
 
 19-Nov-2026. Generated summary by Codex, not a raw transcript or human approval.

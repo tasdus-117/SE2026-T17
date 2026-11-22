@@ -52,6 +52,10 @@ satisfy this contract and are verified without unrelated tuning changes.
   Editor-bundled YamlDotNet, checks all 1,024 matrix entries and their symmetry,
   and resolves render pipeline/renderer GUIDs. It verifies saved configuration;
   it cannot prove Unity has imported or rendered it.
+  At main `995e6a4`, its C# policy still expects Player/Player disabled and a fresh
+  22-Nov run fails at pair 7/7. This is stale verifier policy: current settings and
+  ArenaConfigurationTests require Player/Player enabled. No settings were changed
+  to satisfy the old verifier; a tool-owner follow-up is needed under #20/#29.
 - `Tests/PlayMode/ArenaConfigurationTests.cs` contains 25 read-only NUnit cases
   checking imported named layers, collision flags, URP bindings and active color
   space. These require a licensed Unity Test Runner.
