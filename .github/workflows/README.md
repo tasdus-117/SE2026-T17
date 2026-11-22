@@ -3,8 +3,12 @@
 Workflow [Unity CI](unity-ci.yml) chạy khi mở hoặc cập nhật PR vào `main` và khi
 `main` nhận commit mới. Trên PR, GitHub Actions kiểm tra bản merge thử với
 `main`. Job **Git diff** phát hiện lỗi khoảng trắng và dấu xung đột Git mới.
-Job **Unity EditMode and PlayMode** chạy trên runner Windows do GitHub quản lý,
-dùng đúng phiên bản Editor trong [ProjectVersion.txt](../../ProjectSettings/ProjectVersion.txt).
+Hai job **Static quality (ubuntu-24.04)** / **Static quality (windows-2022)** kiểm
+architecture, metadata/GUID, scene order, Input Actions và regression XML không cần license.
+Job **Unity EditMode and PlayMode** chạy native tests và strict compilation/layout
+trong cùng Editor container trên Windows. Phiên bản lấy từ
+[ProjectVersion.txt](../../ProjectSettings/ProjectVersion.txt); image được cố định bằng digest trong mỗi lượt chạy.
+**CI Quality Gate** chỉ đạt nếu mọi job trên đều thành công.
 
 ## Thiết lập giấy phép một lần
 
@@ -17,10 +21,12 @@ dùng đúng phiên bản Editor trong [ProjectVersion.txt](../../ProjectSetting
 3. Mở tab **Actions** và chạy lại lượt CI bị lỗi do thiếu secrets. Kết quả và
    log của lượt chạy có trong **Checks** và artifact `unity-test-results`.
 
-PR từ fork chỉ chạy **Git diff** vì GitHub giữ kín secrets của repo. Để kiểm thử
+PR từ fork chạy **Git diff** và **Static quality** nhưng **CI Quality Gate** không đạt
+vì Unity chưa được kiểm chứng bằng license; GitHub giữ kín secrets của repo. Để kiểm thử
 Unity cho đóng góp từ fork, thành viên có quyền ghi cần review thay đổi rồi đưa
 chúng lên một nhánh của repo và mở PR từ nhánh đó.
 
-Sau khi hai job đã chạy thành công, quản trị viên có thể yêu cầu chúng qua
-quy tắc bảo vệ `main`. Xem
+Kiến trúc gate, lệnh chạy cục bộ, kết quả thực tế và danh sách status checks đề xuất
+ở [CI Phase 1](../../docs/ci/ci-pipeline.md). Sau khi các job xuất hiện trong Checks,
+quản trị viên có thể yêu cầu **CI Quality Gate** qua quy tắc bảo vệ `main`. Xem
 [cấu hình kiểm tra bắt buộc](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging).

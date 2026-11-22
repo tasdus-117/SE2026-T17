@@ -1,6 +1,7 @@
 param(
     [string]$EditorRoot = '',
-    [switch]$CompileProbes
+    [switch]$CompileProbes,
+    [switch]$SkipEditorCheck
 )
 
 $ErrorActionPreference = 'Stop'
@@ -8,7 +9,8 @@ $taskRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $taskRoot
 $versionText = [IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/ProjectVersion.txt'))
 $projectVersion = [regex]::Match($versionText, '(?m)^m_EditorVersion:\s*(\S+)').Groups[1].Value
-if (-not $EditorRoot) { $EditorRoot = Join-Path (Join-Path 'C:\Program Files\Unity\Hub\Editor' $projectVersion) 'Editor' }
+if ($SkipEditorCheck -and $CompileProbes) { throw 'CompileProbes requires an Editor; cannot use SkipEditorCheck.' }
+if (-not $SkipEditorCheck) { $EditorRoot = & (Join-Path $PSScriptRoot 'Resolve-UnityEditor.ps1') -EditorRoot $EditorRoot }
 
 function Assert-Scaffold([bool]$Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }
@@ -65,12 +67,13 @@ $requiredFolders = @('Art/Materials', 'Input', 'Scenes', 'Settings', 'Tests/Edit
 foreach ($folder in $requiredFolders) {
     Assert-Scaffold (Test-Path -LiteralPath (Join-Path 'Assets/_Project' $folder) -PathType Container) "Missing folder: $folder"
 }
-$assets = @(Get-Item -LiteralPath 'Assets') + @(Get-ChildItem -LiteralPath 'Assets' -Recurse -Force | Where-Object { $_.Extension -ne '.meta' -and -not $_.Name.StartsWith('.') })
+# Unity tracks children of Assets, never the project-root Assets.meta.
+$assets = @(Get-ChildItem -LiteralPath 'Assets' -Recurse -Force | Where-Object { $_.Extension -ne '.meta' -and -not $_.Name.StartsWith('.') })
 foreach ($asset in $assets) {
     Assert-Scaffold (Test-Path -LiteralPath ($asset.FullName + '.meta')) "Missing metadata: $($asset.FullName)"
 }
 $guids = @{}
-foreach ($meta in @(Get-Item -LiteralPath 'Assets.meta') + @(Get-ChildItem -LiteralPath 'Assets' -Recurse -Filter '*.meta')) {
+foreach ($meta in Get-ChildItem -LiteralPath 'Assets' -Recurse -Filter '*.meta') {
     $match = [regex]::Match([IO.File]::ReadAllText($meta.FullName), '(?mi)^guid: ([0-9a-f]{32})\s*$')
     Assert-Scaffold $match.Success "Invalid GUID: $($meta.FullName)"
     Assert-Scaffold (-not $guids.ContainsKey($match.Groups[1].Value)) "Duplicate GUID: $($meta.FullName)"
@@ -80,10 +83,6 @@ foreach ($meta in @(Get-Item -LiteralPath 'Assets.meta') + @(Get-ChildItem -Lite
 Assert-Scaffold ([IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/EditorSettings.asset')) -match 'm_SerializationMode: 2') 'Force Text is disabled.'
 Assert-Scaffold ([IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/VersionControlSettings.asset')) -match 'm_Mode: Visible Meta Files') 'Visible Meta Files is disabled.'
 Assert-Scaffold ($projectVersion -match '^6000\.') 'Project must use Unity 6.'
-$editorBinary = Join-Path $EditorRoot 'Unity.exe'
-Assert-Scaffold (Test-Path -LiteralPath $editorBinary) "Missing Unity Editor binary: $editorBinary"
-$installedVersion = (Get-Item -LiteralPath $editorBinary).VersionInfo.ProductVersion.Split('_')[0]
-Assert-Scaffold ($installedVersion -eq $projectVersion) "Project version $projectVersion does not match installed Editor $installedVersion."
 $graphics = [IO.File]::ReadAllText((Join-Path $taskRoot 'ProjectSettings/GraphicsSettings.asset'))
 $pipelineMatch = [regex]::Match($graphics, 'm_CustomRenderPipeline: .*guid: ([0-9a-f]{32})')
 Assert-Scaffold ($pipelineMatch.Success -and $guids.ContainsKey($pipelineMatch.Groups[1].Value)) 'Default URP asset is missing or unassigned.'
@@ -124,7 +123,7 @@ foreach ($entry in $lock.dependencies.PSObject.Properties) {
 foreach ($guide in @('README.md', 'docs/architecture/structure.md', 'docs/architecture/authority.md', 'docs/protocol/protocol.md', 'docs/testing/test-plan.md', 'docs/operations/runbook.md')) {
     Assert-Scaffold (Test-Path -LiteralPath (Join-Path $taskRoot $guide)) "Missing team/context guide: $guide"
 }
-$tracked = @(git ls-files)
+$tracked = @(git -c "safe.directory=$($taskRoot.Replace('\', '/'))" ls-files)
 Assert-Scaffold ($LASTEXITCODE -eq 0) 'Cannot inspect Git index.'
 Assert-Scaffold (@($tracked | Where-Object { $_ -match '^(Library|Temp|Obj|Build|Builds|Logs|UserSettings)/|\.(csproj|sln)$' }).Count -eq 0) 'Generated data is tracked.'
 Write-Output "PASS: 7 project asmdefs, $($assets.Count) asset/folder metadata pairs, unique GUIDs, settings/URP/scene, package closure, team/context guides, Git hygiene."
@@ -135,7 +134,7 @@ if (-not $CompileProbes) { exit 0 }
 # All generated sources, binaries and diagnostics stay in ignored Logs/.
 $output = Join-Path $taskRoot 'Logs/ScaffoldVerification'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
-$dotnet = Join-Path $EditorRoot 'Data/DotNetSdk/dotnet.exe'
+$dotnet = Join-Path $EditorRoot 'Data/NetCoreRuntime/dotnet.exe'
 $csc = Join-Path $EditorRoot 'Data/DotNetSdk/sdk/8.0.318/Roslyn/bincore/csc.dll'
 $referencePath = Join-Path $EditorRoot 'Data/DotNetSdk/packs/Microsoft.NETCore.App.Ref/8.0.21/ref/net8.0'
 $framework = @(Get-ChildItem -LiteralPath $referencePath -Filter '*.dll' | ForEach-Object { $_.FullName })

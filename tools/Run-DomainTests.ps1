@@ -1,10 +1,11 @@
 param(
-    [string]$EditorRoot = 'C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor',
+    [string]$EditorRoot = '',
     [switch]$MutationChecks
 )
 
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
+$EditorRoot = & (Join-Path $PSScriptRoot 'Resolve-UnityEditor.ps1') -EditorRoot $EditorRoot
 Set-Location -LiteralPath $taskRoot
 $domainFolder = Join-Path $taskRoot 'Assets/_Project/Scripts/Shared/Domain'
 $testFolder = Join-Path $taskRoot 'Assets/_Project/Tests/EditMode'

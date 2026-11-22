@@ -1,13 +1,14 @@
 param(
-    [string]$EditorRoot = 'C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor',
+    [string]$EditorRoot = '',
     [string]$OutputDirectory = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
+$EditorRoot = & (Join-Path $PSScriptRoot 'Resolve-UnityEditor.ps1') -EditorRoot $EditorRoot
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $taskRoot 'TestResults/Compilation' }
 $output = [IO.Path]::GetFullPath($OutputDirectory)
-if (-not $output.StartsWith($taskRoot + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Compiler output must remain in the workspace.' }
+if (-not $output.StartsWith($taskRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Compiler output must remain in the workspace.' }
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $resultPath = Join-Path $output 'results.json'
 if (Test-Path -LiteralPath $resultPath) { Remove-Item -LiteralPath $resultPath -Force }
@@ -75,7 +76,7 @@ foreach ($name in $order) {
         if ($reference -in $order) { throw "Dependency order violation: $name -> $reference" }
         $candidates = @((Join-Path $taskRoot "Library/ScriptAssemblies/$reference.dll"), (Join-Path $templateCache "$reference.dll"))
         $resolved = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-        if (-not $resolved) { throw "Missing installed package assembly: $reference" }
+        if (-not $resolved) { throw "Missing installed package assembly: $reference. Import this checkout with the configured Unity Editor first (CI runs the native tests before this gate)." }
         $references += $resolved
     }
     foreach ($reference in $definition.precompiledReferences) {
