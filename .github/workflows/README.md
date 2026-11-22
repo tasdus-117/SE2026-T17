@@ -8,8 +8,11 @@ architecture, metadata/GUID, scene order, Input Actions và regression XML khôn
 Job **Unity EditMode and PlayMode** chạy native tests và strict compilation/layout
 trong cùng Editor container trên Windows. Phiên bản lấy từ
 [ProjectVersion.txt](../../ProjectSettings/ProjectVersion.txt); image được cố định bằng digest trong mỗi lượt chạy.
-Job **Windows Standalone Build** dùng Unity 6000.6.8f1 trên `windows-latest`, cache
-Library và upload ZIP player + diagnostics giữ 3 ngày. Job chạy cho code/asset/tool/
+Job **Windows Standalone Build** dùng Unity 6000.6.8f1 trên `ubuntu-latest`, image
+`unityci/editor:ubuntu-6000.6.8f1-windows-mono-3` để cross-build Windows x64 Mono,
+cache Library riêng Linux và upload ZIP/checksum + diagnostics giữ 3 ngày.
+Máy Windows phát triển dùng wrapper native, không cần Docker Desktop.
+Job chạy cho code/asset/tool/
 workflow PR và mọi push main; PR chỉ sửa tài liệu được skip riêng build.
 **CI Quality Gate** chỉ đạt nếu tests/static thành công và build cần thiết thành công;
 skip build chỉ hợp lệ khi classifier xác nhận docs-only.

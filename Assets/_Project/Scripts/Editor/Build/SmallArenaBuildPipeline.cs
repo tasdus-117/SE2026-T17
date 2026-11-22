@@ -55,6 +55,9 @@ namespace SmallArena.Tools
                 }
                 if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64))
                     throw new InvalidOperationException("Install Windows Build Support for this Unity Editor.");
+                var backend = PlayerSettings.GetScriptingBackend(NamedBuildTarget.Standalone);
+                if (backend != ScriptingImplementation.Mono2x)
+                    throw new InvalidOperationException("Windows cross-build requires the existing Mono backend; build settings will not be changed automatically.");
 
                 // Only the fixed generated output below this project's Builds folder is cleared.
                 if (Directory.Exists(output)) Directory.Delete(output, true);
@@ -73,7 +76,7 @@ namespace SmallArena.Tools
                     UnityVersion = Application.unityVersion,
                     Target = summary.platform.ToString(),
                     Result = summary.result.ToString(),
-                    Backend = PlayerSettings.GetScriptingBackend(NamedBuildTarget.Standalone).ToString(),
+                    Backend = backend.ToString(),
                     Errors = summary.totalErrors,
                     Warnings = summary.totalWarnings,
                     Bytes = summary.totalSize,

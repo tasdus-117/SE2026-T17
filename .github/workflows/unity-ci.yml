@@ -181,7 +181,7 @@ jobs:
     name: Windows Standalone Build
     needs: diff
     if: ${{ needs.diff.outputs.build_required == 'true' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -202,14 +202,14 @@ jobs:
         run: |
           ./tools/Assert-WindowsStandaloneBuild.ps1 -ScenesOnly
           New-Item -ItemType Directory -Path Logs/WindowsStandalone -Force | Out-Null
-      - name: Cache Windows player Library
+      - name: Cache Linux-to-Windows Mono Library
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: Library
-          key: windows-player-v1-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-${{ github.sha }}
+          key: windows-mono-cross-v2-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-${{ github.sha }}
           restore-keys: |
-            windows-player-v1-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-
-      - name: Build production Windows x64 player
+            windows-mono-cross-v2-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-
+      - name: Cross-build production Windows x64 Mono player
         id: build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4 (pinned)
         env:
@@ -218,6 +218,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           unityVersion: 6000.6.8f1
+          customImage: unityci/editor:ubuntu-6000.6.8f1-windows-mono-3
           targetPlatform: StandaloneWindows64
           buildName: SmallArena
           buildsPath: Builds
@@ -227,16 +228,21 @@ jobs:
         shell: pwsh
         run: ./tools/Assert-WindowsStandaloneBuild.ps1
       - name: Package Phase 3 handoff
-        shell: pwsh
+        shell: bash
         env:
           SOURCE_SHA: ${{ github.sha }}
         run: |
-          New-Item -ItemType Directory -Path Artifacts/WindowsStandalone -Force | Out-Null
-          $archive = Join-Path $env:GITHUB_WORKSPACE 'Artifacts/WindowsStandalone/SmallArena-Windows-x64.zip'
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          [IO.Compression.ZipFile]::CreateFromDirectory((Join-Path $env:GITHUB_WORKSPACE 'Builds/WindowsStandalone'), $archive)
-          (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash + '  SmallArena-Windows-x64.zip' | Set-Content Artifacts/WindowsStandalone/SHA256SUMS.txt
-          $env:SOURCE_SHA | Set-Content Artifacts/WindowsStandalone/source-commit.txt
+          set -euo pipefail
+          mkdir -p Artifacts/WindowsStandalone
+          archive="$GITHUB_WORKSPACE/Artifacts/WindowsStandalone/SmallArena-Windows-x64.zip"
+          (cd Builds/WindowsStandalone && zip -q -r "$archive" .)
+          unzip -tq "$archive"
+          (
+            cd Artifacts/WindowsStandalone
+            sha256sum SmallArena-Windows-x64.zip > SHA256SUMS.txt
+            sha256sum --check SHA256SUMS.txt
+            printf '%s\n' "$SOURCE_SHA" > source-commit.txt
+          )
       - name: Upload verified Windows player
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

@@ -14,15 +14,24 @@ $cases = @(
     @{ Name = 'missing exe'; Fault = 'Exe'; Diagnostic = 'Missing/empty build output' },
     @{ Name = 'empty exe'; Fault = 'EmptyExe'; Diagnostic = 'Missing/empty build output' },
     @{ Name = 'invalid exe signature'; Fault = 'Signature'; Diagnostic = 'MZ signature' },
+    @{ Name = 'MZ-only file is not PE'; Fault = 'Truncated'; Diagnostic = 'truncated header' },
+    @{ Name = 'invalid PE offset'; Fault = 'Offset'; Diagnostic = 'PE header offset' },
+    @{ Name = 'invalid PE signature'; Fault = 'PeSignature'; Diagnostic = 'PE signature' },
+    @{ Name = 'x86 is not x64'; Fault = 'Machine'; Diagnostic = 'AMD64' },
+    @{ Name = 'PE32 is not PE32+'; Fault = 'Optional'; Diagnostic = 'PE32+' },
+    @{ Name = 'incomplete optional header'; Fault = 'OptionalSize'; Diagnostic = 'complete PE32+' },
     @{ Name = 'missing player DLL'; Fault = 'Dll'; Diagnostic = 'Missing/empty build output' },
     @{ Name = 'missing data'; Fault = 'Data'; Diagnostic = 'Missing/empty SmallArena_Data' },
     @{ Name = 'empty data'; Fault = 'EmptyData'; Diagnostic = 'Missing/empty SmallArena_Data' },
+    @{ Name = 'missing global data'; Fault = 'Globals'; Diagnostic = 'globalgamemanagers' },
+    @{ Name = 'missing built scene'; Fault = 'SceneData'; Diagnostic = 'built scene data' },
     @{ Name = 'missing report'; Fault = 'Report'; Diagnostic = 'Missing/empty build output' },
     @{ Name = 'malformed report'; Fault = 'CorruptReport'; Diagnostic = 'JSON' },
     @{ Name = 'failed BuildReport'; Fault = 'Failed'; Diagnostic = 'BuildReport is invalid' },
     @{ Name = 'nonzero errors'; Fault = 'Errors'; Diagnostic = 'BuildReport is invalid' },
     @{ Name = 'wrong report scenes'; Fault = 'ReportScenes'; Diagnostic = 'BuildReport is invalid' },
     @{ Name = 'wrong Unity version'; Fault = 'Version'; Diagnostic = 'BuildReport is invalid' },
+    @{ Name = 'wrong scripting backend'; Fault = 'Backend'; Diagnostic = 'BuildReport is invalid' },
     @{ Name = 'missing build log'; Fault = 'Log'; Diagnostic = 'Missing/empty build log' },
     @{ Name = 'project compiler warning'; Fault = 'Warning'; Diagnostic = 'Project compiler warning/error' },
     @{ Name = 'project Unity analyzer warning'; Fault = 'Analyzer'; Diagnostic = 'Project compiler warning/error' }
@@ -44,10 +53,18 @@ try {
         }
         $output = Join-Path $root 'Builds/WindowsStandalone'
         $exe = Join-Path $output 'SmallArena.exe'
-        [IO.File]::WriteAllBytes($exe, [byte[]]@(0x4D, 0x5A, 1))
+        # Structurally valid AMD64 PE32+ fixture, not an executable program.
+        $header = New-Object byte[] 512
+        $header[0] = 0x4D; $header[1] = 0x5A; $header[0x3C] = 0x80
+        $header[0x80] = 0x50; $header[0x81] = 0x45
+        $header[0x84] = 0x64; $header[0x85] = 0x86; $header[0x94] = 0xF0
+        $header[0x98] = 0x0B; $header[0x99] = 0x02
+        [IO.File]::WriteAllBytes($exe, $header)
         [IO.File]::WriteAllText((Join-Path $output 'UnityPlayer.dll'), 'synthetic fixture, not a runtime DLL')
-        $data = Join-Path $output 'SmallArena_Data/data.bin'
+        $data = Join-Path $output 'SmallArena_Data/level0'
         [IO.File]::WriteAllText($data, 'synthetic fixture, not a real player')
+        $globals = Join-Path $output 'SmallArena_Data/globalgamemanagers'
+        [IO.File]::WriteAllText($globals, 'synthetic global build data')
         $report = Join-Path $output 'build-report.json'
         $manifest = @{ UnityVersion = '6000.6.8f1'; Target = 'StandaloneWindows64'; Result = 'Succeeded'; Backend = 'Mono2x'; Errors = 0; Warnings = 0; Bytes = 3; Scenes = @('Assets/_Project/Scenes/MainMenu.unity', 'Assets/_Project/Scenes/Bootstrap.unity', 'Assets/_Project/Scenes/Arena_MVP.unity') }
         $log = Join-Path $root 'Logs/WindowsStandalone/build.log'
@@ -60,13 +77,22 @@ try {
             'Exe' { Remove-Item -LiteralPath $exe }
             'EmptyExe' { [IO.File]::WriteAllBytes($exe, [byte[]]@()) }
             'Signature' { [IO.File]::WriteAllText($exe, 'not an executable') }
+            'Truncated' { [IO.File]::WriteAllBytes($exe, [byte[]]@(0x4D, 0x5A, 1)) }
+            'Offset' { $header[0x3F] = 0x7F; [IO.File]::WriteAllBytes($exe, $header) }
+            'PeSignature' { $header[0x80] = 0; [IO.File]::WriteAllBytes($exe, $header) }
+            'Machine' { $header[0x84] = 0x4C; $header[0x85] = 1; [IO.File]::WriteAllBytes($exe, $header) }
+            'Optional' { $header[0x99] = 1; [IO.File]::WriteAllBytes($exe, $header) }
+            'OptionalSize' { $header[0x94] = 2; [IO.File]::WriteAllBytes($exe, $header) }
             'Dll' { Remove-Item -LiteralPath (Join-Path $output 'UnityPlayer.dll') }
-            'Data' { Remove-Item -LiteralPath $data; Remove-Item -LiteralPath (Split-Path -Parent $data) }
-            'EmptyData' { Remove-Item -LiteralPath $data }
+            'Data' { Remove-Item -LiteralPath $data, $globals; Remove-Item -LiteralPath (Split-Path -Parent $data) }
+            'EmptyData' { Remove-Item -LiteralPath $data, $globals }
+            'Globals' { Remove-Item -LiteralPath $globals }
+            'SceneData' { Remove-Item -LiteralPath $data }
             'Failed' { $manifest.Result = 'Failed' }
             'Errors' { $manifest.Errors = 1 }
             'ReportScenes' { $manifest.Scenes = @('Wrong') }
             'Version' { $manifest.UnityVersion = '6000.6.7f1' }
+            'Backend' { $manifest.Backend = 'IL2CPP' }
             'Log' { Remove-Item -LiteralPath $log }
             'Warning' { [IO.File]::WriteAllText($log, 'Assets/_Project/Scripts/Example.cs(1,1): warning CS0168: unused variable') }
             'Analyzer' { [IO.File]::WriteAllText($log, 'Warning: Assets/_Project/Scripts/Example.cs(1,1): warning UAC1009: unsupported serialized type') }

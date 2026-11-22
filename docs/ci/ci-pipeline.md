@@ -45,7 +45,7 @@ PR -> main / push main
         cùng image + checkout/Library đã import:
           Editor/scaffold -> strict 7-asmdef compile -> physics/URP -> arena/prefab/UI
         upload kết quả luôn chạy
-  +-- Windows Standalone Build (windows-latest, nhánh nội bộ)
+  +-- Windows Standalone Build (ubuntu-latest cross-build Mono, nhánh nội bộ)
         code/asset/tool/workflow PR hoặc mọi push main -> Library cache -> build
         verify output + BuildReport -> ZIP/SHA256/source commit -> artifact 3 ngày
         PR chỉ sửa tài liệu được bỏ qua riêng job build
@@ -244,18 +244,21 @@ xóa report/log cũ trước lượt build thật, kiểm process exit code rồ
 không dùng thành công của bản build trước khi một lượt mới thất bại. `ValidateOnly`
 không kiểm chứng license/native build và không được dùng làm CI build step.
 
-`Assert-WindowsStandaloneBuild.ps1` yêu cầu exe không rỗng/có MZ signature,
-`UnityPlayer.dll` không rỗng, `SmallArena_Data` có file dữ liệu không rỗng,
-BuildReport đúng Unity version/target/scenes, `Succeeded`, errors 0, bytes > 0 và
+`Assert-WindowsStandaloneBuild.ps1` yêu cầu exe không rỗng, DOS/MZ + PE signature,
+machine AMD64, PE32+ optional header hợp lệ; `UnityPlayer.dll` không rỗng;
+`SmallArena_Data` có `globalgamemanagers` và built scene `level0`/`data.unity3d`;
+BuildReport đúng Unity version/target/scenes, backend Mono2x, `Succeeded`, errors 0, bytes > 0 và
 build log có nội dung/không có project compiler warning/error. Đây là kiểm cấu trúc,
 không chứng minh exe đã chạy hoặc KCP nhiều process đã hoạt động.
 
 ### CI, cache và gate
 
 - Job **`windows-standalone-build` / Windows Standalone Build** chạy trên
-  `windows-latest`, song song với Unity tests sau job Git diff; timeout **60 phút**.
+  `ubuntu-latest`, song song với Unity tests sau job Git diff; timeout **60 phút**.
   Dùng GameCI unity-builder SHA `4423ee75828dff56037d1d1cfdac6b68e3a6ba00`, Unity
   **6000.6.8f1**, `StandaloneWindows64`, production buildMethod và `versioning: None`.
+  Image chính thức: `unityci/editor:ubuntu-6000.6.8f1-windows-mono-3`.
+  Linux Editor cross-build Windows Mono; không cần Windows Docker daemon hoặc Docker Desktop trên máy lập trình.
   Action có sẵn `-quit -batchmode -nographics`; không dùng `manualExit` hay GPU mode.
 - Dùng đúng ba secrets hiện hữu `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`.
   Không in giá trị, không upload license/environment dump. Report log chỉ ghi bước
@@ -265,6 +268,7 @@ không chứng minh exe đã chạy hoặc KCP nhiều process đã hoạt độ
   Unity version, hash `Packages/manifest.json`, `Packages/packages-lock.json`,
   `ProjectSettings/**` và commit SHA. Restore prefix cùng config hash cho phép reuse
   cache khi chỉ source/assets thay đổi; Unity vẫn kiểm dependency/import hiện hành.
+  Prefix `windows-mono-cross-v2` và runner OS tách cache Linux khỏi cache Windows cũ.
   Không cache Builds, ZIP, Logs, Secrets hoặc xem cache hit là build đã đạt.
 - Classifier mặc định yêu cầu build cho mọi path ngoài allowlist `docs/**`,
   `README.md`, `.github/workflows/README.md`. Git diff dùng `--no-renames` để asset/code
@@ -292,6 +296,9 @@ Giải nén ZIP vào một thư mục riêng sẽ có `SmallArena.exe`, `SmallAr
 ở root. ZIP chứa trọn player output, không chỉ exe; upload dùng compression-level 0
 để không nén lại ZIP. Phase 3 tải artifact **cùng workflow run/commit**, kiểm SHA256
 và source commit rồi giải nén, chạy exe cùng data/DLL để điều phối Mirror/KCP.
+Job build dùng Bash `zip`, `unzip -tq` và `sha256sum --check` trước upload để kiểm
+archive/checksum thực sự, không chỉ tạo file checksum. Job smoke tương lai chạy exe
+trên `windows-latest`, không gọi GameCI builder/Docker trên Windows.
 Phase 2 chưa thêm tự động host/join hoặc instrumented smoke entry vào player.
 
 Artifact chẩn đoán **`windows-standalone-build-logs-${github.sha}`** luôn được thử
@@ -300,7 +307,7 @@ không khởi động được, artifact có thể thiếu; job vẫn thất b�
 là thành công. `.gitignore` hiện hữu đã ignore root `Builds/`, `Logs/`, `Artifacts/`
 và `TestResults/`; không thêm exe, DLL output, ZIP hoặc log vào Git.
 
-### Kiểm chứng Phase 2
+### Kiểm chứng Phase 2 trước sửa cross-build (commit b134d1e)
 
 - Scene preflight và wrapper `ValidateOnly` đạt trên Unity 6000.6.8f1 có Windows support.
 - **21/21** regression cases đạt trên Windows PowerShell **5.1.26100.10068**:
@@ -335,3 +342,94 @@ và `TestResults/`; không thêm exe, DLL output, ZIP hoặc log vào Git.
   **261 EditMode pass / 408 PlayMode pass (406 project) / 2 vendor skips**, không gán
   số đó cho lượt chạy mới. GitHub Windows-latest/container/cache/artifact handoff
   chưa thực thi trong nhiệm vụ cục bộ này.
+
+## 8. Sửa incident Windows Docker — Ubuntu cross-build Mono
+
+Baseline sửa lỗi: `b134d1e`, nhánh `feat/ci-phase2-standalone-build`, ngày 23/11/2026.
+Job build cũ chạy GameCI trên Windows và không kết nối được Docker daemon
+`npipe:////./pipe/docker_engine`. Job này chuyển sang **ubuntu-latest** với Docker
+Linux có sẵn trên runner; không thêm Dockerfile hoặc yêu cầu Docker Desktop trên
+máy Windows phát triển. Builder vẫn tạo **Windows x64 player**, không phải Linux player.
+
+### Backend và tính tương thích
+
+- `ProjectSettings/ProjectSettings.asset` chỉ ghi `scriptingBackend: Android: 1`;
+  **không có dòng Standalone override**. Không được mô tả nhầm là file chứa
+  `Standalone: 0`. Standalone dùng mặc định Mono; BuildReport Windows đã thực thi
+  ở mục 7 xác nhận `Backend: Mono2x` với chính cấu hình này.
+- Editor helper thêm **read-only guard** `GetScriptingBackend(NamedBuildTarget.Standalone)
+  == ScriptingImplementation.Mono2x`. Nếu config đổi sang IL2CPP, build thất bại rõ;
+  helper không gọi SetScriptingBackend hoặc sửa PlayerSettings để vượt gate.
+- Job dùng image chính thức **`unityci/editor:ubuntu-6000.6.8f1-windows-mono-3`**,
+  `targetPlatform: StandaloneWindows64`, cùng buildMethod/scene order/output path.
+  [GameCI v4 image selection](https://github.com/game-ci/unity-builder/blob/4423ee75828dff56037d1d1cfdac6b68e3a6ba00/src/model/image-tag.ts)
+  cũng ánh xạ Windows target trên Linux sang windows-mono. Chỉ định customImage
+  giúp review dễ thấy rõ host/target/backend, không đổi production backend.
+- `tools/Build-WindowsStandalone.ps1` giữ **nguyên từng byte** và vẫn khởi chạy
+  Unity native trên Windows. C# helper dùng Path.Combine/Application.dataPath và
+  Unity Editor APIs chung cho cả hai host; vẫn bắt đúng MainMenu → Bootstrap → Arena_MVP,
+  BuildResult.Succeeded và errors 0. Không sửa runtime, scenes, asmdef hoặc ProjectSettings.
+
+### Xác minh và handoff
+
+- Cache chỉ Library, prefix **windows-mono-cross-v2**, key OS/arch/Unity + manifest,
+  packages-lock, ProjectSettings hash + SHA; không restore cache Windows cũ vào Linux.
+- Post-build vẫn dùng verifier PowerShell portable chạy `pwsh` của Ubuntu. Kiểm DOS/MZ,
+  e_lfanew trong bounds, PE signature, machine AMD64, PE32+ optional header; không nhận
+  file chỉ có hai byte MZ hoặc exe x86. Data phải có globalgamemanagers và built scene,
+  BuildReport phải ghi Mono2x. Test giả lập kiểm cả thiếu/corrupt header và sai backend.
+- Bash package toàn bộ output, `unzip -tq` kiểm ZIP, `sha256sum --check` kiểm checksum
+  ngay trên runner. Artifact `windows-standalone-${github.sha}` và diagnostics vẫn
+  **3 ngày**. Phase 3 `multiplayer-smoke-test` sẽ chạy trên **windows-latest**: tải artifact
+  cùng run/SHA, kiểm checksum, giải nén và chạy exe; không build/Docker trên Windows.
+- Classifier, docs-only PR skip, job IDs, dependencies và `CI Quality Gate` **giữ nguyên**.
+  Đã so sánh YAML các job diff/static/unity/quality với HEAD, không đổi nội dung.
+
+Kết quả cục bộ của lượt sửa: **30/30** validator regressions đạt trên Windows PowerShell
+5.1; verifier mới đọc được player Windows thật đã build trước đó và xác nhận PE32+/Mono,
+built scenes/report/log. Strict Roslyn **7/7** project assemblies và Editor helper mới
+đều **0 project warning/error**. YAML, Bash syntax, PowerShell syntax và workflow
+contracts/cache/artifact retention đạt. Không gán kết quả local Windows trước đó thành
+bằng chứng Ubuntu cross-build đã chạy. Máy này không có công cụ zip trong Git Bash;
+chỉ kiểm syntax block Bash mới, chưa thực thi nó hoặc Unity image Linux cục bộ.
+
+**Giới hạn riêng Phase 1:** job `unity` hiện vẫn dùng `windows-2022` và lệnh Docker
+Windows. Nhiệm vụ này chỉ sửa windows-standalone-build; job test đó có thể độc lập
+chặn CI Quality Gate và cần migration riêng nếu runner không có daemon. Không bỏ
+test/giảm ngưỡng hoặc đổi gate để che tình trạng này. Chưa bắt đầu Phase 3.
+
+### Đưa fix lên PR và xác nhận trước Phase 3
+
+Các lệnh dưới đây dành cho người review thực hiện; agent không tự commit/push:
+
+```powershell
+git switch feat/ci-phase2-standalone-build
+git diff --check
+git add .github/workflows/unity-ci.yml Assets/_Project/Scripts/Editor/Build/SmallArenaBuildPipeline.cs tools/Assert-WindowsStandaloneBuild.ps1 tools/Test-WindowsStandaloneBuild.ps1 docs/ci/ci-pipeline.md .github/workflows/README.md
+git commit -m "fix(ci): cross-build Windows Mono player on Ubuntu"
+git push origin feat/ci-phase2-standalone-build
+gh run list --branch feat/ci-phase2-standalone-build --workflow unity-ci.yml --limit 5
+```
+
+Push cùng branch cập nhật PR đang mở. Trong run mới, xác nhận **Windows Standalone
+Build** chạy Ubuntu/image windows-mono, build step và output verification đều success,
+BuildReport ghi StandaloneWindows64/Mono2x/Succeeded/errors 0, rồi có artifact ZIP và
+diagnostics. Có thể xem riêng job bằng `gh run view <RUN_ID> --json jobs`.
+
+Tải artifact player đúng run từ Actions (hoặc `gh run download <RUN_ID> --name
+<ARTIFACT_NAME> --dir Artifacts/Phase2Check`), sau đó kiểm trên Windows:
+
+```powershell
+$root = 'Artifacts/Phase2Check'
+$zip = Join-Path $root 'SmallArena-Windows-x64.zip'
+$expected = ((Get-Content (Join-Path $root 'SHA256SUMS.txt') -Raw).Trim() -split '\s+')[0]
+if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $expected) { throw 'Checksum mismatch.' }
+Get-Content (Join-Path $root 'source-commit.txt')
+Expand-Archive -LiteralPath $zip -DestinationPath (Join-Path $root 'Player')
+Get-Item (Join-Path $root 'Player/SmallArena.exe')
+Get-Content (Join-Path $root 'Player/build-report.json')
+```
+
+Giữ toàn bộ Player directory, gồm SmallArena_Data/UnityPlayer.dll và dependencies;
+không chỉ chép exe. Chỉ chuyển sang Phase 3 sau khi job Ubuntu và artifact của đúng
+commit được xác nhận thực tế; YAML/local compile không thay bằng chứng Actions.
