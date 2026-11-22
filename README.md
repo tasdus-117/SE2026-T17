@@ -2,7 +2,7 @@
 
 Arena 3D góc nhìn thứ ba, tối đa **4 người/phòng**, dùng **Unity 6000.6.8f1**, **Mirror 96.0.1 + KCP Transport**, URP, New Input System và TextMeshPro/uGUI. Server quyết định vị trí, sát thương, HP, pickup, vòng đời và thời gian trận; client gửi ý định và hiển thị trạng thái được đồng bộ.
 
-README được cập nhật sau **Audit F1–F3** trên nhánh `feature/tv1-m3-match-lifecycle`, baseline `ae90f07` (M3.2), tiếp sau `d936b9a` (Fair Weapon Respawn) và `a07db32` (M3.1 + sửa teleport TH2). Thay đổi audit đang ở working tree, chưa commit; không ghi là đã merge vào `main`.
+Baseline được đối chiếu ngày 22/11/2026: main `995e6a47931637fdcb1cd9a90a47a5c377f8f46a`, đã merge M3 (#21), TV3 input/presentation (#22) và Audit F1–F3 (#23). [Bảng contract/runtime](docs/protocol/tv2-004-contracts.md) phân biệt melee đang chạy với module ranged chưa có adapter. Nghiệm thu Host + 3 client và hình ảnh/input cùng SHA còn chờ [#27](https://github.com/tasdus-117/SE2026-T17/issues/27) và [#26](https://github.com/tasdus-117/SE2026-T17/issues/26); số test lịch sử không chứng nhận candidate mới.
 
 ## 1. Tính năng và trạng thái hiện tại
 

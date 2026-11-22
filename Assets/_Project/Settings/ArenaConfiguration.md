@@ -4,12 +4,13 @@
 | --- | ---: | --- |
 | Default | 0 (built-in) | Existing built-in/default pairs preserved, plus Environment, Player and Bot; Pickup disabled |
 | Environment | 6 | Default, Environment, Player, Bot |
-| Player | 7 | Default, Environment, Bot, Pickup |
+| Player | 7 | Default, Environment, Player, Bot, Pickup |
 | Bot | 8 | Default, Environment, Player |
 | Pickup | 9 | Player only |
 
-The matrix is symmetric. Player/Player, Bot/Bot and Pickup/Pickup are disabled for
-the one-player/one-bot/one-pickup MVP. Custom arena layers ignore unrelated built-in
+The matrix is symmetric. Player/Player is enabled in the current multiplayer
+configuration; ServerPlayerSeparation handles server capsule separation. Bot/Bot
+and Pickup/Pickup are disabled. Custom arena layers ignore unrelated built-in
 and unused layers. Pairs between non-arena layers retain the template defaults.
 
 ## Pickup trigger contract

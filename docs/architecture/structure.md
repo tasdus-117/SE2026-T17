@@ -2,11 +2,11 @@
 
 ## Trạng thái sau di trú
 
-Project Unity thật và mẫu offline đã được đưa vào cấu trúc này. Nguồn phục hồi, GUID, namespace tương thích và bảy assembly nằm trong [báo cáo di trú](main-migration-audit.md); ngữ cảnh hiện hành ở [PROJECT_CONTEXT.md](../../PROJECT_CONTEXT.md). Ví dụ networking/lobby bên dưới vẫn là hướng triển khai, không phải tính năng đã hoàn thành.
+Đối chiếu main `995e6a4` ngày 22/11/2026: project có offline, lobby, combat mạng và lifecycle M3. Nguồn phục hồi, GUID, namespace tương thích và bảy assembly nằm trong [báo cáo di trú](main-migration-audit.md). Các tên ví dụ trong phần bố trí bên dưới là hướng dẫn kiến trúc; xem [contract/runtime hiện hành](../protocol/tv2-004-contracts.md) để biết entry point thật. PROJECT_CONTEXT.md là context local bị ignore, không phải dependency của tài liệu bàn giao.
 
 Scene hiện có: MainMenu (index 0), Bootstrap (index 1), Arena_MVP (index 2). GameManager/readiness ở Server/Simulation; Health/combat/pickup ở Server/Combat; local PlayerController/camera ở Client/Presentation; input ở Client/Input; HUD/menu ở Client/UI. Player/Bot prefab ở Characters, pickup ở Combat. Runtime tổng hợp cũ được thay bằng Shared.Protocol và hợp đồng Shared; không có tham chiếu Client↔Server.
 
-[TV1.1](tv1.1-network-lifecycle.md) thêm ArenaNetworkManager/NetworkPlayer trong Networking và bốn NetworkStartPosition trong Arena_MVP. [TV1.2](tv1.2-server-movement.md) thêm MovementInput trong Shared/Protocol, NetworkMovement trong Networking, validator và ServerPlayerMovement trong Server; NetworkTransformReliable thực hiện ServerToClient replication. Scene offline gỡ đủ năm component mạng bằng override. OfflineMatchScope tách actor/HUD mẫu khi tải arena trong phiên mạng. [TV1.3](../testing/tv1.3-results.md) đã chạy đạt bảy test PlayMode loopback; M1 ký theo phạm vi lifecycle/movement trong engine. Bước tiếp theo M2 lobby/room; chưa có combat mạng hoặc phục hồi phiên có token.
+[TV1.1](tv1.1-network-lifecycle.md) thêm ArenaNetworkManager/NetworkPlayer. [TV1.2](tv1.2-server-movement.md) thêm MovementInput, NetworkMovement và ServerPlayerMovement; ArenaNetworkTransform thực hiện ServerToClient replication và teleport qua NetworkTransformReliable. OfflineMatchScope tách actor/HUD offline. NetworkCombat/NetworkHealth đã chạy melee mạng; MatchSessionRuntime dùng OnlineMatch/OnlineCharacterState trong production qua ServerMatchLifecycleController. Retained-session reconnect/token chưa được triển khai/chứng nhận. Báo cáo M1 là lịch sử theo baseline riêng.
 
 M2 TV1 bổ sung LobbyMessages trong Networking, LobbyRoom/ServerLobbyController trong Server/Sessions, view/controller UI trong Client/UI và ArenaNetworkRoot prefab cho MainMenu. [Phòng chờ cơ bản](m2-lobby-rooms.md) đã kiểm chứng Host/Join/Ready/Start và capacity bốn người; [kết quả native/standalone](../testing/m2-lobby-results.md) ghi rõ phạm vi. Bootstrap M1 trực tiếp và các tính năng offline vẫn giữ riêng.
 
@@ -19,13 +19,13 @@ M2 TV1 bổ sung LobbyMessages trong Networking, LobbyRoom/ServerLobbyController
 - `config/`: mẫu cấu hình chạy cho các môi trường, không chứa mật khẩu hoặc token thật.
 - `tools/`: công cụ kiểm thử bên ngoài game.
 - `scripts/`: tự động hóa build và chạy; khác với mã C# trong Assets.
-- `.github/workflows/`: nơi đặt YAML CI nếu dùng GitHub Actions. Hiện chỉ là thư mục giữ chỗ.
+- `.github/workflows/`: Unity CI đã có unity-ci.yml: EditMode/PlayMode, XML gate, diff check và artifact upload; theo dõi cải tiến gate tại #18.
 - `Packages/`, `ProjectSettings/`: Unity tạo khi khởi tạo project thật; phải quản lý bằng Git.
 - `Library/`, `Temp/`, `Builds/`, `TestResults/`, `reports/`: dữ liệu phát sinh; không commit.
 
 ## Scenes
 
-Dự kiến tạo bằng Editor: `Bootstrap.unity` khởi tạo ứng dụng và kết nối; `Lobby.unity` hiển thị phòng chờ; `Arena.unity` chứa bản đồ duy nhất. Không dùng scene như nơi tập trung toàn bộ logic. Chỉ tạo `MainMenu.unity` riêng nếu giao diện đủ lớn; với nhóm nhỏ có thể đặt menu trong Bootstrap.
+Build settings hiện có MainMenu, Bootstrap và Arena_MVP. MainMenu chứa Host/Join lobby UI bằng prefab; không có Lobby.unity riêng. Bootstrap là đường chẩn đoán M1. Arena_MVP phục vụ trận mạng và mẫu offline qua scope riêng.
 
 ## Prefabs
 
