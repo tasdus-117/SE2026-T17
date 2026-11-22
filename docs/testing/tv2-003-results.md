@@ -58,7 +58,22 @@ Focused filter joins NetworkMovementTests and NetworkMatchLifecycleTests with `;
 Compiler: `powershell -NoProfile -ExecutionPolicy Bypass -File
 tools/Compile-UnityAssemblies.ps1 -EditorRoot <6000.6.8f1/Editor>`.
 
-KCP/build results, final exact head, CI and Codex review are recorded in the PR and
+Instrumented Windows Mono development build succeeded (exit0, zero errors,
+15 build warnings retained in Build.log). Existing tools/Build-LobbyStandalone.cs
+and tools/LobbyStandaloneSmoke.cs were copied temporarily for the build only,
+then removed; product sources were unchanged. Run-LobbyStandaloneSmoke.ps1 passed
+with host + one separate OS client over localhost KCP port63965: MainMenu Host/Join,
+Ready/Start, Arena_MVP, two owned avatars, one loot item, zero captured errors;
+both processes exited0. Raw reports: TestResults/Completion/KcpSmoke/
+2b5a2e9751924aefbd8a503a6e32aa77. This is neither four-player/three-round movement
+acceptance nor LAN, impairment, retained reconnect or visual QA.
+
+All125 project C#/asmdef blobs match across focused/PlayMode/EditMode and final
+working source. Initial parity bookkeeping nested PowerShell JSON arrays; corrected
+the checker (no product edits), then all125 matched. Final committed parity is
+captured locally. Unity build/import settings remain preserved and unstaged.
+
+Final exact head, CI and Codex review are recorded in the PR and
 local handoff after publication. Human reviews remain distinct and pending; no
 merge/issue closure. TV1 @xzviett reviews binding/clock/revocation/counters; TV3
 @tasdus-117 reviews world axes/grounded jump/input restore/HUD. #26 restore cases
