@@ -10,6 +10,7 @@ namespace SmallArena.Networking
         public string ParticipantId;
         public int SlotIndex, Rank, Kills, Deaths;
         public long DamageDealt;
+        public long LifeId;
         public ParticipantLifeState LifeState;
         public bool IsConnected;
     }
@@ -54,7 +55,7 @@ namespace SmallArena.Networking
                 var p = standings[i];
                 var row = new MatchScoreEntry { ParticipantId = p.ParticipantId, SlotIndex = p.SlotIndex,
                     Rank = p.Rank, Kills = p.Kills, Deaths = p.Deaths, DamageDealt = p.DamageDealt,
-                    LifeState = p.LifeState, IsConnected = p.IsConnected };
+                    LifeState = p.LifeState, LifeId = p.LifeId, IsConnected = p.IsConnected };
                 if (i >= scores.Count) scores.Add(row); else if (!scores[i].Equals(row)) scores[i] = row;
             }
         }

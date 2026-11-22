@@ -15,6 +15,7 @@ namespace SmallArena.Client.UI
         [SerializeField] private MonoBehaviour matchStateSource = null;
         private InGameMenuView view;
         private PlayerInputHandler localInput;
+        private NetworkHealth cursorHealth;
         private InputAction toggle;
         private IMatchStateSource match;
         private bool leaving;
@@ -91,19 +92,34 @@ namespace SmallArena.Client.UI
             SceneNavigation.ShowMenuCursor();
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(view.ResultReturnButton.gameObject);
         }
-        private static void GameplayCursor() { Cursor.lockState = CursorLockMode.Locked; Cursor.visible = false; }
+        private void GameplayCursor()
+        {
+            var aim = cursorHealth != null && cursorHealth.IsLifecycleBound
+                && cursorHealth.GetComponent<NetworkShotIntentAdapter>() != null;
+            Cursor.lockState = aim ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = aim;
+        }
+        private void RefreshGameplayCursor() { if (!Blocked) GameplayCursor(); }
         private void LocalSpawned(NetworkPlayer player) { if (player.isLocalPlayer) BindInput(); }
         private void LocalDespawned(NetworkPlayer player)
         {
-            if (localInput != null && player.gameObject == localInput.gameObject) { localInput.SetMenuInputBlocked(false); localInput = null; }
+            if (localInput != null && player.gameObject == localInput.gameObject)
+            {
+                if (cursorHealth != null) cursorHealth.OnLifecycleChanged -= RefreshGameplayCursor;
+                cursorHealth = null; localInput.SetMenuInputBlocked(false); localInput = null;
+            }
         }
         private void BindInput()
         {
+            if (cursorHealth != null) cursorHealth.OnLifecycleChanged -= RefreshGameplayCursor;
             var next = NetworkClient.localPlayer != null ? NetworkClient.localPlayer.GetComponent<PlayerInputHandler>()
                 : !NetworkClient.active && !NetworkServer.active ? offlineInput : null;
             if (localInput != next && localInput != null) localInput.SetMenuInputBlocked(false);
             localInput = next;
+            cursorHealth = next != null ? next.GetComponent<NetworkHealth>() : null;
+            if (cursorHealth != null) cursorHealth.OnLifecycleChanged += RefreshGameplayCursor;
             ApplyInputGate();
+            RefreshGameplayCursor();
         }
         private void ApplyInputGate() { if (localInput != null) localInput.SetMenuInputBlocked(Blocked); }
         private void MatchChanged(MatchState state)
@@ -115,6 +131,8 @@ namespace SmallArena.Client.UI
         }
         private void OnDisable()
         {
+            if (cursorHealth != null) cursorHealth.OnLifecycleChanged -= RefreshGameplayCursor;
+            cursorHealth = null;
             if (toggle != null) { toggle.performed -= Toggle; toggle.Disable(); }
             view.ResumeButton.onClick.RemoveListener(Resume);
             view.LeaveButton.onClick.RemoveListener(LeaveMatch);
