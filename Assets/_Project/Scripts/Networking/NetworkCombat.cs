@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SmallArena.Protocol;
+using SmallArena.Domain;
 using Mirror;
 using UnityEngine;
 using System;
@@ -18,16 +19,42 @@ namespace SmallArena.Networking
         public event Action<int> OnDamageChanged;
         private static readonly Vector3 Offset = MeleeHitGeometry.Offset;
         private const float Radius = MeleeHitGeometry.Radius;
-        private double nextAttackTime;
+        [SyncVar] private double nextAttackTime;
+        public double CooldownRemaining => Math.Max(0, nextAttackTime - NetworkTime.time);
+        public static readonly Vector3 ShotMuzzleOffset = new Vector3(0, .25f, 0);
         private NetworkHealth health;
         private readonly HashSet<NetworkHealth> damaged = new HashSet<NetworkHealth>();
         private void Awake() => health = GetComponent<NetworkHealth>();
-        public override void OnStartServer() { nextAttackTime = double.NegativeInfinity; attackDamage = UnarmedDamage; }
+        public override void OnStartServer() { nextAttackTime = 0; attackDamage = UnarmedDamage; }
         public override void OnStartClient() => OnDamageChanged?.Invoke(attackDamage);
         [Server]
         internal void GrantWeapon() { if (CanReceiveWeapon) attackDamage = health.BaseDamage + 1; }
-        [Server] public void ResetForLife() { if (isServer) { attackDamage = health.BaseDamage; nextAttackTime = double.NegativeInfinity; } }
+        [Server] public void ResetForLife() { if (isServer) { attackDamage = health.BaseDamage; nextAttackTime = 0; } }
         private void DamageChanged(int previous, int current) => OnDamageChanged?.Invoke(current);
+
+        [Server] internal ShotRejection PerformShot(float aimX, float aimZ)
+        {
+            if (!isServer || !health.IsLifecycleBound || !health.CanAct) return ShotRejection.NotPlaying;
+            if (NetworkTime.localTime < nextAttackTime) return ShotRejection.Cooldown;
+            if (!CombatAim.TryNormalizeHorizontal(aimX, aimZ, out var dx, out var dz)) return ShotRejection.InvalidAim;
+            if (!health.TryBeginRuntimeAttack()) return ShotRejection.Cooldown;
+            nextAttackTime = NetworkTime.localTime + health.AttackCooldownSeconds;
+            var origin = transform.position + ShotMuzzleOffset;
+            if (Physics.CheckSphere(origin, .02f, 1 << 6, QueryTriggerInteraction.Ignore)) return ShotRejection.None;
+            var hits = Physics.RaycastAll(origin, new Vector3(dx, 0, dz), (float)Math.Min(float.MaxValue, health.ShotRangeMetres),
+                (1 << 6) | (1 << 7) | (1 << 8), QueryTriggerInteraction.Ignore);
+            Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+            foreach (var hit in hits)
+            {
+                if (hit.transform.IsChildOf(transform)) continue;
+                var target = hit.collider.GetComponentInParent<NetworkHealth>();
+                // Nearest obstacle or ineligible actor blocks the ray; never shoot through it.
+                if (target != null && target != health && target.isServer && target.SessionId == health.SessionId)
+                    target.TakeDamageFrom(health, attackDamage);
+                break;
+            }
+            return ShotRejection.None;
+        }
 
         [Server]
         internal void PerformAttack(Vector3 aimDirection)
