@@ -26,6 +26,7 @@ namespace SmallArena.Networking
         public override void OnStopLocalPlayer() => Clear();
         private void Clear()
         {
+            if (shots != null) shots.ClearFeedback();
             context = null; revision = 0; SessionId = "";
             if (Current == null) return;
             Current = null; Changed?.Invoke(null);
@@ -56,7 +57,7 @@ namespace SmallArena.Networking
             Current = new PlayerPresentationSnapshot(context, ++revision, health.CurrentHealth, health.MaxHealth,
                 row.Kills, state.DisplayClock, result, rejection, health.LifeId, health.LifeState, state.Phase,
                 combat.CurrentDamage, health.BaseDamage, row.Deaths, row.DamageDealt, row.Rank,
-                combat.CooldownRemaining, health.RespawnRemainingSeconds);
+                combat.CooldownRemaining, health.RespawnRemainingSeconds, isLocalPlayer && shots != null ? shots.Outcome : ShotOutcome.None);
             Changed?.Invoke(Current);
         }
     }

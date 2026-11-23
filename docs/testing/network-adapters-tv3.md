@@ -1,5 +1,8 @@
 # TV1 ↔ TV3 — Shot intent và authoritative presentation qua Mirror
 
+> Bổ sung hiện hành: [server raycast outcomes, feedback expiry và HUD không trùng](shot-resolution-and-hud.md).
+> Phần dưới giữ bằng chứng lịch sử của lần triển khai adapter đầu tiên; overlay hai dòng đã được thay bằng shot feedback góc dưới-trái.
+
 Ngày thực hiện: 22/11/2026. Nhánh `feat/tv1-network-adapters`, baseline sạch **995e6a47931637fdcb1cd9a90a47a5c377f8f46a** (main sau merge #23), đã chứa TV3 #22 `d5004dc` và M1/M2/M3.1/loot30s/M3.2/Audit F1–F3. Đã đối chiếu GitHub main qua read API, SHA trùng baseline; đã kiểm tra contracts/mã và lịch sử trước sửa, không lấy prototype chưa merge từ nhánh khác. Thay đổi chưa commit/push.
 
 ## Điểm tích hợp và authority
