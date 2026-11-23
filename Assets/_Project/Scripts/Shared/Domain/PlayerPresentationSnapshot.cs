@@ -12,6 +12,7 @@ namespace SmallArena.Domain
         public double RemainingSeconds { get; }
         public string Result { get; }
         public string Rejection { get; }
+        public ShotOutcome ShotOutcome { get; }
         public long LifeId { get; }
         public ParticipantLifeState LifeState { get; }
         public MatchLifecyclePhase Phase { get; }
@@ -30,7 +31,7 @@ namespace SmallArena.Domain
             long lifeId = 0, ParticipantLifeState lifeState = ParticipantLifeState.Alive,
             MatchLifecyclePhase phase = MatchLifecyclePhase.WaitingForPlayers, int weaponDamage = 1,
             int baseDamage = 1, int deaths = 0, long damageDealt = 0, int rank = 0,
-            double cooldownRemainingSeconds = 0, double respawnRemainingSeconds = 0)
+            double cooldownRemainingSeconds = 0, double respawnRemainingSeconds = 0, ShotOutcome shotOutcome = ShotOutcome.None)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (maxHealth <= 0 || health < 0 || health > maxHealth || score < 0
@@ -45,6 +46,7 @@ namespace SmallArena.Domain
             LifeId = lifeId; LifeState = lifeState; Phase = phase; WeaponDamage = weaponDamage; BaseDamage = baseDamage;
             Deaths = deaths; DamageDealt = damageDealt; Rank = rank;
             CooldownRemainingSeconds = cooldownRemainingSeconds; RespawnRemainingSeconds = respawnRemainingSeconds;
+            ShotOutcome = shotOutcome;
         }
     }
     public interface IPlayerPresentationSource

@@ -151,6 +151,7 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(source.Current.Kills, Is.EqualTo(1)); Assert.That(source.Current.DamageDealt, Is.EqualTo(10));
             Assert.That(source.Current.Rank, Is.EqualTo(1)); Assert.That(remote.Current.Deaths, Is.EqualTo(1));
             Assert.That(remote.Current.Health, Is.Zero); Assert.That(source.Current.Phase, Is.EqualTo(MatchLifecyclePhase.Ended));
+            Assert.That(source.Current.ShotOutcome, Is.EqualTo(ShotOutcome.None)); Assert.That(source.Current.Rejection, Is.Empty);
             Assert.That(sink.CanSubmit, Is.False); Assert.That(hud.Presentation.Kills, Is.EqualTo(1));
         }
         [UnityTest] public IEnumerator RespawnClearsFeedbackAndContext_RejectsOldLifeAndRestartsSequence()

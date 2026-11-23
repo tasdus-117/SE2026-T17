@@ -13,12 +13,14 @@ namespace SmallArena.Networking
         private NetworkCombat combat;
         private NetworkPlayerPresentationAdapter presentation;
         private readonly ShotRequestGate gate = new ShotRequestGate();
-        private ulong sequence, feedbackSequence;
+        private ulong sequence;
+        private readonly ShotFeedbackState feedback = new ShotFeedbackState();
         private long life;
         private string session;
         private bool available;
         public event Action Invalidated;
-        public ShotRejection Rejection { get; private set; }
+        public ShotRejection Rejection { get { RefreshFeedback(); return feedback.Rejection; } }
+        public ShotOutcome Outcome { get { RefreshFeedback(); return feedback.Outcome; } }
         public bool CanSubmit => isActiveAndEnabled && isLocalPlayer && isClient && NetworkClient.ready
             && NetworkClient.connection != null && NetworkClient.connection.isAuthenticated
             && health != null && health.IsLifecycleBound && health.CanAct && presentation != null
@@ -39,10 +41,17 @@ namespace SmallArena.Networking
         private void Invalidate()
         {
             if (life != health.LifeId || session != health.SessionId)
-            { sequence = feedbackSequence = 0; life = health.LifeId; session = health.SessionId; gate.Reset(); }
-            available = CanSubmit; Rejection = ShotRejection.None;
+            { sequence = 0; life = health.LifeId; session = health.SessionId; gate.Reset(); }
+            RefreshFeedback();
+            available = CanSubmit;
             Invalidated?.Invoke();
         }
+        private void RefreshFeedback()
+        {
+            feedback.SetContext(isActiveAndEnabled && isClient ? health.SessionId : "", health.LifeId, health.MatchPhase, health.LifeState);
+            feedback.Tick(NetworkTime.localTime);
+        }
+        internal void ClearFeedback() => feedback.SetContext("", 0, MatchLifecyclePhase.WaitingForPlayers, ParticipantLifeState.Disconnected);
         public void SubmitAim(float worldX, float worldZ)
         {
             if (!CanSubmit || sequence == ulong.MaxValue) return;
@@ -60,15 +69,18 @@ namespace SmallArena.Networking
                 rejection = ShotRejection.WrongLife;
             else if (health.MatchPhase != MatchLifecyclePhase.InProgress || !health.CanAct) rejection = ShotRejection.NotPlaying;
             else rejection = gate.Process(health.LifeId, intent.LifeId, intent.Sequence, intent.Timestamp, NetworkTime.localTime);
-            if (rejection == ShotRejection.None) rejection = combat.PerformShot(intent.AimX, intent.AimZ);
-            TargetFeedback(sender, health.SessionId, intent.LifeId, intent.Sequence, rejection);
+            var outcome = ShotOutcome.Rejected;
+            if (rejection == ShotRejection.None) rejection = combat.PerformShot(intent.AimX, intent.AimZ, out outcome);
+            TargetFeedback(sender, health.SessionId, intent.LifeId, intent.Sequence, outcome, rejection);
         }
         [TargetRpc(channel = Channels.Reliable)]
-        private void TargetFeedback(NetworkConnectionToClient target, string sessionId, long lifeId, ulong request, ShotRejection rejection)
+        private void TargetFeedback(NetworkConnectionToClient target, string sessionId, long lifeId, ulong request, ShotOutcome outcome, ShotRejection rejection)
         {
-            if (!isLocalPlayer || health.LifeState != ParticipantLifeState.Alive || health.MatchPhase == MatchLifecyclePhase.Ended
-                || health.SessionId != sessionId || health.LifeId != lifeId || request < feedbackSequence) return;
-            feedbackSequence = request; Rejection = rejection;
+            if (!isLocalPlayer || presentation == null || presentation.Current == null
+                || health.LifeState != ParticipantLifeState.Alive || health.MatchPhase == MatchLifecyclePhase.Ended
+                || health.SessionId != sessionId || health.LifeId != lifeId) return;
+            RefreshFeedback();
+            feedback.Receive(sessionId, lifeId, request, outcome, rejection, NetworkTime.localTime);
         }
     }
 }

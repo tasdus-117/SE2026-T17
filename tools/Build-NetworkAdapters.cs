@@ -18,9 +18,10 @@ namespace SmallArena.Tools
             var template = hud.GetComponentsInChildren<TextMeshProUGUI>(true).First(t => t.name == "NetworkDamageText");
             var text = Object.Instantiate(template, hud.transform); text.name = "PlayerPresentation";
             text.text = ""; text.fontSize = 22; text.raycastTarget = false;
-            text.rectTransform.anchorMin = text.rectTransform.anchorMax = new Vector2(0, 1);
-            text.rectTransform.pivot = new Vector2(0, 1); text.rectTransform.anchoredPosition = new Vector2(32, -190);
-            text.rectTransform.sizeDelta = new Vector2(1100, 90);
+            text.alignment = TextAlignmentOptions.Left;
+            text.rectTransform.anchorMin = text.rectTransform.anchorMax = Vector2.zero;
+            text.rectTransform.pivot = Vector2.zero; text.rectTransform.anchoredPosition = new Vector2(32, 32);
+            text.rectTransform.sizeDelta = new Vector2(480, 40);
             var data = new SerializedObject(hud.GetComponent<NetworkHealthHUD>());
             data.FindProperty("presentationText").objectReferenceValue = text; data.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(hud, path); PrefabUtility.UnloadPrefabContents(hud);

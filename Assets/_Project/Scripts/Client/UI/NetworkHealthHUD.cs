@@ -58,10 +58,11 @@ namespace SmallArena.Client.UI
         private void PresentationChanged(PlayerPresentationSnapshot value)
         {
             if (presentationText == null) return;
-            presentationText.text = value == null ? "" : $"HP {value.Health}/{value.MaxHealth} | K {value.Kills} D {value.Deaths} | Damage {value.DamageDealt} | Rank {value.Rank}\n"
-                + $"{value.Phase} | {System.TimeSpan.FromSeconds(value.RemainingSeconds):mm\\:ss} | {value.LifeState} | Cooldown {value.CooldownRemainingSeconds:F1}s"
-                + (value.LifeState == ParticipantLifeState.Respawning ? $" | Respawn {value.RespawnRemainingSeconds:F1}s" : "")
-                + (value.Rejection == "" ? "" : $" | {value.Rejection}");
+            presentationText.text = value == null || value.Phase != MatchLifecyclePhase.InProgress ? ""
+                : value.Rejection != "" ? $"Shot rejected: {value.Rejection}"
+                : value.ShotOutcome == ShotOutcome.Blocked ? "Shot blocked by cover"
+                : value.ShotOutcome == ShotOutcome.Hit ? "Hit"
+                : value.ShotOutcome == ShotOutcome.Missed ? "Missed" : "";
         }
         private void ResultChanged(PlayerMatchResult result)
         {
