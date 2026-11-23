@@ -431,5 +431,75 @@ Get-Content (Join-Path $root 'Player/build-report.json')
 ```
 
 Giữ toàn bộ Player directory, gồm SmallArena_Data/UnityPlayer.dll và dependencies;
-không chỉ chép exe. Chỉ chuyển sang Phase 3 sau khi job Ubuntu và artifact của đúng
-commit được xác nhận thực tế; YAML/local compile không thay bằng chứng Actions.
+không chỉ chép exe. CI hiện giới hạn Phase 1 + Phase 2. Harness bốn tiến trình ở
+mục 9 là công cụ cục bộ, không phải job Phase 3 hay required CI check mới.
+
+## 9. TV1 #18 — skip policy và nghiệm thu cục bộ #25/#27
+
+Baseline nguồn sản phẩm: `8fba1c127f650615faec4f14b34b16da7552c858`, Unity6000.6.8f1.
+Không suy kết quả hiện hành từ các bảng lịch sử phía trên. Báo cáo đợt này:
+[four-player-acceptance-report.md](../testing/four-player-acceptance-report.md).
+
+`Assert-UnityTestResults.ps1` giữ kiểm XML/counters/DTD/error/setup/leaf reconciliation,
+thêm project attribution qua fullname/classname `SmallArena.Tests.*`, ancestor Assembly
+`SmallArena.Tests.*` và hai tên asmdef thực tế `SmallArena.EditMode.Tests` /
+`SmallArena.PlayMode.Tests`. Project skip bị từ chối dù vendor policy cho phép namespace
+của leaf. Project pass floor độc lập, không lấy vendor pass bù vào.
+
+Vendor skip phải thuộc prefix **UnityEngine. / Unity. / UnityEditor.** theo fullname,
+classname hoặc tên Assembly; cần reason/message không rỗng và tối đa **10** skip.
+Hai ca Windows/RDP Input System có namespace IntegrationTests được nhận qua Assembly
+`Unity.InputSystem.IntegrationTests.dll`, reason `Unstable due to 1252825`; không mở rộng
+prefix thành `IntegrationTests.` hoặc bỏ kiểm tra reason để nhận chúng.
+
+| Tham số | Mặc định / hành vi |
+|---|---|
+| `MinPassedCount` | 1, không chấp nhận 0; toàn skip luôn fail |
+| `MinProjectPassedCount` | 0 khi gọi cục bộ; CI EditMode **261**, PlayMode **406** |
+| `AllowedVendorSkipPrefixes` | `UnityEngine.`, `Unity.`, `UnityEditor.` |
+| `MaxVendorSkippedCount` | 10, có thể đặt 0 |
+| `RequireSkipReason` | `$true`; chỉ tắt khi caller chủ động truyền `$false`, CI giữ bật |
+| `XmlPath` | Tương thích invocation một XML; không cần ResultsRoot/TestPlatform |
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Test-AssertUnityTestResults.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Assert-UnityTestResults.ps1 -XmlPath TestResults/TV1Acceptance/Native/EditMode.xml -MinPassedCount 261 -MinProjectPassedCount 261
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Assert-UnityTestResults.ps1 -XmlPath TestResults/TV1Acceptance/Native/PlayMode.xml -MinPassedCount 408 -MinProjectPassedCount 406
+```
+
+Regression hiện có **55/55 passed**, process exit **0**, negative cases trả đúng **1**;
+giữ 34 fixture gốc và thêm namespace/assembly attribution, skip allowlist/reason/budget,
+project floor, custom policy và XmlPath compatibility. Workflow chỉ thêm hai project
+floors vào hai XML steps `if: always()`, không đổi job khác hay hạ aggregate gate.
+
+Harness cục bộ có explicit build symbol `SMALL_ARENA_FOUR_PLAYER_HARNESS` và CLI flag
+`--four-player-harness`. Source nằm ngoài Assets, chỉ copy vào bản validation dưới
+TestResults để build; sản phẩm thông thường không chứa instrumentation. Không đặt
+PlayerSettings backend/stripping hoặc sửa gameplay để làm pass. Chạy native tests và
+build cần license; chạy bốn player đã build không cần Editor/license.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Test-InvokeFourPlayerHarness.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Build-FourPlayerHarness.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-FourPlayerHarness.ps1 -Rounds 3
+# Port tự chọn mặc định; có thể truyền -Port 7777. Không nối harness vào GitHub Actions.
+```
+
+Mỗi run có UUID riêng, source manifests, build identity và process logs trong
+`TestResults/FourPlayerHarness/`. Job Object chỉ quản lý bốn process do runner tạo
+và descendants, có watchdog độc lập; finally chờ job trống và bind độc quyền lại UDP
+port trước khi nhận Passed. Protocol điều khiển dùng sequence files bất biến; snapshot
+dùng append-only JSONL5Hz, rotate mỗi250records, chỉ đọc record hoàn chỉnh và fail nếu ngừng cập nhật quá 10s.
+Không cho phép skip/missing snapshots biến thành dữ liệu 0 hoặc chứng nhận hội tụ.
+
+Kết quả localhost/headless không chứng nhận LAN, impairment, hình ảnh hay hoàn thành
+PR #13 / oracle #24 / QA #26. Không tự đóng issue hoặc merge; #27 chỉ được ký sau
+khi dependency và bằng chứng cùng SHA được các owner review.
+
+Kết quả mới của đợt này: regression harness **56/56**, native EditMode277 pass,
+PlayMode414 pass/2 vendor skip, instrumented Mono build0 errors/0 warnings.
+Localhost bốn player thật hoàn thành **3/3 rounds + client/host teardown**, exit0,
+run `4d4cb053fd56416fa97fd3ca8186260e`; max clock spread0,183411s trên23 checkpoints.
+Production baseline8fba1c1 cùng tooling overlay chưa commit được ghi hash riêng.
+Chi tiết identity/source hashes, failed development runs và các blocker trong báo cáo
+liên kết trên; #27 vẫn BLOCKED, không ký thay owner từ kết quả localhost này.

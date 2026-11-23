@@ -5,7 +5,7 @@ $validator = Join-Path $PSScriptRoot 'Assert-UnityTestResults.ps1'
 $scratch = Join-Path ([IO.Path]::GetTempPath()) ('SmallArena-XmlGate-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $scratch | Out-Null
 $pass = '<test-case fullname="SmallArena.Tests.Example.One" result="Passed" />'
-$skip = '<test-case fullname="Vendor.KnownIgnored" result="Skipped" label="Ignored" />'
+$skip = '<test-case fullname="Unity.KnownIgnored" result="Skipped" label="Ignored"><reason><message>Approved synthetic package fixture</message></reason></test-case>'
 function Report([string]$Attributes = 'total="1" passed="1" failed="0" inconclusive="0" skipped="0"', [string]$Cases = $pass, [string]$Result = 'Passed') {
     return "<test-run result='$Result' $Attributes><test-suite result='Passed'>$Cases</test-suite></test-run>"
 }
@@ -44,7 +44,28 @@ $fixtures = @(
     @{ Name = 'error label hidden by Passed'; Xml = $valid.Replace('<test-case ', '<test-case label="Error" '); Diagnostic = 'failure/error detail' },
     @{ Name = 'hidden setup failure detail'; Xml = $valid.Replace('</test-suite>', '<failure><message>Setup failed</message></failure></test-suite>'); Diagnostic = 'failure/error detail' },
     @{ Name = 'unexpected run status'; Xml = (Report -Result 'Error'); Diagnostic = 'unexpected run status' },
-    @{ Name = 'DTD prohibited'; Xml = '<!DOCTYPE test-run [<!ENTITY x "content">]>' + $valid; Diagnostic = 'Malformed Unity XML' }
+    @{ Name = 'DTD prohibited'; Xml = '<!DOCTYPE test-run [<!ENTITY x "content">]>' + $valid; Diagnostic = 'Malformed Unity XML' },
+    @{ Name = 'project namespace skip'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-case fullname="SmallArena.Tests.MustRun" result="Skipped" />') 'Skipped:Ignored'); Diagnostic = 'SmallArena.Tests.MustRun' },
+    @{ Name = 'project classname skip'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-case classname="SmallArena.Tests.Class" name="class-case" result="Skipped:Ignored" />')); Diagnostic = 'class-case' },
+    @{ Name = 'project assembly skip'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-suite type="Assembly" name="SmallArena.Tests.Other.dll"><test-case name="assembly-case" result="Skipped" /></test-suite>')); Diagnostic = 'assembly-case' },
+    @{ Name = 'project beats vendor namespace'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-suite type="Assembly" name="SmallArena.Tests.Other.dll"><test-case fullname="Unity.MustNotHide" result="Skipped" /></test-suite>')); Diagnostic = 'Skipped project tests' },
+    @{ Name = 'approved vendor namespace and reason'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + $skip)); Pass = $true },
+    @{ Name = 'approved vendor assembly and reason'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-suite type="Assembly" name="Unity.InputSystem.IntegrationTests.dll"><test-case fullname="IntegrationTests.Windows" result="Skipped"><reason><message>Unstable due to 1252825</message></reason></test-case></test-suite>')); Pass = $true },
+    @{ Name = 'unapproved vendor skip'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-case fullname="Other.Unknown" result="Skipped" />')); Diagnostic = 'Unapproved vendor skip' },
+    @{ Name = 'missing vendor reason'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-case fullname="Unity.Missing" result="Skipped" />')); Diagnostic = 'Missing vendor skip reason' },
+    @{ Name = 'empty vendor reason'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-case fullname="Unity.Empty" result="Skipped"><reason><message> </message></reason></test-case>')); Diagnostic = 'Missing vendor skip reason' },
+    @{ Name = 'vendor budget overflow'; Xml = (Report 'total="12" passed="1" failed="0" inconclusive="0" skipped="11"' ($pass + ($skip * 11))); Diagnostic = 'Vendor skip budget exceeded' },
+    @{ Name = 'project pass floor fails'; Xml = $valid; ProjectMin = 2; Diagnostic = 'project minimum=2' },
+    @{ Name = 'vendor passes cannot meet project floor'; Xml = (Report -Cases '<test-case fullname="Unity.Package" result="Passed" />'); ProjectMin = 1; Diagnostic = 'projectPassed=0' },
+    @{ Name = 'project assembly meets floor'; Xml = (Report -Cases '<test-suite type="Assembly" name="SmallArena.Tests.Custom.dll"><test-case name="plain" result="Passed" /></test-suite>'); ProjectMin = 1; Pass = $true },
+    @{ Name = 'legacy XmlPath and minimum'; Xml = $valid; Legacy = $true; Pass = $true },
+    @{ Name = 'legacy XmlPath still rejects project skip'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-case fullname="SmallArena.Tests.Legacy" result="Skipped" />')); Legacy = $true; Diagnostic = 'Skipped project tests' },
+    @{ Name = 'actual PlayMode assembly project skip'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-suite type="Assembly" name="SmallArena.PlayMode.Tests.dll"><test-case fullname="Unity.MustNotHide" result="Skipped" /></test-suite>')); Diagnostic = 'Skipped project tests' },
+    @{ Name = 'actual EditMode assembly meets project floor'; Xml = (Report -Cases '<test-suite type="Assembly" name="SmallArena.EditMode.Tests.dll"><test-case name="plain" result="Passed" /></test-suite>'); ProjectMin = 1; Pass = $true },
+    @{ Name = 'custom vendor allowlist'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + $skip.Replace('Unity.KnownIgnored','Other.KnownIgnored'))); Prefix = 'Other.'; Pass = $true },
+    @{ Name = 'custom zero skip budget'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + $skip)); Budget = 0; Diagnostic = 'Vendor skip budget exceeded' },
+    @{ Name = 'default skip budget exactly met'; Xml = (Report 'total="11" passed="1" failed="0" inconclusive="0" skipped="10"' ($pass + ($skip * 10))); Pass = $true },
+    @{ Name = 'explicit optional reason policy'; Xml = (Report 'total="2" passed="1" failed="0" inconclusive="0" skipped="1"' ($pass + '<test-case fullname="Unity.OptionalReason" result="Skipped" />')); OptionalReason = $true; Pass = $true }
 )
 $failed = 0
 try {
@@ -61,10 +82,21 @@ try {
         $minimum = if ($fixture.ContainsKey('Min')) { $fixture.Min } else { 1 }
         try {
             $ErrorActionPreference = 'Continue'
-            $messages = @(& $engine -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $validator -ResultsRoot $scratch -MinPassedCount $minimum 2>&1)
+            $cli = @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', $validator)
+            if ($fixture.Legacy) { $cli += @('-XmlPath', (Join-Path $scratch 'editmode-results.xml')) }
+            else { $cli += @('-ResultsRoot', $scratch) }
+            $cli += @('-MinPassedCount', $minimum)
+            if ($fixture.ProjectMin) { $cli += @('-MinProjectPassedCount', $fixture.ProjectMin) }
+            if ($fixture.Prefix) { $cli += @('-AllowedVendorSkipPrefixes', $fixture.Prefix) }
+            if ($fixture.ContainsKey('Budget')) { $cli += @('-MaxVendorSkippedCount', $fixture.Budget) }
+            if ($fixture.OptionalReason) {
+                $command = "& '" + $validator.Replace("'", "''") + "' -XmlPath '" + (Join-Path $scratch 'editmode-results.xml').Replace("'", "''") + "' -RequireSkipReason `$false"
+                $cli = @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', $command)
+            }
+            $messages = @(& $engine @cli 2>&1)
             $code = $LASTEXITCODE
         } finally { $ErrorActionPreference = 'Stop' }
-        $expected = if ($fixture.Pass) { $code -eq 0 } else { $code -ne 0 -and ($messages -join "`n") -like ('*' + $fixture.Diagnostic + '*') }
+        $expected = if ($fixture.Pass) { $code -eq 0 } else { $code -eq 1 -and ($messages -join "`n") -like ('*' + $fixture.Diagnostic + '*') }
         if (-not $expected) { $failed++; Write-Output "FAIL: $($fixture.Name) (exit=$code)`n$($messages -join "`n")" }
         else { Write-Output "PASS: $($fixture.Name) (exit=$code)" }
     }

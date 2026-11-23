@@ -133,11 +133,11 @@ jobs:
       - name: Validate EditMode XML (minimum 261 passed)
         if: always()
         shell: pwsh
-        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI -TestPlatform editmode -MinPassedCount 261
+        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI -TestPlatform editmode -MinPassedCount 261 -MinProjectPassedCount 261
       - name: Validate PlayMode XML (minimum 408 passed, including 406 project tests)
         if: always()
         shell: pwsh
-        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI -TestPlatform playmode -MinPassedCount 408
+        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI -TestPlatform playmode -MinPassedCount 408 -MinProjectPassedCount 406
       # GameCI's Editor is inside Docker, not installed on the Windows host.
       # The mounted checkout now contains Library/PackageCache and ScriptAssemblies.
       - name: Verify installed Editor and scaffold in the Editor container
