@@ -110,6 +110,7 @@ namespace SmallArena.Networking
             maxHealth = configuration.MaxHealth; currentHealth = participant.Character.Health;
             baseDamage = configuration.ShotDamage; attackCooldown = configuration.ShotCooldownSeconds;
             shotRange = configuration.ShotRangeMetres;
+            GetComponent<NetworkCombat>()?.PublishRuntimeDeadline(participant.Character.NextShotAtSeconds);
             respawnAt = participant.Character.RespawnAtSeconds ?? 0;
             lifeState = participant.LifeState; matchPhase = phase; result = outcome;
             if (died) OnDeath?.Invoke();

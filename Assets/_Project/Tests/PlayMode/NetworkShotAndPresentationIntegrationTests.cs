@@ -27,7 +27,7 @@ namespace SmallArena.Tests.PlayMode
         private ServerMatchLifecycleController lifecycle;
         private NetworkShotIntentAdapter sink;
         private NetworkPlayerPresentationAdapter source;
-        private IEnumerator Begin(int target = 0, double cooldown = .1, bool waitForLive = true)
+        private IEnumerator Begin(int target = 0, double cooldown = .1, bool waitForLive = true, GameplayConfiguration rules = null)
         {
             yield return StartWorld();
             var floor = Track(GameObject.CreatePrimitive(PrimitiveType.Cube)); floor.layer = 6;
@@ -36,7 +36,7 @@ namespace SmallArena.Tests.PlayMode
             markers[0].position = new Vector3(997, 1, 997); markers[1].position = new Vector3(1003, 1, 1003);
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Network/MatchState.prefab"); NetworkClient.RegisterPrefab(prefab);
             lifecycle = manager.gameObject.AddComponent<ServerMatchLifecycleController>();
-            lifecycle.Configure(new GameplayConfiguration(maxHealth: 10, shotDamage: 1, shotCooldownSeconds: cooldown,
+            lifecycle.Configure(rules ?? new GameplayConfiguration(maxHealth: 10, shotDamage: 1, shotCooldownSeconds: cooldown,
                 shotRangeMetres: 3, countdownDurationSeconds: .2, matchDurationSeconds: 30, respawnDelaySeconds: .3,
                 minimumSafeSpawnDistanceMetres: .5, spawnProtectionSeconds: .01, targetKills: target), prefab, floor.GetComponent<BoxCollider>());
             lifecycle.BeginSession("adapter-session", new[] { new LobbyMember { ConnectionId = 1, SlotIndex = 0 }, new LobbyMember { ConnectionId = 2, SlotIndex = 1 } });
@@ -51,6 +51,95 @@ namespace SmallArena.Tests.PlayMode
             ownerServer.GetComponent<NetworkTransformReliable>().ServerTeleport(new Vector3(1000, 1, 1000), Quaternion.identity);
             otherServer.GetComponent<NetworkTransformReliable>().ServerTeleport(new Vector3(1001.2f, 1, 1000), Quaternion.identity);
             Physics.SyncTransforms();
+        }
+        private ShotRejection ServerShot(float x, float z, out ShotOutcome outcome)
+        {
+            var arguments = new object[] { x, z, ShotOutcome.None };
+            var result = (ShotRejection)typeof(NetworkCombat).GetMethod("PerformShot", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(ownerServer.GetComponent<NetworkCombat>(), arguments);
+            outcome = (ShotOutcome)arguments[2]; return result;
+        }
+        private void SetServerTime(double now) => typeof(ServerMatchLifecycleController)
+            .GetField("lastServerTime", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(lifecycle, now);
+        private double ReplicatedDeadline => (double)typeof(NetworkCombat)
+            .GetField("nextAttackTime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ownerServer.GetComponent<NetworkCombat>());
+
+        [UnityTest] public IEnumerator GunRules_RealCommandRejectsThenHitsOnce_ReplicatesDamageAndDeadline()
+        {
+            yield return Begin(rules: new GameplayConfiguration(countdownDurationSeconds: 0, spawnProtectionSeconds: .01));
+            yield return Capture();
+            Assert.That(ReplicatedDeadline, Is.Zero);
+            Raw(Intent(2)); yield return Until(() => other.CurrentHealth == 75 && source.Current.DamageDealt == 25);
+            var deadline = lifecycle.Session.ByConnection(1).Character.NextShotAtSeconds;
+            Assert.That(ReplicatedDeadline, Is.EqualTo(deadline));
+            Assert.That(source.Current.WeaponDamage, Is.EqualTo(25)); Assert.That(other.MaxHealth, Is.EqualTo(100));
+            var future = Intent(3); future.Timestamp += 1000; Raw(future);
+            yield return Until(() => sink.Rejection == ShotRejection.Cooldown);
+            Assert.That(other.CurrentHealth, Is.EqualTo(75)); Assert.That(ReplicatedDeadline, Is.EqualTo(deadline));
+            Raw(Intent(3)); yield return Until(() => sink.Rejection == ShotRejection.StaleSequence);
+            Assert.That(hud.Presentation.DamageDealt, Is.EqualTo(25));
+            yield return Until(() => NetworkTime.localTime >= deadline);
+            Raw(Intent(4)); yield return Until(() => other.CurrentHealth == 50 && source.Current.DamageDealt == 50);
+        }
+        [UnityTest] public IEnumerator GunRules_DeterministicRuntimeBoundaryAndOutcomeCooldown()
+        {
+            yield return Begin(rules: new GameplayConfiguration(countdownDurationSeconds: 0, spawnProtectionSeconds: .01));
+            var start = NetworkTime.localTime + 5;
+            // Each boundary starts from a distinct accepted miss, never the preceding boundary case.
+            foreach (var offset in new[] { .499999, .5, .500001 })
+            {
+                SetServerTime(start);
+                Assert.That(ServerShot(0, -1, out var miss), Is.EqualTo(ShotRejection.None));
+                Assert.That(miss, Is.EqualTo(ShotOutcome.Missed)); Assert.That(ReplicatedDeadline, Is.EqualTo(start + .5));
+                SetServerTime(start + offset);
+                Assert.That(ServerShot(1, 0, out _), Is.EqualTo(offset < .5 ? ShotRejection.Cooldown : ShotRejection.None));
+                Assert.That(ReplicatedDeadline, Is.EqualTo(offset < .5 ? start + .5 : start + offset + .5));
+                start += 2;
+            }
+            SetServerTime(start);
+            Assert.That(ServerShot(0, 0, out _), Is.EqualTo(ShotRejection.InvalidAim));
+            var wall = Track(GameObject.CreatePrimitive(PrimitiveType.Cube)); wall.layer = 6;
+            wall.transform.position = ownerServer.transform.position + Vector3.right * .6f;
+            Physics.SyncTransforms();
+            Assert.That(ServerShot(1, 0, out var blocked), Is.EqualTo(ShotRejection.None));
+            Assert.That(blocked, Is.EqualTo(ShotOutcome.Blocked)); Assert.That(ReplicatedDeadline, Is.EqualTo(start + .5));
+            Assert.That(ServerShot(1, 0, out _), Is.EqualTo(ShotRejection.Cooldown));
+            Assert.That(lifecycle.Session.ByConnection(2).Character.Health, Is.EqualTo(50));
+        }
+        [UnityTest] public IEnumerator GunRules_ServerMuzzleColliderRangeAndCustomDamage()
+        {
+            yield return Begin(rules: new GameplayConfiguration(shotDamage: 17, shotCooldownSeconds: .75,
+                countdownDurationSeconds: 0, spawnProtectionSeconds: .01));
+            otherServer.GetComponent<CharacterController>().enabled = false;
+            var box = otherServer.gameObject.AddComponent<BoxCollider>(); box.center = new Vector3(0, .25f, 0); box.size = Vector3.one;
+            var now = NetworkTime.localTime + 5;
+            foreach (var distance in new[] { 29.875f, 30f, 30.125f })
+            {
+                otherServer.transform.position = ownerServer.transform.position + Vector3.right * (distance + .5f);
+                Physics.SyncTransforms(); SetServerTime(now);
+                var before = lifecycle.Session.ByConnection(2).Character.Health;
+                Assert.That(ServerShot(1, 0, out var outcome), Is.EqualTo(ShotRejection.None));
+                Assert.That(outcome, Is.EqualTo(distance <= 30 ? ShotOutcome.Hit : ShotOutcome.Missed));
+                Assert.That(lifecycle.Session.ByConnection(2).Character.Health, Is.EqualTo(before - (distance <= 30 ? 17 : 0)));
+                Assert.That(ReplicatedDeadline, Is.EqualTo(now + .75)); now += 2;
+            }
+        }
+        [UnityTest] public IEnumerator GunRules_ProtectedTargetTakesZero_AndLegacyAttackSharesRuntimeDeadline()
+        {
+            yield return Begin(rules: new GameplayConfiguration(countdownDurationSeconds: 0,
+                respawnDelaySeconds: .1, spawnProtectionSeconds: .5, minimumSafeSpawnDistanceMetres: .5));
+            yield return new WaitForSeconds(.55f);
+            Assert.That(otherServer.GetComponent<NetworkHealth>().TakeDamage(100), Is.True);
+            yield return Until(() => otherServer.GetComponent<NetworkHealth>().LifeId == 2);
+            SideTarget();
+            Assert.That(ServerShot(1, 0, out _), Is.EqualTo(ShotRejection.None));
+            Assert.That(lifecycle.Session.ByConnection(2).Character.Health, Is.EqualTo(100));
+            var deadline = ReplicatedDeadline;
+            typeof(NetworkCombat).GetMethod("PerformAttack", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(ownerServer.GetComponent<NetworkCombat>(), new object[] { Vector3.forward });
+            Assert.That(ReplicatedDeadline, Is.EqualTo(deadline));
+            Assert.That(lifecycle.Session.ByConnection(1).Character.NextShotAtSeconds, Is.EqualTo(deadline));
+            Assert.That(lifecycle.Session.ByConnection(1).DamageDealt, Is.Zero);
         }
         private ShotIntent Intent(ulong sequence) => new ShotIntent { AimX = 1, AimZ = 0, LifeId = owner.LifeId,
             Sequence = sequence, Timestamp = NetworkTime.localTime };

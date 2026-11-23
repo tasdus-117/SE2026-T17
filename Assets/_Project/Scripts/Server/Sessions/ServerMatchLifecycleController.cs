@@ -98,8 +98,16 @@ namespace SmallArena.Server.Sessions
             var health = player.GetComponent<NetworkHealth>();
             actors.Add(conn.connectionId, health);
             health.BindRuntime(() => Session != null && Session.CanAct(p, ServerNow),
-                (amount, attacker) => Damage(p, amount, attacker), () => Session != null && Session.TryAttack(p.ParticipantId, p.LifeId, ServerNow));
+                (amount, attacker) => Damage(p, amount, attacker), () => BeginAttack(p));
             EnsureState(); Publish();
+        }
+        private bool BeginAttack(MatchParticipantRuntime participant)
+        {
+            // Sample the monotonic server clock once for both eligibility and commit.
+            var now = ServerNow;
+            if (Session == null || !Session.TryAttack(participant.ParticipantId, participant.LifeId, now)) return false;
+            Publish();
+            return true;
         }
         private bool Damage(MatchParticipantRuntime participant, int amount, NetworkHealth attacker)
         {
