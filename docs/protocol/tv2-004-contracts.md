@@ -1,5 +1,12 @@
 # TV2-004: input, shot, result and presentation contracts
 
+24-Nov-2026 FR-203 update: the merged #31/#37 adapters implement CT-202–205
+for the M3 profile. TV2-005 makes `NextShotAtSeconds` the sole bound combat
+deadline and mirrors it through `NetworkHealth.PublishRuntime` into the existing
+combat SyncVar. See [TV2-005 verification](../testing/tv2-005-results.md) for
+the active/approved profiles and current symbol matrix. Dated text below remains
+the original contract; broader reconciliation belongs to draft PR #30.
+
 Revision 2026-11-19, prepared by Codex for TV1 network/ownership, TV2 gameplay
 (Long / 23001901), TV3 aim/HUD. **DRAFT: independent validation implemented;
 raycast/session integration and actual three-member review pending.**
