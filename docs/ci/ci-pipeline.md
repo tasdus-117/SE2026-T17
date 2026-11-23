@@ -503,3 +503,21 @@ run `4d4cb053fd56416fa97fd3ca8186260e`; max clock spread0,183411s trên23 checkp
 Production baseline8fba1c1 cùng tooling overlay chưa commit được ghi hash riêng.
 Chi tiết identity/source hashes, failed development runs và các blocker trong báo cáo
 liên kết trên; #27 vẫn BLOCKED, không ký thay owner từ kết quả localhost này.
+
+### PR #38 — khôi phục Docker và cô lập cache build
+
+Job `unity` trên `windows-2022` kiểm tra/start service `docker` nếu cần, rồi poll
+`docker info` mỗi 2 giây trong tối đa 60 giây trước khi pull Editor image. Nếu chưa
+sẵn sàng, job in service/version và các Application/System events liên quan Docker,
+rồi fail; không bỏ qua XML hoặc compilation gates.
+
+Cache `Library` của Ubuntu cross-build chuyển sang prefix `windows-mono-cross-v3-`
+ở cả key và restore-keys để không dùng lại snapshot v2 nghi vấn. Đây là phép cô lập
+cache, chưa chứng minh cache v2 hỏng hoặc exit137 là OOM. Không thêm swap/memory limits
+của PR #35. Khi lỗi, diagnostic đọc memory/swap host, cgroup counters còn tồn tại,
+Docker status/exit/OOMKilled/error và kernel OOM messages. GameCI dùng `--rm`, nên
+container/cgroup có thể đã bị xóa; thiếu counters không chứng minh không có OOM.
+
+CI vẫn Phase1+Phase2, giữ project floors261/406 và toàn bộ verification gates.
+Sau khi người dùng review/commit/push PR #38, kiểm readiness step, cache v3 hit/miss,
+tests/XML và build thực trên GitHub; local syntax/regression không thay bằng chứng CI.
