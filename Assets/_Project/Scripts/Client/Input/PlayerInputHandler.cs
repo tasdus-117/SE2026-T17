@@ -80,11 +80,12 @@ namespace SmallArena.Input
         }
 
         public bool ConsumeJumpPressed() => Consume(ref jumpPressed) && LifecycleAllowsInput;
-        public bool ConsumePunchPressed()
+        public bool ConsumePunchPressed() => ConsumePunchPressed(true);
+        public bool ConsumePunchPressed(bool includeMouse)
         {
             var keyboard = Consume(ref punchPressed);
             var mouse = Consume(ref mousePunchPressed);
-            return LifecycleAllowsInput && (keyboard || mouse && !PointerOverUI());
+            return LifecycleAllowsInput && (keyboard || includeMouse && mouse && !PointerOverUI());
         }
         private bool PointerOverUI()
         {

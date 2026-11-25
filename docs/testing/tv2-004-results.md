@@ -1,6 +1,26 @@
 # TV2-004 verification and delivery
 
-## Reconciliation candidate — 22-Nov-2026
+## Current audit — 25-Nov-2026
+
+Main runtime74a6c56f8e9baeddfa2ef11273b2bf5f21cf9837; this candidate merges
+main into the existing #30 branch without rewriting history. README conflict
+resolved by preserving newer team features and correcting stale delivery claims.
+[Current CT/source map](tv2-current-contract-audit.md) and
+[four-player rules oracle #24](tv2-four-player-oracle.md) supersede missing-adapter
+claims in dated records below. No runtime/config/tool files changed versus main.
+
+Fresh saved configuration verifier: exit0, **5253 assertions**,32 YAML+1JSON,
+1024 matrix entries/symmetry and installed-API probe compilation passed.
+Player–Player verifier mismatch is fixed on main; prior pair7/7 failure is historical.
+This is static configuration/compile evidence, not a gameplay test.
+
+PR #39 source/base/head unchanged:173 checked source/asmdef/prefab/scene files
+still match focused/full manifests and source0a646f6; CI45233139829 six jobs passed,
+Codex completed78130ba with no findings. Reuse those results only for #39 scope;
+no copying of its pending patch. PR #13 is separately verified on current main.
+No exact-head human approvals returned for #13/#30/#39. #20/#24/#26/#27/#29 stay open.
+Final integrated build requires maintainer integration and TV1/TV3 same-build QA.
+## Historical reconciliation candidate — 22-Nov-2026
 
 Documentation-only follow-up to merged [#14](https://github.com/tasdus-117/SE2026-T17/pull/14),
 owned by [#20](https://github.com/tasdus-117/SE2026-T17/issues/20), coordinated under
@@ -9,7 +29,7 @@ is main `995e6a47931637fdcb1cd9a90a47a5c377f8f46a`. Branch:
 `feature/TV2-004-runtime-contract-reconciliation`, worktree `.tv2-completion-004`.
 Exact final documentation SHA is the PR head; no code/config/prefab changes.
 
-The new [CT/FR matrix](../protocol/tv2-004-contracts.md#current-reconciliation--22-nov-2026)
+The new [CT/FR matrix](../protocol/tv2-004-contracts.md#historical-reconciliation--22-nov-2026)
 supersedes the old missing-M3-provider claims below. Inspected production ingress,
 M3 binding/config/clock/state/lifecycle, melee aim-before-cooldown ordering, Domain
 HP/scoring/protection, replica/HUD consumers and prefab wiring. M3 has production

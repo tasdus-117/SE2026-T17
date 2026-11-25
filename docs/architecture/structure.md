@@ -96,3 +96,7 @@ Tránh dùng `Resources/` như kho chứa toàn bộ project. Chỉ thêm cơ ch
 Một repository, một Unity project, hai mục tiêu build client/server. Chưa cần microservices, database, tài khoản, Redis hoặc Kubernetes khi yêu cầu chưa có. Reconnect trong bản đầu có thể dùng phiên lưu trong RAM; server khởi động lại thì các phiên đó mất. Muốn khôi phục sau khi server chết là yêu cầu khác.
 
 Các tên file ví dụ trong phần định hướng là gợi ý triển khai; không phải tính năng đã hoàn thành. Danh mục thực tế đã có nằm ở mục “Trạng thái sau di trú” đầu tài liệu và PROJECT_CONTEXT.md.
+
+## Runtime audit 25-Nov-2026
+
+Main74a6c56 chứa adapters #31, raycast/feedback/HUD #37 và harness/XML #38. NetworkShotIntentAdapter và NetworkPlayerPresentationAdapter đã gắn production; [source audit](../testing/tv2-current-contract-audit.md) và [oracle](../testing/tv2-four-player-oracle.md) phân biệt implemented/enabled với approved/accepted. #18 đã closed qua #38; #19 còn cần owner TV3 negative fixtures/review. CI vẫn Phase1+2, localhost harness không chạy như required CI acceptance.

@@ -1,7 +1,8 @@
-param([string]$EditorRoot = 'C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor')
+param([string]$EditorRoot = '')
 
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
+$EditorRoot = & (Join-Path $PSScriptRoot 'Resolve-UnityEditor.ps1') -EditorRoot $EditorRoot
 $output = Join-Path $taskRoot 'TestResults/ArenaConfiguration'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $dotnet = Join-Path $EditorRoot 'Data/NetCoreRuntime/dotnet.exe'

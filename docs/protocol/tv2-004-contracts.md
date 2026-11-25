@@ -1,6 +1,18 @@
 # TV2-004: input, shot, result and presentation contracts
 
-## Current reconciliation — 22-Nov-2026
+## Current reconciliation — 25-Nov-2026
+
+Runtime reference main `74a6c56f8e9baeddfa2ef11273b2bf5f21cf9837`.
+The [current CT/FR/source audit](../testing/tv2-current-contract-audit.md)
+supersedes the dated22-Nov matrix below, especially its absent-provider claims.
+Adapters #31 and raycast/feedback/HUD #37 are merged and production-wired;
+#38 supplies the four-process KCP harness and hardened XML policy. Current
+[TV2 oracle and #26/#27 matrix](../testing/tv2-four-player-oracle.md) is delivered
+for TV1/TV3 review. #29 still scopes acceptance to melee; H100/D25/C.5/R30 rollout
+is unapproved. Existing M3 H10/D1/C1/R1.8 and pickup behavior remain unchanged.
+Movement #13 and single-deadline #39 are independent draft candidates; this
+PR is documentation-only. Retained reconnect/new FR-204 work stays later scope.
+## Historical reconciliation — 22-Nov-2026
 
 This section supersedes baseline/status/interface claims in the **19-Nov historical
 packet below**. The original examples remain design history, not a description of

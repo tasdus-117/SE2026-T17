@@ -11,12 +11,14 @@ namespace SmallArena.Client
         private NetworkPlayer player;
         private NetworkHealth health;
         private PlayerInputHandler input;
+        private NetworkShotIntentAdapter shots;
         private double nextAttackRequestTime;
         private void Awake()
         {
             player = GetComponent<NetworkPlayer>();
             health = GetComponent<NetworkHealth>();
             input = GetComponent<PlayerInputHandler>();
+            shots = GetComponent<NetworkShotIntentAdapter>();
         }
         private void Update()
         {
@@ -24,7 +26,8 @@ namespace SmallArena.Client
             // Both reliable Commands preserve E-before-attack ordering, matching the offline loop.
             if (input.ConsumeInteractPressed() && health != null && health.CanAct) RequestNearbyLoot();
             // Consume early clicks without queuing them. This is traffic control, never hit authority.
-            if (input.ConsumePunchPressed() && health != null && health.CanAct && Time.unscaledTimeAsDouble >= nextAttackRequestTime)
+            if (input.ConsumePunchPressed(shots == null || !shots.isActiveAndEnabled || !health.IsLifecycleBound)
+                && health != null && health.CanAct && Time.unscaledTimeAsDouble >= nextAttackRequestTime)
             {
                 nextAttackRequestTime = Time.unscaledTimeAsDouble + health.AttackCooldownSeconds;
                 player.RequestAttack(Vector3.forward);

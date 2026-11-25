@@ -1,10 +1,11 @@
 param(
-    [string]$EditorRoot = 'C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor',
+    [string]$EditorRoot = '',
     [switch]$MutationChecks
 )
 
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
+$EditorRoot = & (Join-Path $PSScriptRoot 'Resolve-UnityEditor.ps1') -EditorRoot $EditorRoot
 Set-Location -LiteralPath $taskRoot
 $domainFolder = Join-Path $taskRoot 'Assets/_Project/Scripts/Shared/Domain'
 $testFolder = Join-Path $taskRoot 'Assets/_Project/Tests/EditMode'
@@ -38,7 +39,9 @@ function Compile-Suite([string]$SourceFolder, [string]$Destination) {
         (Join-Path $testFolder 'OnlineStateTests.cs'),
         (Join-Path $testFolder 'MatchLifecycleDomainTests.cs'),
         (Join-Path $testFolder 'FairLootSpawnTests.cs'),
-        (Join-Path $testFolder 'MatchScoringAndRankingTests.cs')
+        (Join-Path $testFolder 'MatchScoringAndRankingTests.cs'),
+        (Join-Path $testFolder 'NetworkAdaptersUnitTests.cs'),
+        (Join-Path $testFolder 'ShotResolutionAndPresentationCleanupTests.cs')
     )
     Compile-Source (Join-Path $Destination 'SmallArena.EditMode.Tests.dll') $testSources (@($framework) + @($domainBinary, $nunit))
 }
