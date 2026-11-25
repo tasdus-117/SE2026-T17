@@ -1,5 +1,63 @@
 # TV2-003 — movement intent revocation
 
+## Current candidate — 25-Nov-2026
+
+Baseline main `74a6c56f8e9baeddfa2ef11273b2bf5f21cf9837`; existing #13 head
+861866f merged with main in a68c64c9b322e996759c8f52b1ea9e8b1054cfb8
+(parents861866f,74a6c56), preserving published history. Verified runtime source:
+**7da3987c0a9310df36fd4a9fade2ceb052566235**. Final evidence commit changes
+only this report; exact final head is in PR metadata. Worktree `.tv2-final-003`;
+old dirty worktrees and all their settings preserved.
+
+One demonstrated gap remained: ClearIntent removed pending jump but retained an
+upward verticalVelocity across disable/control loss. It now clears vertical
+state too. Existing disable/disabled-character regressions seed7m/s and assert
+zero before restore; no new speculative fixture. Sequence/jump watermarks stay
+intact until OnStartServer begins a new avatar. Existing production
+TakeDamage→Publish→respawn regression still verifies transitions between ingress/
+fixed observations, life rejection, duplicate/old sequence and fresh input during
+protection. Configured speed/freshness boundaries, world XZ, grounded jump and
+M3 death/respawn/lifecycle behavior remain covered.
+
+Pinned Unity6000.6.8f1 (237b6593792b), successful actual-worktree native runs:
+
+| Verification | Discovered / passed / failed / skipped / inconclusive |
+|---|---|
+| Focused movement/lifecycle | 55 /55 /0 /0 /0 |
+| Full EditMode | 277 /277 /0 /0 /0 |
+| Full PlayMode | 433 /431 /0 /2 vendor /0 |
+| PlayMode project subset | 429 /429 /0 /0 /0 |
+| Strict compile | 7/7 project assemblies, warnings as errors, exit0 |
+| XML regression / harness regression / Windows build validator | 55/55 /56/56 /30/30 |
+| Scaffold/GUID / saved config / layout / input | 1530 metadata pairs /5253 assertions /4631 assertions /PASS |
+| Production Windows x64 Mono2x | Succeeded, exit0,0 errors,15 vendor warnings,113882595 bytes |
+
+All native processes exit0; XML policy passes with zero project skips and two
+allowed vendor skips (reasons retained in raw XML). EditMode includes
+GameplayConfiguration85, OnlineState45 and offline MatchState35, all pass;
+#9's original141/141 remains historical at3da84b9. All173 checked source/asmdef/
+prefab/scene files match tested and committed source. No generated settings in
+the PR; Unity import/build changes remain unstaged and are recorded separately.
+
+Reproduce: ignored `TestResults/Final/Verify.ps1` records pinned Editor args,
+source manifests, SHA/times/exit codes; Focused/EditMode/PlayMode-native.xml and
+logs, per-suite XML gate logs, strict compiler results and repository gate logs.
+Build command `powershell -ExecutionPolicy Bypass -File tools/Build-WindowsStandalone.ps1`;
+Builds/WindowsStandalone/build-report.json and Logs/WindowsStandalone contain
+actual build evidence. TestResults/Final/verified.json confirms source parity.
+Initial sandbox license198 and PowerShell/Unity CLI stderr wrapper failure are
+retained; direct pinned-Editor Start-Process runner succeeded. An earlier import
+run overlapped source edits and is exploratory only, not final verification.
+
+Review exact final head: TV1 @xzviett authority/binding/life/clock/order, replay
+and jump counters, synchronous revocation and integration for #27; TV3
+@tasdus-117 world axes/grounded jump/focus/pause/disable/death/rematch held-input
+invalidation and HUD on #26. Final #26/#27 use **one maintainer-agreed integrated
+SHA/build**, not independent branch evidence. Current draft #30 supplies #24
+oracle; #39 remains independent, no copied pending code or stacked PR.
+No human approval or final integrated acceptance inferred. Retained reconnect
+and new FR-204 implementation remain outside this run.
+
 ## Integrated candidate — 22-Nov-2026
 
 This section supersedes the 17-Nov dependency/status claims below; earlier evidence
