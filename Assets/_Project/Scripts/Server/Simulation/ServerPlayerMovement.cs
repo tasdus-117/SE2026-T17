@@ -69,6 +69,7 @@ namespace SmallArena.Server.Simulation
         private void ClearIntent()
         {
             move = Vector2.zero;
+            verticalVelocity = 0f;
             pendingJump = hasInput = false;
             lastInputTime = 0d;
             // Temporary revocation must not reopen either replay watermark.

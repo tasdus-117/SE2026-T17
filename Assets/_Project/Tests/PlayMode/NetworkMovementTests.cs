@@ -367,7 +367,9 @@ namespace SmallArena.Tests.PlayMode
             ReceiveDirect(sequence++, Vector2.up, 1);
             Assert.That(MotorField("pendingJump"), Is.EqualTo(true));
             var watermark = simulation.LastAcceptedSequence;
+            SetMotorField("verticalVelocity", 7f);
             simulation.enabled = false;
+            Assert.That(simulation.VerticalVelocity, Is.Zero, "Revocation must not retain an upward impulse.");
             Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.zero));
             Assert.That(MotorField("hasInput"), Is.EqualTo(false));
             Assert.That(MotorField("lastInputTime"), Is.EqualTo(0d));
@@ -393,9 +395,11 @@ namespace SmallArena.Tests.PlayMode
             {
                 ReceiveDirect(sequence++, Vector2.right, 1);
                 var watermark = simulation.LastAcceptedSequence;
+                SetMotorField("verticalVelocity", 7f);
                 character.enabled = false;
                 if (viaIngress) ReceiveDirect(sequence++, Vector2.up, 2);
                 else StepAt(NetworkTime.localTime);
+                Assert.That(simulation.VerticalVelocity, Is.Zero, "Disabled collision must clear stored vertical state.");
                 Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.zero));
                 Assert.That(MotorField("hasInput"), Is.EqualTo(false));
                 Assert.That(MotorField("pendingJump"), Is.EqualTo(false));
