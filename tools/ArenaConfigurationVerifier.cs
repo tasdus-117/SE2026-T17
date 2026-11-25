@@ -66,7 +66,7 @@ internal static class ArenaConfigurationVerifier
         var allowed = new Dictionary<string, string[]>
         {
             { "Environment", new[] { "Default", "Environment", "Player", "Bot" } },
-            { "Player", new[] { "Default", "Environment", "Bot", "Pickup" } },
+            { "Player", new[] { "Default", "Environment", "Player", "Bot", "Pickup" } },
             { "Bot", new[] { "Default", "Environment", "Player" } },
             { "Pickup", new[] { "Player" } }
         };
@@ -207,7 +207,7 @@ internal static class ArenaConfigurationVerifier
     private static int Integer(YamlNode node) => int.Parse(Scalar(node), System.Globalization.CultureInfo.InvariantCulture);
     private static string ReadGuid(string path)
     {
-        var match = Regex.Match(File.ReadAllText(path), @"(?m)^guid: ([0-9a-f]{32})\s*$");
+        var match = Regex.Match(File.ReadAllText(path), @"(?mi)^guid: ([0-9a-f]{32})\s*$");
         Check(match.Success, "Invalid GUID sidecar: " + path);
         return match.Groups[1].Value;
     }

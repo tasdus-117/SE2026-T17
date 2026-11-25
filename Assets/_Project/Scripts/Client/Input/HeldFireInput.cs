@@ -6,16 +6,18 @@ using UnityEngine.InputSystem;
 
 namespace SmallArena.Client
 {
-    /// <summary>Opt-in raycast-intent adapter. No prefab installs this until TV1/TV2 supply the real sink.</summary>
+    /// <summary>Fresh mouse aim collector; the installed sink owns networking and server permission.</summary>
     [DisallowMultipleComponent]
     public sealed class HeldFireInput : MonoBehaviour
     {
-        private PlayerInputHandler input;
+        [SerializeField] private PlayerInputHandler input;
         private Camera aimCamera;
-        private Transform muzzle;
+        [SerializeField] private Transform muzzle;
+        [SerializeField] private MonoBehaviour sinkProvider = null;
         private IShotIntentSink sink;
         private readonly HeldFireCadence cadence = new HeldFireCadence();
         private Mouse pointer;
+        private void Awake() { if (sinkProvider != null) sink = sinkProvider as IShotIntentSink; }
 
         public void Configure(PlayerInputHandler input, Camera camera, Transform muzzle, IShotIntentSink sink)
         {
@@ -42,6 +44,7 @@ namespace SmallArena.Client
         private void OnDestroy() => Detach();
         private void Update()
         {
+            if (sinkProvider != null && aimCamera == null) { aimCamera = Camera.main; cadence.Reset(); }
             if (pointer != Mouse.current) { cadence.Reset(); pointer = Mouse.current; }
             var held = false;
             var allowed = input != null && input.TryReadHeldFire(out held) && aimCamera != null && muzzle != null

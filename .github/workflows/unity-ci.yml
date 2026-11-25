@@ -17,6 +17,8 @@ jobs:
   diff:
     name: Git diff
     runs-on: ubuntu-24.04
+    outputs:
+      build_required: ${{ steps.changes.outputs.build_required }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -26,14 +28,73 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: git diff --check "$BASE_SHA" HEAD --
+      - name: Classify Windows build changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          required=false
+          if [[ "$EVENT_NAME" == push ]]; then
+            required=true
+          else
+            git diff --no-renames --name-only -z "$BASE_SHA" HEAD -- > "$RUNNER_TEMP/windows-build-paths"
+            while IFS= read -r -d '' file; do
+              case "$file" in
+                docs/*|README.md|.github/workflows/README.md) ;;
+                *) required=true ;;
+              esac
+            done < "$RUNNER_TEMP/windows-build-paths"
+          fi
+          echo "build_required=$required" >> "$GITHUB_OUTPUT"
+
+  static:
+    name: Static quality (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: XML validator regression tests (PowerShell 7)
+        shell: pwsh
+        run: ./tools/Test-AssertUnityTestResults.ps1
+      - name: XML validator regression tests (Windows PowerShell 5.1)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./tools/Test-AssertUnityTestResults.ps1
+      - name: Assembly graph, metadata, GUIDs, scene order and package closure
+        shell: pwsh
+        run: ./tools/Verify-Scaffold.ps1 -SkipEditorCheck
+      - name: Saved Input Actions and input boundaries
+        shell: pwsh
+        run: ./tools/Verify-Input.ps1 -SkipCompilation
+      - name: Windows builder scene and output regression tests
+        shell: pwsh
+        run: ./tools/Test-WindowsStandaloneBuild.ps1
+      - name: Windows builder regression tests (Windows PowerShell 5.1)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./tools/Test-WindowsStandaloneBuild.ps1
+      - name: Windows build scene preflight
+        shell: pwsh
+        run: ./tools/Assert-WindowsStandaloneBuild.ps1 -ScenesOnly
 
   unity:
     name: Unity EditMode and PlayMode
     # Fork PRs do not have access to the repository's Unity credentials.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: windows-2022
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Check Unity license configuration
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -44,9 +105,43 @@ jobs:
             Write-Output '::error::Configure UNITY_LICENSE, UNITY_EMAIL and UNITY_PASSWORD in repository Actions secrets. See .github/workflows/README.md.'
             exit 1
           }
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
+      - name: Ensure Docker daemon is ready
+        shell: pwsh
+        run: |
+          $service = Get-Service -Name docker -ErrorAction SilentlyContinue
+          if ($service -and $service.Status -ne 'Running') {
+            try { Start-Service -Name docker -ErrorAction Stop }
+            catch { Write-Warning "Docker service start failed: $($_.Exception.Message)" }
+          }
+          $timer = [Diagnostics.Stopwatch]::StartNew()
+          do {
+            docker info 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+              Write-Output 'Docker daemon is ready.'
+              exit 0
+            }
+            Start-Sleep -Seconds 2
+          } while ($timer.Elapsed.TotalSeconds -lt 60)
+          Get-Service -Name docker -ErrorAction SilentlyContinue | Format-List Name, Status, StartType
+          docker version 2>&1
+          Get-WinEvent -FilterHashtable @{ LogName = @('Application', 'System'); StartTime = (Get-Date).AddMinutes(-15) } -MaxEvents 200 -ErrorAction SilentlyContinue |
+            Where-Object { $_.ProviderName -match 'docker' -or $_.Message -match 'docker' } |
+            Select-Object -First 20 TimeCreated, ProviderName, Id, LevelDisplayName, Message | Format-List
+          Write-Output '::error::Docker daemon did not become ready within 60 seconds.'
+          exit 1
+      - name: Resolve one Editor image for tests and static compilation
+        id: image
+        shell: pwsh
+        run: |
+          $version = [regex]::Match((Get-Content ProjectSettings/ProjectVersion.txt -Raw), '(?m)^m_EditorVersion:\s*(\S+)').Groups[1].Value
+          if ($version -notmatch '^\d+\.\d+\.\d+[abfp]\d+$') { throw 'Invalid Unity Editor version.' }
+          $tag = "unityci/editor:windows-$version-windows-il2cpp-3"
+          docker pull $tag
+          if ($LASTEXITCODE -ne 0) { throw "Cannot pull Editor image $tag" }
+          $image = docker image inspect --format '{{index .RepoDigests 0}}' $tag
+          if ($LASTEXITCODE -ne 0 -or $image -notmatch '^unityci/editor@sha256:[a-f0-9]{64}$') { throw 'Cannot resolve immutable Editor image digest.' }
+          "image=$image" >> $env:GITHUB_OUTPUT
+          "UNITY_CI_IMAGE=$image" >> $env:GITHUB_ENV
       - name: Run Unity tests
         id: tests
         uses: game-ci/unity-test-runner@fa6ced25861c16ef56187828c43f76d00df43a23 # v4.3.2
@@ -55,18 +150,185 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
+          customImage: ${{ steps.image.outputs.image }}
           testMode: all
           artifactsPath: TestResults/CI
           customParameters: -nographics
-      - name: Verify both Unity XML reports
-        if: ${{ !cancelled() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+      - name: Validate EditMode XML (minimum 261 passed)
+        if: always()
         shell: pwsh
-        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI
+        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI -TestPlatform editmode -MinPassedCount 261 -MinProjectPassedCount 261
+      - name: Validate PlayMode XML (minimum 408 passed, including 406 project tests)
+        if: always()
+        shell: pwsh
+        run: ./tools/Assert-UnityTestResults.ps1 -ResultsRoot TestResults/CI -TestPlatform playmode -MinPassedCount 408 -MinProjectPassedCount 406
+      # GameCI's Editor is inside Docker, not installed on the Windows host.
+      # The mounted checkout now contains Library/PackageCache and ScriptAssemblies.
+      - name: Verify installed Editor and scaffold in the Editor container
+        if: ${{ always() && !cancelled() && steps.image.outcome == 'success' && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        shell: pwsh
+        run: |
+          docker run --rm --volume "${env:GITHUB_WORKSPACE}:C:\github\workspace" --workdir C:\github\workspace $env:UNITY_CI_IMAGE powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-UnityCIGate.ps1 -Gate Scaffold
+          if ($LASTEXITCODE -ne 0) { throw 'Editor/scaffold gate failed.' }
+      - name: Strict compilation of all seven project assemblies
+        if: ${{ always() && !cancelled() && steps.image.outcome == 'success' && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        shell: pwsh
+        run: |
+          docker run --rm --volume "${env:GITHUB_WORKSPACE}:C:\github\workspace" --workdir C:\github\workspace $env:UNITY_CI_IMAGE powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-UnityCIGate.ps1 -Gate Compilation
+          if ($LASTEXITCODE -ne 0) { throw 'Strict project compilation failed.' }
+      - name: Verify physics layers, collision matrix and URP configuration
+        if: ${{ always() && !cancelled() && steps.image.outcome == 'success' && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        shell: pwsh
+        run: |
+          docker run --rm --volume "${env:GITHUB_WORKSPACE}:C:\github\workspace" --workdir C:\github\workspace $env:UNITY_CI_IMAGE powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-UnityCIGate.ps1 -Gate ArenaConfiguration
+          if ($LASTEXITCODE -ne 0) { throw 'Arena configuration gate failed.' }
+      - name: Verify saved arena, prefabs and UI wiring
+        if: ${{ always() && !cancelled() && steps.image.outcome == 'success' && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        shell: pwsh
+        run: |
+          docker run --rm --volume "${env:GITHUB_WORKSPACE}:C:\github\workspace" --workdir C:\github\workspace $env:UNITY_CI_IMAGE powershell -NoProfile -ExecutionPolicy Bypass -File tools/Invoke-UnityCIGate.ps1 -Gate ArenaLayout
+          if ($LASTEXITCODE -ne 0) { throw 'Saved arena layout gate failed.' }
       - name: Upload Unity test results
-        if: ${{ !cancelled() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: unity-test-results
-          path: TestResults/CI
+          path: |
+            TestResults/CI
+            TestResults/Compilation
+            TestResults/ArenaConfiguration
+            TestResults/ArenaLayout
           if-no-files-found: warn
           retention-days: 7
+
+  windows-standalone-build:
+    name: Windows Standalone Build
+    needs: diff
+    if: ${{ needs.diff.outputs.build_required == 'true' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check Unity license configuration
+        shell: pwsh
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if (-not $env:UNITY_LICENSE -or -not $env:UNITY_EMAIL -or -not $env:UNITY_PASSWORD) {
+            throw 'Configure the existing Unity CI license secrets. No credentials will be printed.'
+          }
+      - name: Verify production scene order
+        shell: pwsh
+        run: |
+          ./tools/Assert-WindowsStandaloneBuild.ps1 -ScenesOnly
+          New-Item -ItemType Directory -Path Logs/WindowsStandalone -Force | Out-Null
+      - name: Cache Linux-to-Windows Mono Library
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: Library
+          key: windows-mono-cross-v3-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-${{ github.sha }}
+          restore-keys: |
+            windows-mono-cross-v3-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-
+      - name: Cross-build production Windows x64 Mono player
+        id: build
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4 (pinned)
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.6.8f1
+          customImage: unityci/editor:ubuntu-6000.6.8f1-windows-mono-3
+          targetPlatform: StandaloneWindows64
+          buildName: SmallArena
+          buildsPath: Builds
+          buildMethod: SmallArena.Tools.SmallArenaBuildPipeline.BuildWindowsStandalone
+          versioning: None
+      - name: Diagnose build termination (cgroup & Docker state)
+        if: failure()
+        shell: bash
+        run: |
+          free -h 2>/dev/null || true
+          for group in /sys/fs/cgroup /sys/fs/cgroup/system.slice/docker-*.scope /sys/fs/cgroup/docker/*; do
+            [[ -d "$group" ]] || continue
+            for counter in memory.events memory.peak memory.max; do
+              if [[ -r "$group/$counter" ]]; then
+                printf '\n--- %s ---\n' "$group/$counter"
+                cat "$group/$counter" 2>/dev/null || true
+              fi
+            done
+          done
+          docker ps -a --no-trunc 2>/dev/null || true
+          containers=$(docker ps -aq 2>/dev/null || true)
+          if [[ -n "$containers" ]]; then
+            docker inspect --format '{{.Id}} Status={{.State.Status}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}} Error={{json .State.Error}}' $containers 2>/dev/null || true
+          else
+            echo 'No retained containers; GameCI --rm may have removed the build container and its cgroup.'
+          fi
+          dmesg -T 2>/dev/null | grep -iE 'killed process|oom' | tail -n 20 || true
+      - name: Verify executable, player data and successful BuildReport
+        shell: pwsh
+        run: ./tools/Assert-WindowsStandaloneBuild.ps1
+      - name: Package Phase 3 handoff
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p Artifacts/WindowsStandalone
+          archive="$GITHUB_WORKSPACE/Artifacts/WindowsStandalone/SmallArena-Windows-x64.zip"
+          (cd Builds/WindowsStandalone && zip -q -r "$archive" .)
+          unzip -tq "$archive"
+          (
+            cd Artifacts/WindowsStandalone
+            sha256sum SmallArena-Windows-x64.zip > SHA256SUMS.txt
+            sha256sum --check SHA256SUMS.txt
+            printf '%s\n' "$SOURCE_SHA" > source-commit.txt
+          )
+      - name: Upload verified Windows player
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-standalone-${{ github.sha }}
+          path: Artifacts/WindowsStandalone
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 3
+      - name: Upload Windows build diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-standalone-build-logs-${{ github.sha }}
+          path: |
+            Logs/WindowsStandalone
+            Builds/WindowsStandalone/build-report.json
+          if-no-files-found: warn
+          retention-days: 3
+
+  quality:
+    name: CI Quality Gate
+    if: always()
+    needs: [diff, static, unity, windows-standalone-build]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every verification job to succeed
+        env:
+          DIFF_RESULT: ${{ needs.diff.result }}
+          STATIC_RESULT: ${{ needs.static.result }}
+          UNITY_RESULT: ${{ needs.unity.result }}
+          BUILD_REQUIRED: ${{ needs.diff.outputs.build_required }}
+          BUILD_RESULT: ${{ needs.windows-standalone-build.result }}
+        shell: pwsh
+        run: |
+          foreach ($name in @('DIFF_RESULT', 'STATIC_RESULT', 'UNITY_RESULT')) {
+            $result = [Environment]::GetEnvironmentVariable($name)
+            if ($result -ne 'success') { throw "$name=$result; all gates must succeed, including licensed Unity verification." }
+          }
+          if ($env:BUILD_REQUIRED -eq 'true') {
+            if ($env:BUILD_RESULT -ne 'success') { throw "Required Windows build did not succeed: $env:BUILD_RESULT" }
+          } elseif ($env:BUILD_REQUIRED -eq 'false') {
+            if ($env:BUILD_RESULT -ne 'skipped') { throw "Unexpected documentation-only build state: $env:BUILD_RESULT" }
+          } else { throw 'Missing/invalid Windows build classification.' }

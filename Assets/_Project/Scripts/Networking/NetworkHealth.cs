@@ -14,9 +14,9 @@ namespace SmallArena.Networking
         [SyncVar, SerializeField] private int maxHealth = 10;
         [SyncVar(hook = nameof(HealthChanged)), SerializeField] private int currentHealth = 10;
         [SyncVar(hook = nameof(ResultChanged))] private PlayerMatchResult result;
-        [SyncVar] private string sessionId = "";
+        [SyncVar(hook = nameof(SessionChanged))] private string sessionId = "";
         [SyncVar] private string participantId = "";
-        [SyncVar] private long lifeId;
+        [SyncVar(hook = nameof(LifeIdChanged))] private long lifeId;
         [SyncVar] private int slotIndex;
         [SyncVar] private int remainingLives;
         [SyncVar(hook = nameof(LifeChanged))] private ParticipantLifeState lifeState;
@@ -24,6 +24,7 @@ namespace SmallArena.Networking
         [SyncVar] private double respawnAt;
         [SyncVar] private int baseDamage = 1;
         [SyncVar] private double attackCooldown = 1;
+        [SyncVar] private double shotRange = 1.8;
         private Func<bool> runtimeCanAct;
         private Func<int, NetworkHealth, bool> runtimeDamage;
         private Func<bool> runtimeAttack;
@@ -40,6 +41,7 @@ namespace SmallArena.Networking
         public MatchLifecyclePhase MatchPhase => matchPhase;
         public int BaseDamage => IsLifecycleBound ? baseDamage : 1;
         public double AttackCooldownSeconds => IsLifecycleBound ? attackCooldown : NetworkCombat.Cooldown;
+        public double ShotRangeMetres => shotRange;
         public double RespawnRemainingSeconds => lifeState == ParticipantLifeState.Respawning ? Math.Max(0, respawnAt - NetworkTime.time) : 0;
         public event Action OnLifecycleChanged;
         public int MaxHealth => maxHealth;
@@ -100,15 +102,21 @@ namespace SmallArena.Networking
         {
             if (!isServer) return;
             runtimeConfiguration = configuration;
+            var changed = sessionId != participant.SessionId || lifeId != participant.LifeId
+                || lifeState != participant.LifeState || matchPhase != phase;
             var died = currentHealth > 0 && participant.Character.Health == 0;
             sessionId = participant.SessionId; participantId = participant.ParticipantId; lifeId = participant.LifeId;
             slotIndex = participant.SlotIndex; remainingLives = participant.RemainingLives;
             maxHealth = configuration.MaxHealth; currentHealth = participant.Character.Health;
             baseDamage = configuration.ShotDamage; attackCooldown = configuration.ShotCooldownSeconds;
+            shotRange = configuration.ShotRangeMetres;
             respawnAt = participant.Character.RespawnAtSeconds ?? 0;
             lifeState = participant.LifeState; matchPhase = phase; result = outcome;
             if (died) OnDeath?.Invoke();
+            if (changed) OnLifecycleChanged?.Invoke();
         }
+        private void LifeIdChanged(long previous, long current) => OnLifecycleChanged?.Invoke();
+        private void SessionChanged(string previous, string current) => OnLifecycleChanged?.Invoke();
         private void LifeChanged(ParticipantLifeState previous, ParticipantLifeState current)
         { KeepReplicaCollisionDisabled(); OnLifecycleChanged?.Invoke(); }
         private void KeepReplicaCollisionDisabled()
