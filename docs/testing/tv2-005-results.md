@@ -3,7 +3,7 @@
 ## Integration with main — 28-Nov-2026
 
 Original PR head `78130ba39c503476f91845df200ef6020966c7d9`; fetched base
-`89f2674` (merged #13 movement revocation and #30 contract/oracle reconciliation).
+`89f2674fa993ff13e30fcd56cca46cec5333494c` (merged #13 movement revocation and #30 contract/oracle reconciliation).
 The sole conflict was `docs/protocol/tv2-004-contracts.md`. Resolution keeps the
 base-side reconciliation and links, labels its dated claims historical, and adds
 the FR-203 runtime deadline contract. The remaining sections below preserve the
@@ -31,8 +31,8 @@ Integration checks (unchanged runtime tree): EditMode 288/288; PlayMode retry
 (437 discovered, exit0); focused gun + spawn/lifecycle 18/18. Current XML floors
 261 EditMode / 408 total and 406 project PlayMode passed. Initial full PlayMode
 exited2 with one failure in `AuditSpawnLifecycleTests.F2_LegitimateDelayedSpawnWithinGrace_ReleasesOneSharedGameplayBarrier`
-(expectedHP9, actual10). The unchanged focused fixture and full suite retry pass;
-cause remains unproven, with immediate post-barrier/two-frame timing suspected.
+(expectedHP9, actual10). The unchanged focused fixture and full suite retry pass.
+Cause remains unproven. Existing [issue #42](https://github.com/tasdus-117/SE2026-T17/issues/42) tracks this same HP9/HP10 failure and the fixed corridor/two-frame fixture; its separate remote fix branch is not part of this integration.
 Both first failure and retries remain separate; no product/test workaround added.
 
 Strict compilation seven/seven (warnings as errors), Domain288/288, XML policy
@@ -41,7 +41,29 @@ scaffold/GUID/input, config5253 assertions and layout4631 assertions passed.
 Commands use the repository tools named in the historical command section below;
 new commands, XML/logs, 294-file runtime/asset/metadata manifest and original
 failure are recorded in ignored `TestResults/PR39`. No runtime files changed
-between native runs; committed source parity is checked before publication.
+between native runs; all 294 checked files match merge commit `13686d35eab1a2d10138e0d77942fcf9b0090cac`.
+Both original PR head and fetched base are ancestors of this commit.
+
+Windows production build from this worktree passed (exit0, errors0, warnings15,
+113883181 bytes). The isolated instrumented M3 build exported from `13686d3`
+also passed (exit0, errors0, warnings15, 113899979 bytes). All294 checked tracked
+files in the exported project match the tested source. Build identity/content
+hashes are in ignored `TestResults/FourPlayerHarness/ValidationProject/Builds/WindowsStandalone/four-player-build.json`.
+Initial harness preparation failed inside Windows PowerShell5.1 Expand-Archive;
+the retry substituted Windows tar for extraction in the invoking shell, preserving
+repository tooling/source unchanged. First failure and retry logs are separate
+under `TestResults/PR39/harness-build*.txt`.
+
+Localhost KCP run `254a2ce9d47e47199d425a385cbd4a67` passed all three rounds
+with one host and three independent clients from source `13686d3`; exit0.
+Client leave, continued host clock, host leave, all four process exits0, zero
+owned survivors and reusable UDP port passed. Raw summaries, snapshots and logs
+remain under ignored `TestResults/FourPlayerHarness/Runs/254a2ce9d47e47199d425a385cbd4a67`.
+This M3 smoke is separate from LAN, impairment, real-window/device QA and team
+acceptance on one agreed SHA/build (#26/#27). #24 oracle review, #29 rollout and
+TV1/TV3 exact-head reviews remain team decisions. Issue#41 still references old
+head78130ba and needs a reviewer-checklist refresh; no tracker was edited here.
+The final documentation-only evidence commit retains the tested runtime tree.
 
 ## Historical handoff — 24-Nov-2026
 
