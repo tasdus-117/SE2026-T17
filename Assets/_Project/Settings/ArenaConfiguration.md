@@ -4,12 +4,13 @@
 | --- | ---: | --- |
 | Default | 0 (built-in) | Existing built-in/default pairs preserved, plus Environment, Player and Bot; Pickup disabled |
 | Environment | 6 | Default, Environment, Player, Bot |
-| Player | 7 | Default, Environment, Bot, Pickup |
+| Player | 7 | Default, Environment, Player, Bot, Pickup |
 | Bot | 8 | Default, Environment, Player |
 | Pickup | 9 | Player only |
 
-The matrix is symmetric. Player/Player, Bot/Bot and Pickup/Pickup are disabled for
-the one-player/one-bot/one-pickup MVP. Custom arena layers ignore unrelated built-in
+The matrix is symmetric. Player/Player is enabled in the current multiplayer
+configuration; ServerPlayerSeparation handles server capsule separation. Bot/Bot
+and Pickup/Pickup are disabled. Custom arena layers ignore unrelated built-in
 and unused layers. Pairs between non-arena layers retain the template defaults.
 
 ## Pickup trigger contract
@@ -51,6 +52,10 @@ satisfy this contract and are verified without unrelated tuning changes.
   Editor-bundled YamlDotNet, checks all 1,024 matrix entries and their symmetry,
   and resolves render pipeline/renderer GUIDs. It verifies saved configuration;
   it cannot prove Unity has imported or rendered it.
+  At main `995e6a4`, its C# policy still expects Player/Player disabled and a fresh
+  22-Nov run fails at pair 7/7. This is stale verifier policy: current settings and
+  ArenaConfigurationTests require Player/Player enabled. No settings were changed
+  to satisfy the old verifier; a tool-owner follow-up is needed under #20/#29.
 - `Tests/PlayMode/ArenaConfigurationTests.cs` contains 25 read-only NUnit cases
   checking imported named layers, collision flags, URP bindings and active color
   space. These require a licensed Unity Test Runner.

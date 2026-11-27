@@ -1,5 +1,50 @@
 # TV2-005 / FR-203 verification and handoff
 
+## Integration with main — 28-Nov-2026
+
+Original PR head `78130ba39c503476f91845df200ef6020966c7d9`; fetched base
+`89f2674` (merged #13 movement revocation and #30 contract/oracle reconciliation).
+The sole conflict was `docs/protocol/tv2-004-contracts.md`. Resolution keeps the
+base-side reconciliation and links, labels its dated claims historical, and adds
+the FR-203 runtime deadline contract. The remaining sections below preserve the
+original evidence for source `0a646f6`; they are historical, not results for this
+integration. #13/#30 are now merged and #39 is ready for review.
+
+Runtime audit: NetworkCombat, NetworkHealth, ServerMatchLifecycleController,
+NetworkShotIntentAdapter and movement/lifecycle/presentation tests were reviewed.
+No new runtime/test/asset changes were required beyond the original PR and merged
+main. One bound NextShotAtSeconds deadline is committed from the monotonic server
+clock and published exactly; hit/miss/cover consume once. Owner, freshness, phase,
+life, protection and sequence guards remain; rejected requests change no gameplay
+deadline/HP/score. Main's motor ClearIntent, replay watermarks and death/respawn
+reset behavior are retained exactly. #37 raycast/cover/collider range, configured
+damage, M3 pickup, legacy and offline behavior remain intact. No rollout change.
+
+Local integration verification is recorded under ignored `TestResults/PR39` in
+`.pr39-resolution`, Unity 6000.6.8f1 (237b6593792b). Initial sandbox EditMode
+attempt exited 198 before discovery; `EditMode.log` preserves that licensing
+failure. The licensed retry uses separate `EditMode-retry.log` and XML.
+Raw artifacts, generated settings and personal records are excluded from the PR.
+
+Integration checks (unchanged runtime tree): EditMode 288/288; PlayMode retry
+433/433 project passes plus two vendor passes and two allowed vendor skips
+(437 discovered, exit0); focused gun + spawn/lifecycle 18/18. Current XML floors
+261 EditMode / 408 total and 406 project PlayMode passed. Initial full PlayMode
+exited2 with one failure in `AuditSpawnLifecycleTests.F2_LegitimateDelayedSpawnWithinGrace_ReleasesOneSharedGameplayBarrier`
+(expectedHP9, actual10). The unchanged focused fixture and full suite retry pass;
+cause remains unproven, with immediate post-barrier/two-frame timing suspected.
+Both first failure and retries remain separate; no product/test workaround added.
+
+Strict compilation seven/seven (warnings as errors), Domain288/288, XML policy
+regression55/55, harness regression56/56, Windows build validator30/30,
+scaffold/GUID/input, config5253 assertions and layout4631 assertions passed.
+Commands use the repository tools named in the historical command section below;
+new commands, XML/logs, 294-file runtime/asset/metadata manifest and original
+failure are recorded in ignored `TestResults/PR39`. No runtime files changed
+between native runs; committed source parity is checked before publication.
+
+## Historical handoff — 24-Nov-2026
+
 24-Nov-2026 (Asia/Bangkok). Generated summary by Codex, not human acceptance.
 Baseline: `74a6c56f8e9baeddfa2ef11273b2bf5f21cf9837` (PR #38).
 Branch: `feature/TV2-005-authoritative-gun-rules`; worktree: `.tv2-005`.

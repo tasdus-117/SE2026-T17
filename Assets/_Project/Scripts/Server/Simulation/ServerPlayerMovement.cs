@@ -45,7 +45,7 @@ namespace SmallArena.Server.Simulation
         {
             move = Vector2.zero;
             verticalVelocity = 0f;
-            pendingJump = hasInput = false;
+            ClearIntent();
             hasSequence = false;
             lastSequence = lastJumpSequence = SimulationTick = 0;
             character.enabled = true;
@@ -61,18 +61,31 @@ namespace SmallArena.Server.Simulation
         public override void OnStopServer()
         {
             bridge.ServerInputReceived -= ReceiveInput;
+            ClearIntent();
+        }
+
+        private void OnDisable() => ClearIntent();
+
+        private void ClearIntent()
+        {
             move = Vector2.zero;
+            verticalVelocity = 0f;
             pendingJump = hasInput = false;
+            lastInputTime = 0d;
+            // Temporary revocation must not reopen either replay watermark.
         }
         public void ClearRuntimeInput()
         {
             if (!isServer) return;
-            move = Vector2.zero; verticalVelocity = 0; hasInput = pendingJump = false;
+            ClearIntent();
+            verticalVelocity = 0;
         }
 
         private void ReceiveInput(MovementInput input)
         {
-            if (!isServer || !isActiveAndEnabled || health != null && !health.CanAct || (hasSequence && !MovementInputValidator.IsNewer(input.Sequence, lastSequence))) return;
+            if (!isServer || !isActiveAndEnabled) return;
+            if (!character.enabled || health != null && !health.CanAct) { ClearIntent(); return; }
+            if (hasSequence && !MovementInputValidator.IsNewer(input.Sequence, lastSequence)) return;
             if (health != null && health.IsLifecycleBound && input.LifeId != health.LifeId) return;
             if (!MovementInputValidator.TryClamp(input.MoveX, input.MoveZ, out var accepted)) return;
             move = accepted;
@@ -90,9 +103,16 @@ namespace SmallArena.Server.Simulation
 
         private void FixedUpdate()
         {
-            if (!isServer || !NetworkServer.active || !character.enabled) return;
+            Simulate(NetworkTime.localTime);
+        }
+
+        private void Simulate(double serverTime)
+        {
+            if (!isServer || !NetworkServer.active || !isActiveAndEnabled) return;
+            if (!character.enabled) { ClearIntent(); return; }
             if (health != null && health.IsLifecycleBound && !health.CanAct) { ClearRuntimeInput(); return; }
-            var fresh = (health == null || health.CanAct) && hasInput && NetworkTime.localTime - lastInputTime <= (health?.InputTimeoutSeconds ?? InputTimeout);
+            if (health != null && !health.CanAct) ClearIntent();
+            var fresh = hasInput && serverTime - lastInputTime <= (health?.InputTimeoutSeconds ?? InputTimeout);
             var direction = fresh ? move : Vector2.zero;
             var jump = fresh && pendingJump;
             pendingJump = false;

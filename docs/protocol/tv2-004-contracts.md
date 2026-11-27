@@ -1,11 +1,102 @@
 # TV2-004: input, shot, result and presentation contracts
 
-24-Nov-2026 FR-203 update: the merged #31/#37 adapters implement CT-202–205
-for the M3 profile. TV2-005 makes `NextShotAtSeconds` the sole bound combat
-deadline and mirrors it through `NetworkHealth.PublishRuntime` into the existing
-combat SyncVar. See [TV2-005 verification](../testing/tv2-005-results.md) for
-the active/approved profiles and current symbol matrix. Dated text below remains
-the original contract; broader reconciliation belongs to draft PR #30.
+## Integrated FR-203 contract — 28-Nov-2026
+
+Integration base `89f2674` includes movement revocation #13 and the live contract
+reconciliation #30. TV2-005 retains `NextShotAtSeconds` as the sole bound gun/melee
+eligibility deadline, published exactly through `NetworkHealth.PublishRuntime`
+to the existing combat SyncVar. Accepted hit, miss and covered shots consume the
+configured cooldown once; rejected shots leave gameplay cooldown, HP and score
+unchanged. See [TV2-005 verification](../testing/tv2-005-results.md) for the
+Configure-path H100/D25/C.5/R30 profile and retained production M3 defaults.
+Movement, death/respawn and control revocation from #13 remain integrated.
+
+The dated reconciliation below records its source SHAs and historical PR states;
+#13 and #30 are now merged. Current source audit and four-player oracle links
+remain applicable; team review, #26/#27 acceptance and #29 rollout decisions
+remain separate from this conflict resolution.
+
+## Historical reconciliation — 25-Nov-2026
+
+Runtime reference main `74a6c56f8e9baeddfa2ef11273b2bf5f21cf9837`.
+The [current CT/FR/source audit](../testing/tv2-current-contract-audit.md)
+supersedes the dated22-Nov matrix below, especially its absent-provider claims.
+Adapters #31 and raycast/feedback/HUD #37 are merged and production-wired;
+#38 supplies the four-process KCP harness and hardened XML policy. Current
+[TV2 oracle and #26/#27 matrix](../testing/tv2-four-player-oracle.md) is delivered
+for TV1/TV3 review. #29 still scopes acceptance to melee; H100/D25/C.5/R30 rollout
+is unapproved. Existing M3 H10/D1/C1/R1.8 and pickup behavior remain unchanged.
+Movement #13 and single-deadline #39 are independent draft candidates; this
+PR is documentation-only. Retained reconnect/new FR-204 work stays later scope.
+## Historical reconciliation — 22-Nov-2026
+
+This section supersedes baseline/status/interface claims in the **19-Nov historical
+packet below**. The original examples remain design history, not a description of
+today's wire. Runtime/source candidate: main
+`995e6a47931637fdcb1cd9a90a47a5c377f8f46a`; this follow-up changes documentation
+only. PRs #9, #14, #21, #22 and #23 are merged; `24bdf3e` is an ancestor of this
+candidate. Scope authority: [#29](https://github.com/tasdus-117/SE2026-T17/issues/29),
+documentation owner [#20](https://github.com/tasdus-117/SE2026-T17/issues/20).
+Supported acceptance is hosted **melee**, not a new ranged/reconnect implementation.
+Original TV2-004 acceptance stays open pending affected evidence and human review.
+
+### Live contract / requirement matrix
+
+Paths below start at `Assets/_Project/`. Test names identify executable evidence;
+dated suite totals are in [the verification record](../testing/tv2-004-results.md).
+
+| Contract / FR | Actual entry, owner and delivery/order | Identity/life and authoritative mutation | Client presentation / evidence / status |
+| --- | --- | --- | --- |
+| CT-201 / FR-201, FR-202 | TV3 `Scripts/Client/Presentation/PlayerController.cs` → TV1 `Scripts/Networking/NetworkMovement.cs:SubmitInput/CmdSubmitMovement`; unreliable owner Command, up to 60 Hz; TV2 `Scripts/Server/Simulation/ServerPlayerMovement.cs:ReceiveInput/FixedUpdate` | Mirror ready/spawn/connection ownership first; `MovementInput` is uint Sequence, float MoveX/MoveZ, uint JumpSequence, **long LifeId**. Bound life equality, CanAct, finite/clamp and uint serial order; receipt time is server local time, never client timestamp. Latest intent only; fixed server delta, configured speed capped at 5; inclusive age <= configured timeout. Airborne jump edges consumed, no deferred landing jump | ArenaNetworkTransform/NetworkTransformReliable ServerToClient reliable snapshots include owner; no client simulation. `NetworkMovementTests`, `NetworkMatchLifecycleTests.CountdownFreezesPhysics_AndLiveMovementReplicates`, `FiveMovingDeaths_RespawnGroundedInsideFloor_WithMatchingClientPoses`. **Live**; missing temporary revocation clearing tracked by existing PR #13, not claimed fixed by this docs PR |
+| CT-202 / FR-201, FR-204 | TV3 `Scripts/Client/Input/NetworkCombatInput.cs:Update` consumes press-edge LMB, emits fixed +Z; TV1 `Scripts/Networking/NetworkPlayer.cs:CmdPerformAttack(Vector3,long)` reliable owner Command; pickup reliable before attack within that collector | Mirror derives owner from connection; client supplies direction and life equality guard only. TV2 `Scripts/Networking/NetworkCombat.cs:PerformAttack` checks CanAct, `CombatAim.IsLegacyMeleeDirection`, local cooldown, then `NetworkHealth.TryBeginRuntimeAttack` → bound Domain cooldown **in that order**. Invalid aim consumes neither server cooldown. Valid miss consumes cooldown. No client origin/HP/damage/score | `NetworkedCombatAndHUDTests.RejectedAim_DoesNotConsumeCooldownOrChangePresentation_ValidCommandStillWorks`; `NetworkMatchLifecycleTests.RuntimeRejectedAim_DoesNotConsumeAttackCooldown`, `OldLifeCommandCannotAttackAfterRespawn`; forged ownership test. **Live melee**, no ShotRequest wire DTO/shot sequence/rejection message |
+| CT-203 / FR-204, FR-208 | TV2 NetworkCombat sphere/cone/reach/Environment linecast → `NetworkHealth.TakeDamageFrom` → TV1 `Scripts/Server/Sessions/ServerMatchLifecycleController.cs:Damage` → `Scripts/Shared/Domain/MatchSessionRuntime.cs:TryDamage/RecordElimination`; synchronous server commit, then Publish | Bound same-session attacker/victim, current life, connected/spawned/Alive + active deadline; Domain protection and cooldown. Server config supplies HP/base damage; loot adds one. Dedup collider hits per attack and death credit per LifeId. Server owns HP, actual damage, kills/deaths/rank/winner. Self credit excluded | Health/damage/result SyncVars; NetworkMatchController replicates scoreboard and kill-feed SyncLists. PublishElimination appends to the retained five-entry feed baseline; KillFeedHudView.Update reads Feed (no elimination RPC). `NetworkedCombatAndHUDTests`, `MeleeReliabilityAndDisplayTests`, `NetworkScoreboardAndRematchTests`, `MatchScoringAndRankingTests`. **Live** authoritative melee results; no correlated ranged hit/reject envelope |
+| CT-204 / FR-208 | TV1 `Scripts/Networking/NetworkHealth.cs:PublishRuntime`, `NetworkMatchController.cs:Publish/PublishElimination`; TV3 `Scripts/Client/UI/NetworkHealthHUD.cs`, `NetworkHealthBarView.cs`, `MatchLifecycleHudView.cs`, `ScoreboardHudView.cs`, `MatchResultHudView.cs` | Server publishes committed state; HUD uses server clock sample/deadline projection (`NetworkTime.time`) for display only. Health/result/life/phase hooks and scoreboard changes drive views; replicas cannot mutate authoritative HP/score | Real NetworkHUD prefab contains melee HP, clock, score/feed/result consumers. `NetworkMatchLifecycleTests.LifecycleHudShowsClockPhaseAndRespawnCountdown`, `NetworkScoreboardAndRematchTests`; proxy health mutation/HUD tests. **Live**. `PlayerPresentationSnapshot/IPlayerPresentationSource/PlayerPresentationBinding` are separate modules without production provider |
+| CT-205 / FR-202, FR-204, FR-208 | TV1 ServerLobbyController → ServerMatchLifecycleController.BeginSession/Spawned/Update/Publish/Disconnected/Close; lifecycle binding and callbacks precede related Publish. TV3 PlayerInputHandler lifecycle hooks clear input | Exact connection instance + server SessionId/ParticipantId/slot, current LifeId. MatchSessionRuntime owns OnlineMatch and OnlineCharacterState. Waiting/Countdown/Ended freeze bound physics; Dead/Pending/disconnected reject actions. Death callback publishes synchronously, calls ClearRuntimeInput, disables collision; respawn clears before teleport and new-life publication. Watermarks persist per avatar, reset OnStartServer. Protection blocks fire/damage, permits movement | PlayerInputHandler.OnLifecycleChanged, menu/focus/pause/disable/despawn invalidate collection; input tests and lifecycle/rematch tests. **Live** death/respawn/room rematch; retained-session reconnect/proof/baseline barrier **outside current scope**. PR #13 handles remaining motor revocation behavior; #26/#27 validate integrated restore/UI |
+
+### Clock, config, wiring and order audit
+
+`ServerMatchLifecycleController.ServerNow` clamps `NetworkTime.localTime` monotonically
+across callback/frame/fixed contexts. Domain observes that trusted time; no new
+IServerClock, parallel participant store or client-time age filter is needed for melee.
+Ingress uses current CanAct/deadline immediately; FixedUpdate rechecks. Unity/Mirror
+callback scheduling is not a globally serialized tick pipeline: no total ordering
+across unreliable input and reliable Commands is promised. Reliable attack/pickup
+ordering is per connection/channel, not across clients. Pose snapshots currently
+use **reliable** transform replication, not the proposed unreliable ranged snapshot.
+
+Production default snapshot is constructed in BeginSession (10 HP, 1 damage, 1s
+cooldown, 1.8m configured range, 180s match, 3s respawn/countdown, 1s protection).
+NetworkHealth exposes server movement speed as min(5, configured speed), timeout
+from ValidInputTimeoutSeconds. Melee geometry remains MeleeHitGeometry constants;
+config ShotRangeMetres does not reconfigure the sphere/cone. Domain's 100/25/.5/30
+constructor defaults describe the original ranged design, not the arena preset.
+
+Inspected runtime composition: `Prefabs/Characters/Player.prefab`,
+`Prefabs/Network/ArenaNetworkRoot.prefab`, `Prefabs/Network/MatchState.prefab`,
+`Prefabs/UI/NetworkHUD.prefab`, and MainMenu/Bootstrap/Arena_MVP build settings.
+Player has the existing NetworkCombatInput, NetworkMovement, health and motor.
+No HeldFireInput or IShotIntentSink provider is installed. Input axes stay world-XZ
+with fixed camera yaw0; grounded Space remains supported. GameplayInvalidated is
+an actual input event; it does not implement a retained-session network protocol.
+
+### Modules and unresolved decisions
+
+| Boundary | Established / pending | Owner and next action |
+| --- | --- | --- |
+| M3 binding/config/state/clock/score/respawn | Live; older claims that Domain has no production consumers are superseded | TV1 @xzviett review the exact candidate's ownership, life checks, clock/order, revocation and counter policy |
+| World axes, grounded jump, input invalidation and real HUD | Live source; visual/restore acceptance still pending | TV3 @tasdus-117 review exact revision; #26 on same final integrated SHA as #27 |
+| MouseAim/HeldFireInput/IShotIntentSink | Module tests exist; no production ranged adapter | Team must approve ranged scope, authoritative muzzle/inside-collider/layers and held-fire cadence before installation; do not enable a second LMB collector |
+| Revisioned presentation/rejection | Interfaces and consumer tests exist; no production IPlayerPresentationSource | TV1/TV2 produce context/revision/snapshot/rejection semantics; TV3 binds after approval; no fabricated state provider |
+| Retained reconnect | Domain connection transition is not proof/token/retained transport binding | TV1 + team approve protocol/ownership/reset/baseline barrier; out of current melee acceptance |
+| Four-player integration, LAN and visual QA | Not certified by in-process tests or historical branch counts | TV1 #25/#27 harness and three rounds; TV3 #26 visual/input on same SHA. LAN needs real machines |
+
+Review request/actual responses and the exact documentation revision are recorded
+in the verification record/PR. PR #21's TV1 notes contain placeholder hashes and
+future-interface claims; they are historical feedback, **not exact-head sign-off**.
+This packet neither implements TV2-005 nor approves revised original criteria.
+
+## Historical packet — 19-Nov-2026 (retained unchanged)
+4
 
 Revision 2026-11-19, prepared by Codex for TV1 network/ownership, TV2 gameplay
 (Long / 23001901), TV3 aim/HUD. **DRAFT: independent validation implemented;

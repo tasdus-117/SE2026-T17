@@ -22,7 +22,8 @@ namespace SmallArena.Tests.PlayMode
         private ServerMatchLifecycleController lifecycle;
         private NetworkHealth ServerOwner => ownerServer.GetComponent<NetworkHealth>();
         private NetworkHealth ServerOther => otherServer.GetComponent<NetworkHealth>();
-        private IEnumerator StartSession(int lives = 0, double duration = 8, double countdown = .5)
+        private IEnumerator StartSession(int lives = 0, double duration = 8, double countdown = .5,
+            double speed = 5, double timeout = .25, double respawn = .3)
         {
             yield return StartWorld();
             NetworkClient.localPlayer.GetComponent<NetworkMovement>().SubmitInput(Vector2.zero, false);
@@ -36,12 +37,101 @@ namespace SmallArena.Tests.PlayMode
             Assert.That(prefab, Is.Not.Null); NetworkClient.RegisterPrefab(prefab);
             lifecycle = manager.gameObject.AddComponent<ServerMatchLifecycleController>();
             lifecycle.Configure(new GameplayConfiguration(maxHealth: 10, shotDamage: 1, shotCooldownSeconds: 1,
-                matchDurationSeconds: duration, respawnDelaySeconds: .3, minimumSafeSpawnDistanceMetres: 1,
+                matchDurationSeconds: duration, respawnDelaySeconds: respawn, minimumSafeSpawnDistanceMetres: 1,
+                maxHorizontalSpeedMetresPerSecond: speed, validInputTimeoutSeconds: timeout,
                 spawnProtectionSeconds: .01, countdownDurationSeconds: countdown, maximumLives: lives), prefab, floor.GetComponent<BoxCollider>());
             lifecycle.BeginSession("native-session", new[] { new LobbyMember { ConnectionId = 1, SlotIndex = 0 }, new LobbyMember { ConnectionId = 2, SlotIndex = 1 } });
             yield return Until(() => owner.IsLifecycleBound && other.IsLifecycleBound && owner.MatchPhase == MatchLifecyclePhase.Countdown);
         }
         private IEnumerator Live() => Until(() => lifecycle.Session.Phase == MatchLifecyclePhase.InProgress && owner.CanAct && other.CanAct);
+
+        [UnityTest] public IEnumerator RuntimeDeathRespawnBetweenObservations_ClearsFreshIntentAndRetainsWatermarks()
+        {
+            yield return StartSession(respawn: .01);
+            yield return Live();
+            var motor = otherServer.GetComponent<ServerPlayerMovement>();
+            var body = otherServer.GetComponent<CharacterController>();
+            motor.enabled = true;
+            yield return Until(() => body.isGrounded);
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var receive = typeof(ServerPlayerMovement).GetMethod("ReceiveInput", flags);
+            var step = typeof(ServerPlayerMovement).GetMethod("Simulate", flags);
+            System.Func<string, object> field = name => typeof(ServerPlayerMovement).GetField(name, flags).GetValue(motor);
+            var oldLife = ServerOther.LifeId;
+            receive.Invoke(motor, new object[] { new MovementInput { Sequence = 100, MoveX = 1, JumpSequence = 7, LifeId = oldLife } });
+            Assert.That(field("pendingJump"), Is.True);
+            var receivedAt = (double)field("lastInputTime");
+            var tick = motor.SimulationTick;
+
+            // The real damage callback publishes revocation immediately. Advance the trusted
+            // controller clock to its respawn deadline and run its production Update without
+            // yielding to ingress/physics. No legacy health/result flag is restored by this test.
+            Assert.That(ServerOther.TakeDamage(10), Is.True);
+            Assert.That(ServerOther.CanAct, Is.False);
+            Assert.That(body.enabled, Is.False);
+            Assert.That(field("lastInputTime"), Is.EqualTo(0d));
+            typeof(ServerMatchLifecycleController).GetField("lastServerTime", flags).SetValue(lifecycle,
+                lifecycle.Session.ByConnection(2).Character.RespawnAtSeconds.Value);
+            typeof(ServerMatchLifecycleController).GetMethod("Update", flags).Invoke(lifecycle, null);
+            Assert.That(ServerOther.LifeId, Is.EqualTo(oldLife + 1));
+            Assert.That(ServerOther.CanAct, Is.True);
+            Assert.That(body.enabled, Is.True);
+            Assert.That(motor.SimulationTick, Is.EqualTo(tick));
+            Assert.That(NetworkTime.localTime - receivedAt, Is.LessThan(ServerOther.InputTimeoutSeconds));
+            Assert.That(motor.AcceptedMove, Is.EqualTo(Vector2.zero));
+            Assert.That(field("hasInput"), Is.False);
+            Assert.That(field("pendingJump"), Is.False);
+            Assert.That(field("lastJumpSequence"), Is.EqualTo(7u));
+            var before = otherServer.transform.position;
+            step.Invoke(motor, new object[] { NetworkTime.localTime });
+            Assert.That(otherServer.transform.position.x, Is.EqualTo(before.x).Within(.0002f));
+            Assert.That(motor.VerticalVelocity, Is.LessThanOrEqualTo(0));
+
+            // Duplicate, older and old-life packets cannot reopen freshness, even with a new jump.
+            foreach (var input in new[] {
+                new MovementInput { Sequence = 100, MoveX = 1, JumpSequence = 8, LifeId = ServerOther.LifeId },
+                new MovementInput { Sequence = 99, MoveX = 1, JumpSequence = 8, LifeId = ServerOther.LifeId },
+                new MovementInput { Sequence = 101, MoveX = 1, JumpSequence = 8, LifeId = oldLife } })
+                receive.Invoke(motor, new object[] { input });
+            Assert.That(motor.LastAcceptedSequence, Is.EqualTo(100u));
+            Assert.That(field("hasInput"), Is.False);
+            receive.Invoke(motor, new object[] { new MovementInput { Sequence = 101, MoveX = 1, JumpSequence = 7, LifeId = ServerOther.LifeId } });
+            Assert.That(motor.AcceptedMove, Is.EqualTo(Vector2.right));
+            Assert.That(field("pendingJump"), Is.False);
+            step.Invoke(motor, new object[] { NetworkTime.localTime });
+            Assert.That(otherServer.transform.position.x - before.x, Is.EqualTo(5 * Time.fixedDeltaTime).Within(.0002f));
+            Assert.That(lifecycle.Session.ByConnection(2).Character.CanFire(NetworkTime.localTime), Is.False,
+                "Spawn protection permits movement while preventing attacks.");
+        }
+
+        [UnityTest] public IEnumerator ConfiguredMovement_UsesZeroSpeedAndInclusiveCustomTimeout()
+        {
+            yield return StartSession(speed: 0, timeout: .125);
+            yield return Live();
+            var motor = otherServer.GetComponent<ServerPlayerMovement>(); motor.enabled = true;
+            Assert.That(ServerOther.MovementSpeed, Is.Zero);
+            Assert.That(ServerOther.InputTimeoutSeconds, Is.EqualTo(.125));
+            Move(100, ServerOther.LifeId);
+            yield return Until(() => motor.LastAcceptedSequence == 100);
+            var before = otherServer.transform.position;
+            yield return new WaitForFixedUpdate();
+            Assert.That(otherServer.transform.position.x, Is.EqualTo(before.x).Within(.0002f));
+            // A second bound runtime snapshot supplies a nonzero configured speed. It shares
+            // the same authoritative participant and callbacks; no client tuning is trusted.
+            var config = new GameplayConfiguration(maxHealth: 10, maxHorizontalSpeedMetresPerSecond: 2,
+                validInputTimeoutSeconds: .125);
+            ServerOther.PublishRuntime(lifecycle.Session.ByConnection(2), config, MatchLifecyclePhase.InProgress);
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            typeof(ServerPlayerMovement).GetField("lastInputTime", flags).SetValue(motor, 10d);
+            var step = typeof(ServerPlayerMovement).GetMethod("Simulate", flags);
+            foreach (var age in new[] { .124, .125, .126 })
+            {
+                before = otherServer.transform.position;
+                step.Invoke(motor, new object[] { 10 + age });
+                Assert.That(otherServer.transform.position.x - before.x,
+                    Is.EqualTo(age <= .125 ? 2 * Time.fixedDeltaTime : 0).Within(.0002f));
+            }
+        }
         private void Move(uint sequence, long life, Vector2? direction = null)
         {
             using (var writer = NetworkWriterPool.Get())

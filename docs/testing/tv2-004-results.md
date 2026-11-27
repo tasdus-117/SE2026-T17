@@ -1,5 +1,89 @@
 # TV2-004 verification and delivery
 
+## Current audit — 25-Nov-2026
+
+Main runtime74a6c56f8e9baeddfa2ef11273b2bf5f21cf9837; this candidate merges
+main into the existing #30 branch without rewriting history. README conflict
+resolved by preserving newer team features and correcting stale delivery claims.
+[Current CT/source map](tv2-current-contract-audit.md) and
+[four-player rules oracle #24](tv2-four-player-oracle.md) supersede missing-adapter
+claims in dated records below. No runtime/config/tool files changed versus main.
+
+Fresh saved configuration verifier: exit0, **5253 assertions**,32 YAML+1JSON,
+1024 matrix entries/symmetry and installed-API probe compilation passed.
+Player–Player verifier mismatch is fixed on main; prior pair7/7 failure is historical.
+This is static configuration/compile evidence, not a gameplay test.
+
+PR #39 source/base/head unchanged:173 checked source/asmdef/prefab/scene files
+still match focused/full manifests and source0a646f6; CI45233139829 six jobs passed,
+Codex completed78130ba with no findings. Reuse those results only for #39 scope;
+no copying of its pending patch. PR #13 is separately verified on current main.
+No exact-head human approvals returned for #13/#30/#39. #20/#24/#26/#27/#29 stay open.
+Final integrated build requires maintainer integration and TV1/TV3 same-build QA.
+## Historical reconciliation candidate — 22-Nov-2026
+
+Documentation-only follow-up to merged [#14](https://github.com/tasdus-117/SE2026-T17/pull/14),
+owned by [#20](https://github.com/tasdus-117/SE2026-T17/issues/20), coordinated under
+[#29](https://github.com/tasdus-117/SE2026-T17/issues/29). Source/runtime reference
+is main `995e6a47931637fdcb1cd9a90a47a5c377f8f46a`. Branch:
+`feature/TV2-004-runtime-contract-reconciliation`, worktree `.tv2-completion-004`.
+Exact final documentation SHA is the PR head; no code/config/prefab changes.
+
+The new [CT/FR matrix](../protocol/tv2-004-contracts.md#historical-reconciliation--22-nov-2026)
+supersedes the old missing-M3-provider claims below. Inspected production ingress,
+M3 binding/config/clock/state/lifecycle, melee aim-before-cooldown ordering, Domain
+HP/scoring/protection, replica/HUD consumers and prefab wiring. M3 has production
+OnlineMatch/OnlineCharacterState consumers. M3 added LifeId to all three gameplay
+Commands; the old claim of compatibility with pre-M3 wire is historical.
+
+No new combat code fix is needed: existing real Command aim rejection and M3
+runtime cooldown tests cover the path. Remaining motor revocation work stays in
+PR #13. Its new focused verification is **55/55**, exit0, no fail/skip/inconclusive
+(38 movement + 17 lifecycle), on `995e6a4` integrated with PR13 source changes,
+not this docs-only branch. Do not treat that result as a clean-main/full-suite or
+four-player certificate. Final PR13 verification is in its acceptance report.
+
+Historical evidence remains attributed: #14 head `24bdf3e`, focused34, PlayMode336,
+EditMode142 (19-Nov); M3 report baselines and TV3 report counts remain dated in
+[M3.1](m3.1-match-lifecycle.md), [M3.2](m3.2-scoreboard-and-win-loop.md),
+[TV3](tv3-input-aim-hud.md), [audit](audit-f1-f2-f3.md). Counts are not added or
+relabelled as tests at this candidate. Documentation validation checks relative
+links, source/test symbols, CT-201–205/FR-201/202/204/208 mapping, source equality
+to runtime SHA and diff whitespace. Raw check output is local TestResults/Completion.
+
+### Acceptance disposition
+
+| Criterion | Disposition and next action | Owner |
+| --- | --- | --- |
+| Live movement/attack/result/state/lifecycle matrix with source and tests | Verified by source inspection; exact-head human confirmation pending | TV2; TV1/TV3 review |
+| Ownership/match/life/config/clock/order/revocation/counter policy | Live M3 mapped; PR13 integration and exact-revision review pending | TV1 @xzviett |
+| Camera/world axes, grounded jump, invalidation and live HUD | Live source/tests mapped; review and real-window evidence pending | TV3 @tasdus-117, #26 |
+| Authoritative melee aim/cooldown/HP/score and replica/HUD | Existing production path and focused regressions identified, no wire/gameplay change | TV1/TV2 |
+| Original ranged muzzle/layers/held-fire/snapshot/rejection decisions | Out of current melee scope; interfaces alone do not close original acceptance | Team + TV1/TV2/TV3 |
+| Retained-session reconnect | Out of current scope; needs approved proof/rebind/baseline protocol | TV1 + team |
+| Four-player three-round KCP integration and visual QA | Pending #25/#27 and #26 on the same integrated SHA | TV1 + TV3 |
+| Original TV2-004 acceptance/signatures | **Open**; no revised criteria or exact-head human approval inferred | TV1/TV2/TV3 |
+
+Review requests must name final head: TV1 reviews authority/life/time/order/revoke/
+counters; TV3 reviews axes/jump/invalidation/HUD. No actual responses received as
+of preparation. #21's technical notes contain placeholder commit hashes; they
+cannot certify this revision. CI/Codex review are separate from human sign-off.
+
+Post-publication checks: CI run44994703276 on initial docs head19d179a passed both
+Unity and Git diff jobs. Codex reviewed that head and correctly identified that
+kill feed uses retained SyncList state, not an elimination RPC; CT-203 was corrected
+after reading NetworkMatchController.PublishElimination/KillFeedHudView.Update.
+Subsequent final-head CI/review is recorded in the PR, not inferred from this run.
+
+Fresh saved-config verifier attempt with pinned EditorRoot exited1 at collision
+pair7/7: tools/ArenaConfigurationVerifier.cs still omits Player from Player's
+allowed partners. Actual DynamicsManager and ArenaConfigurationTests require the
+enabled pair. This baseline tool mismatch is recorded, not counted as a passing
+check, and no gameplay/config/tool code is changed by docs-only #20. Tool-owner
+follow-up under #29 is needed; artifacts remain TestResults/ArenaConfiguration.
+
+## Historical delivery record — 19/20-Nov-2026
+
 19-Nov-2026. Generated summary by Codex, not a raw transcript or human approval.
 Status: independently implemented/verified; **DRAFT, full integration and actual
 TV1/TV2/TV3 reviews pending**. See the [contract and acceptance matrix](../protocol/tv2-004-contracts.md).

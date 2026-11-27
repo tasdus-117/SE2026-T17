@@ -27,6 +27,7 @@ Mirror Command `NetworkMovement.CmdSubmitMovement` đi Client → Server trên k
 | Sequence | uint | Tick input tăng theo gói gửi; bỏ lặp/đến muộn bằng so sánh serial uint có wrap, không dùng để cấp thêm thời gian mô phỏng |
 | MoveX, MoveZ | float | Trục thế giới X/Z; phải hữu hạn; server clamp độ dài ≤ 1, giữ magnitude analog dưới 1 |
 | JumpSequence | uint | Bộ đếm cạnh Space; heartbeat lặp lại giá trị, server chỉ tiêu thụ cạnh mới và chỉ nhảy khi grounded |
+| LifeId | long | Thế hệ sống hiện hành; server đối chiếu NetworkHealth.LifeId khi lifecycle đã bind; gói đời cũ bị từ chối |
 
 Client gửi tối đa 60 heartbeat/giây theo clock cục bộ. Server chỉ cập nhật ý định mới nhất; physics chạy bằng fixed delta của server với tốc độ ngang tối đa 5 m/s. NaN/Infinity hoặc sequence không mới bị bỏ và không gia hạn timeout; input quá 0,25 giây không còn tạo chuyển động ngang. Không có client delta, tốc độ, vị trí hoặc rotation trong payload.
 
@@ -34,4 +35,6 @@ State position/rotation đi Server → mọi client quan sát, gồm owner, bằ
 
 ## TV2-004 logical contracts and integration review
 
-See [CT-201-205, examples, authority and dependency matrix](tv2-004-contracts.md). Existing MovementInput and melee Commands remain wire-compatible; raycast and reconnect additions are proposals pending TV1/TV2/TV3 review.
+Lịch sử 22/11/2026, main `995e6a4`: xem [CT-201–205/runtime/evidence](tv2-004-contracts.md). M3 đã thêm LifeId vào movement, attack và pickup; client/server phải cùng build. Attack hiện là reliable owner Command `(Vector3 aimDirection, long lifeId)`, pickup `(uint itemNetId, long lifeId)`. Các thay đổi tài liệu này không đổi wire. Raycast/reconnect và revisioned presentation adapter vẫn chờ scope/owner; không coi bảng thông điệp dự kiến đầu trang là danh sách API production.
+
+Hiện hành 25/11/2026 tại main74a6c56: #31/#37 đã có CmdSubmitShot(ShotIntent), server-origin raycast, shooter TargetFeedback và production presentation provider. Xem [source audit CT-201–205](../testing/tv2-current-contract-audit.md); các câu chờ adapter ở trên là lịch sử. Retained reconnect vẫn ngoài scope.
