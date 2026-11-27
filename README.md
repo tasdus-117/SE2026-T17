@@ -2,7 +2,7 @@
 
 Arena 3D góc nhìn thứ ba, tối đa **4 người/phòng**, dùng **Unity 6000.6.8f1**, **Mirror 96.0.1 + KCP Transport**, URP, New Input System và TextMeshPro/uGUI. Server quyết định vị trí, sát thương, HP, pickup, vòng đời và thời gian trận; client gửi ý định và hiển thị trạng thái được đồng bộ.
 
-README được cập nhật cho **TV1–TV3 network adapters** trên nhánh `feat/tv1-network-adapters`, baseline `995e6a4` (main đã merge TV3 #22 và audit #23). Thay đổi adapter đang ở working tree, chưa commit; không ghi là đã merge vào `main`.
+Đối chiếu ngày 25/11/2026 với main `74a6c56f8e9baeddfa2ef11273b2bf5f21cf9837`: adapters #31, raycast/feedback/HUD #37 và harness/XML gate #38 đã merge. [Bảng contract/runtime](docs/protocol/tv2-004-contracts.md) ghi đường chạy thực tế và giới hạn. Phạm vi nghiệm thu #29 vẫn là melee M3; code raycast có mặt không đồng nghĩa rollout luật súng đã được duyệt. #13 movement và #39 cooldown còn draft riêng. Nghiệm thu cuối cần #24 oracle, #26 cửa sổ thật và #27 trên cùng SHA/build.
 
 ## 1. Tính năng và trạng thái hiện tại
 
