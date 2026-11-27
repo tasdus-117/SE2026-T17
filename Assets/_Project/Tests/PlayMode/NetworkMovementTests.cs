@@ -131,6 +131,9 @@ namespace SmallArena.Tests.PlayMode
         [TestCase(3f, 4f)]
         [TestCase(-6f, -8f)]
         [TestCase(float.MaxValue, float.MaxValue)]
+        [TestCase(float.MaxValue, -float.MaxValue)]
+        [TestCase(float.MaxValue, 0f)]
+        [TestCase(0f, -float.MaxValue)]
         public void OversizedFiniteVectors_ClampToUnitMagnitude(float x, float z)
         {
             Assert.That(MovementInputValidator.TryClamp(x, z, out var move), Is.True);
@@ -142,6 +145,7 @@ namespace SmallArena.Tests.PlayMode
         [TestCase(float.NegativeInfinity, 0f)]
         [TestCase(0f, float.NaN)]
         [TestCase(0f, float.PositiveInfinity)]
+        [TestCase(0f, float.NegativeInfinity)]
         public void NonFiniteVectors_AreRejected(float x, float z)
         {
             Assert.That(MovementInputValidator.TryClamp(x, z, out var move), Is.False);
@@ -159,6 +163,8 @@ namespace SmallArena.Tests.PlayMode
         [TestCase(10u, 10u, false)]
         [TestCase(9u, 10u, false)]
         [TestCase(11u, 10u, true)]
+        [TestCase(0x80000000u, 0u, false)]
+        [TestCase(uint.MaxValue, 0u, false)]
         public void SequenceOrdering_AllowsWrapButRejectsReplay(uint candidate, uint previous, bool expected)
             => Assert.That(MovementInputValidator.IsNewer(candidate, previous), Is.EqualTo(expected));
 
@@ -245,6 +251,250 @@ namespace SmallArena.Tests.PlayMode
             var position = player.transform.position;
             for (var frame = 0; frame < 10; frame++) yield return new WaitForFixedUpdate();
             Assert.That(HorizontalDistance(position, player.transform.position), Is.LessThan(0.0002f));
+        }
+
+        // Drive the actual motor synchronously with controlled trusted server time. This avoids
+        // frame scheduling deciding which side of the exact timeout boundary is exercised.
+        private void ReceiveDirect(uint inputSequence, Vector2 intent, uint jump = 0)
+            => typeof(ServerPlayerMovement).GetMethod("ReceiveInput", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(simulation, new object[] { new MovementInput
+                    { Sequence = inputSequence, MoveX = intent.x, MoveZ = intent.y, JumpSequence = jump } });
+
+        private void StepAt(double now)
+            => typeof(ServerPlayerMovement).GetMethod("Simulate", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(simulation, new object[] { now });
+
+        private void SetMotorField(string name, object value)
+            => typeof(ServerPlayerMovement).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(simulation, value);
+
+        private object MotorField(string name)
+            => typeof(ServerPlayerMovement).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(simulation);
+
+        [UnityTest]
+        public IEnumerator TimeoutBoundary_AndInvalidSpam_UseAcceptedServerTime()
+        {
+            yield return StartHost();
+            foreach (var age in new[] { 0.249d, 0.25d, 0.251d })
+            {
+                ReceiveDirect(sequence++, Vector2.right);
+                SetMotorField("lastInputTime", 10d);
+                var acceptedSequence = simulation.LastAcceptedSequence;
+                var tick = simulation.SimulationTick;
+                foreach (var invalid in new[] { new Vector2(float.NaN, 0), new Vector2(0, float.PositiveInfinity),
+                    new Vector2(float.NegativeInfinity, 0), new Vector2(0, float.NegativeInfinity) })
+                    ReceiveDirect(sequence++, invalid);
+                Assert.That(simulation.LastAcceptedSequence, Is.EqualTo(acceptedSequence));
+                Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.right));
+                Assert.That(MotorField("lastInputTime"), Is.EqualTo(10d));
+                Assert.That(simulation.SimulationTick, Is.EqualTo(tick));
+                var before = player.transform.position;
+                StepAt(10d + age);
+                var expected = age <= 0.25d ? 5f * Time.fixedDeltaTime : 0f;
+                Assert.That(player.transform.position.x - before.x, Is.EqualTo(expected).Within(0.0002f));
+                Assert.That(simulation.SimulationTick, Is.EqualTo(tick + 1));
+            }
+            // A stale heartbeat stops horizontal intent, while server gravity still advances.
+            var character = player.GetComponent<CharacterController>();
+            character.enabled = false;
+            player.transform.position += Vector3.up * 10;
+            character.enabled = true;
+            SetMotorField("verticalVelocity", 0f);
+            var airborne = player.transform.position;
+            StepAt(11d);
+            Assert.That(HorizontalDistance(airborne, player.transform.position), Is.LessThan(0.0002f));
+            Assert.That(simulation.VerticalVelocity, Is.LessThan(0f));
+            Assert.That(player.transform.position.y, Is.LessThan(airborne.y));
+        }
+
+        [UnityTest]
+        public IEnumerator AnalogZeroCardinalDiagonalAndHugeIntent_ProduceBoundedDisplacement()
+        {
+            yield return StartHost();
+            var vectors = new[] { Vector2.zero, new Vector2(0.3f, 0.4f), Vector2.right,
+                Vector2.up, new Vector2(1, 1), new Vector2(float.MaxValue, -float.MaxValue) };
+            var speeds = new[] { 0f, 2.5f, 5f, 5f, 5f, 5f };
+            for (var i = 0; i < vectors.Length; i++)
+            {
+                ReceiveDirect(sequence++, vectors[i]);
+                SetMotorField("lastInputTime", 10d);
+                var position = player.transform.position;
+                StepAt(10d);
+                Assert.That(HorizontalDistance(position, player.transform.position),
+                    Is.EqualTo(speeds[i] * Time.fixedDeltaTime).Within(0.0002f), vectors[i].ToString());
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RevokedControl_ClearsIntentAtIngressAndSimulation_PreservesReplayWatermarks()
+        {
+            yield return StartHost();
+            var health = player.GetComponent<NetworkHealth>();
+            var result = typeof(NetworkHealth).GetField("result", BindingFlags.Instance | BindingFlags.NonPublic);
+            var jumpEdge = 1u;
+            // Restoring this legacy flag is a test probe, not a runtime respawn/reconnect adapter.
+            foreach (var viaIngress in new[] { false, true })
+            {
+                ReceiveDirect(sequence++, Vector2.right, jumpEdge);
+                Assert.That(MotorField("pendingJump"), Is.EqualTo(true));
+                var watermark = simulation.LastAcceptedSequence;
+                result.SetValue(health, PlayerMatchResult.Defeat);
+                var position = player.transform.position;
+                if (viaIngress) ReceiveDirect(sequence++, Vector2.up, jumpEdge + 1);
+                else StepAt(NetworkTime.localTime);
+                Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.zero));
+                Assert.That(MotorField("hasInput"), Is.EqualTo(false));
+                Assert.That(MotorField("pendingJump"), Is.EqualTo(false));
+                Assert.That(MotorField("lastInputTime"), Is.EqualTo(0d));
+                Assert.That(HorizontalDistance(position, player.transform.position), Is.LessThan(0.0002f));
+                result.SetValue(health, PlayerMatchResult.Playing);
+                ReceiveDirect(watermark, Vector2.up, jumpEdge + 1);
+                StepAt(NetworkTime.localTime);
+                Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.zero), "Replay cannot reopen freshness after revocation.");
+                Assert.That(HorizontalDistance(position, player.transform.position), Is.LessThan(0.0002f));
+                Assert.That(simulation.VerticalVelocity, Is.LessThanOrEqualTo(0f));
+                ReceiveDirect(sequence++, Vector2.right, jumpEdge);
+                Assert.That(MotorField("pendingJump"), Is.EqualTo(false), "Repeated jump edge remains consumed.");
+                StepAt(NetworkTime.localTime);
+                Assert.That(HorizontalDistance(position, player.transform.position), Is.GreaterThan(0.09f));
+                jumpEdge++;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator DisableEnable_CannotReactivateHeldDirectionOrJump()
+        {
+            yield return StartHost();
+            ReceiveDirect(sequence++, Vector2.up, 1);
+            Assert.That(MotorField("pendingJump"), Is.EqualTo(true));
+            var watermark = simulation.LastAcceptedSequence;
+            SetMotorField("verticalVelocity", 7f);
+            simulation.enabled = false;
+            Assert.That(simulation.VerticalVelocity, Is.Zero, "Revocation must not retain an upward impulse.");
+            Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.zero));
+            Assert.That(MotorField("hasInput"), Is.EqualTo(false));
+            Assert.That(MotorField("lastInputTime"), Is.EqualTo(0d));
+            Assert.That(MotorField("pendingJump"), Is.EqualTo(false));
+            simulation.enabled = true;
+            ReceiveDirect(watermark, Vector2.up, 1);
+            var before = player.transform.position;
+            StepAt(NetworkTime.localTime);
+            Assert.That(HorizontalDistance(before, player.transform.position), Is.LessThan(0.0002f));
+            Assert.That(simulation.VerticalVelocity, Is.LessThanOrEqualTo(0f));
+            ReceiveDirect(sequence++, Vector2.up, 1);
+            Assert.That(MotorField("pendingJump"), Is.EqualTo(false));
+            StepAt(NetworkTime.localTime);
+            Assert.That(player.transform.position.z - before.z, Is.EqualTo(5f * Time.fixedDeltaTime).Within(0.0002f));
+        }
+
+        [UnityTest]
+        public IEnumerator DisabledCharacter_ClearsIntentAtIngressAndSimulation()
+        {
+            yield return StartHost();
+            var character = player.GetComponent<CharacterController>();
+            foreach (var viaIngress in new[] { false, true })
+            {
+                ReceiveDirect(sequence++, Vector2.right, 1);
+                var watermark = simulation.LastAcceptedSequence;
+                SetMotorField("verticalVelocity", 7f);
+                character.enabled = false;
+                if (viaIngress) ReceiveDirect(sequence++, Vector2.up, 2);
+                else StepAt(NetworkTime.localTime);
+                Assert.That(simulation.VerticalVelocity, Is.Zero, "Disabled collision must clear stored vertical state.");
+                Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.zero));
+                Assert.That(MotorField("hasInput"), Is.EqualTo(false));
+                Assert.That(MotorField("pendingJump"), Is.EqualTo(false));
+                Assert.That(MotorField("lastInputTime"), Is.EqualTo(0d));
+                character.enabled = true;
+                var before = player.transform.position;
+                ReceiveDirect(watermark, Vector2.up, 2);
+                StepAt(NetworkTime.localTime);
+                Assert.That(HorizontalDistance(before, player.transform.position), Is.LessThan(0.0002f));
+                ReceiveDirect(sequence++, Vector2.right, 1);
+                Assert.That(MotorField("pendingJump"), Is.EqualTo(false));
+                StepAt(NetworkTime.localTime);
+                Assert.That(player.transform.position.x - before.x, Is.EqualTo(5f * Time.fixedDeltaTime).Within(0.0002f));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ExpiredJumpEdge_CannotReappearWithFreshHeartbeat()
+        {
+            yield return StartHost();
+            ReceiveDirect(sequence++, Vector2.zero, 1);
+            Assert.That(MotorField("pendingJump"), Is.EqualTo(true));
+            SetMotorField("lastInputTime", 10d);
+            StepAt(10.251d);
+            Assert.That(MotorField("pendingJump"), Is.EqualTo(false));
+            Assert.That(simulation.VerticalVelocity, Is.LessThanOrEqualTo(0f));
+            ReceiveDirect(sequence++, Vector2.zero, 1);
+            StepAt(NetworkTime.localTime);
+            Assert.That(simulation.VerticalVelocity, Is.LessThanOrEqualTo(0f));
+        }
+
+        [UnityTest]
+        public IEnumerator ServerStopStart_ClearsIntentAndBeginsNewAvatarInputSession()
+        {
+            yield return StartHost();
+            ReceiveDirect(sequence++, Vector2.right, 1);
+            simulation.OnStopServer();
+            Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.zero));
+            Assert.That(MotorField("hasInput"), Is.EqualTo(false));
+            Assert.That(MotorField("pendingJump"), Is.EqualTo(false));
+            Assert.That(MotorField("lastInputTime"), Is.EqualTo(0d));
+            simulation.OnStartServer();
+            Assert.That(simulation.LastAcceptedSequence, Is.Zero);
+            Assert.That(MotorField("lastJumpSequence"), Is.EqualTo(0u));
+            ReceiveDirect(1, Vector2.up, 1);
+            Assert.That(simulation.LastAcceptedSequence, Is.EqualTo(1u));
+            Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.up));
+        }
+
+        [UnityTest]
+        public IEnumerator CommandAfterControlRestored_RequiresFreshSequenceAndDropsRevokedJump()
+        {
+            yield return StartHost();
+            var sent = Send(Vector2.right);
+            yield return Until(() => simulation.LastAcceptedSequence == sent);
+            // Probe temporary legacy control loss; production has no retained-life adapter yet.
+            var result = typeof(NetworkHealth).GetField("result", BindingFlags.Instance | BindingFlags.NonPublic);
+            var health = player.GetComponent<NetworkHealth>();
+            result.SetValue(health, PlayerMatchResult.Defeat);
+            Send(Vector2.up, 2);
+            for (var i = 0; i < 3; i++) yield return new WaitForFixedUpdate();
+            Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.zero));
+            Assert.That(simulation.LastAcceptedSequence, Is.EqualTo(sent));
+            result.SetValue(health, PlayerMatchResult.Playing);
+            var before = player.transform.position;
+            sequence = sent;
+            Send(Vector2.up);
+            for (var i = 0; i < 3; i++) yield return new WaitForFixedUpdate();
+            Assert.That(HorizontalDistance(before, player.transform.position), Is.LessThan(0.0002f));
+            var fresh = Send(Vector2.right);
+            yield return Until(() => simulation.LastAcceptedSequence == fresh);
+            yield return new WaitForFixedUpdate();
+            Assert.That(player.transform.position.x, Is.GreaterThan(before.x));
+            Assert.That(simulation.VerticalVelocity, Is.LessThanOrEqualTo(0f));
+        }
+
+        [UnityTest]
+        public IEnumerator CommandSequenceWrap_RejectsOldPreWrapIntent()
+        {
+            yield return StartHost();
+            // Host setup can send an initial heartbeat. Advance within the serial half-range
+            // before crossing wrap, rather than assuming that the replay watermark is zero.
+            sequence = 0x7fffffffu;
+            var last = Send(Vector2.right);
+            yield return Until(() => simulation.LastAcceptedSequence == last);
+            sequence = uint.MaxValue - 1;
+            last = Send(Vector2.right);
+            yield return Until(() => simulation.LastAcceptedSequence == last);
+            last = Send(Vector2.right);
+            yield return Until(() => simulation.LastAcceptedSequence == last);
+            last = Send(Vector2.up);
+            yield return Until(() => simulation.LastAcceptedSequence == last);
+            Assert.That(last, Is.Zero);
+            ReceiveDirect(uint.MaxValue, Vector2.left);
+            Assert.That(simulation.AcceptedMove, Is.EqualTo(Vector2.up));
         }
 
         [UnityTest]
