@@ -41,10 +41,48 @@ namespace SmallArena.Tests.PlayMode
         private IEnumerator Hit(int id)
         {
             var player = NetworkClient.localPlayer;
-            Place(player, new Vector3(-3, 1.05f, -3));
-            Place(NetworkServer.connections[id].identity, new Vector3(-3, 1.05f, -1.8f));
-            player.GetComponent<NetworkPlayer>().RequestAttack(Vector3.forward);
-            yield return null; yield return null;
+            var target = NetworkServer.connections[id].identity;
+            var attackerPosition = new Vector3(-3, 1.05f, -3);
+            var targetPosition = new Vector3(-3, 1.05f, -1.8f);
+            var corridor = new Bounds((attackerPosition + targetPosition) * .5f, new Vector3(3, 3, 4));
+            // Random cover is not part of the spawn-barrier assertion. Keep the floor and walls intact.
+            var cover = Object.FindObjectsByType<ArenaObstacles>()
+                .SelectMany(arena => arena.GetComponentsInChildren<Collider>())
+                .Where(collider => collider.enabled && collider.gameObject.layer == 6 && collider.bounds.Intersects(corridor)).ToArray();
+            try
+            {
+                foreach (var collider in cover) collider.enabled = false;
+                Place(player, attackerPosition);
+                Place(target, targetPosition);
+                var health = target.GetComponent<NetworkHealth>();
+                Assert.That(player.GetComponent<NetworkHealth>().CanAct && health.CanAct, Is.True, HitState(player, target));
+                Assert.That(health.CurrentHealth, Is.EqualTo(10), HitState(player, target));
+                Assert.That(Physics.Linecast(MeleeHitGeometry.Center(player.transform, MeleeHitGeometry.Offset) - Vector3.forward * MeleeHitGeometry.Offset.z,
+                    target.GetComponent<CharacterController>().bounds.center, 1 << 6, QueryTriggerInteraction.Ignore),
+                    Is.False, HitState(player, target));
+                player.GetComponent<NetworkPlayer>().RequestAttack(Vector3.forward);
+                var deadline = Time.realtimeSinceStartupAsDouble + 5;
+                var frames = 0;
+                while (health.CurrentHealth == 10 && frames++ < 300 && Time.realtimeSinceStartupAsDouble < deadline)
+                    yield return null;
+                Assert.That(health.CurrentHealth, Is.EqualTo(9), HitState(player, target));
+            }
+            finally
+            {
+                foreach (var collider in cover) if (collider != null) collider.enabled = true;
+                Physics.SyncTransforms();
+            }
+        }
+        private static string HitState(NetworkIdentity player, NetworkIdentity target)
+        {
+            var origin = MeleeHitGeometry.Center(player.transform, MeleeHitGeometry.Offset) - Vector3.forward * MeleeHitGeometry.Offset.z;
+            var blocked = Physics.Linecast(origin, target.GetComponent<CharacterController>().bounds.center,
+                out var hit, 1 << 6, QueryTriggerInteraction.Ignore);
+            return $"Single attack did not satisfy the fixture: attacker={player.transform.position}, target={target.transform.position}, "
+                + $"distance={Vector3.Distance(player.transform.position, target.transform.position):F3}, "
+                + $"CanAct={player.GetComponent<NetworkHealth>().CanAct}/{target.GetComponent<NetworkHealth>().CanAct}, "
+                + $"cooldown={player.GetComponent<NetworkCombat>().CooldownRemaining:F3}, "
+                + $"obstacle={(blocked ? hit.collider.name + " at " + hit.point : "none")}, HP={target.GetComponent<NetworkHealth>().CurrentHealth}";
         }
         [UnityTest] public IEnumerator F1_DelayedAddPlayerAndEarlyFall_PreserveHpResultsAndHudUntilBarrierRelease()
         {

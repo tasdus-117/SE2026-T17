@@ -191,17 +191,29 @@ namespace SmallArena.Tests.PlayMode
         }
         [UnityTest] public IEnumerator ClockReplicatesToSeparateNativeClientAndEndsFrozen()
         {
-            yield return StartSession(duration: 1.2); yield return Live();
+            const double duration = 4, respawnDelay = 6;
+            yield return StartSession(duration: duration, respawn: respawnDelay); yield return Live();
             yield return Until(() => NetworkClient.spawned.Values.Any(i => i.GetComponent<NetworkMatchController>() != null));
             var proxy = NetworkClient.spawned.Values.Select(i => i.GetComponent<NetworkMatchController>()).First(s => s != null);
             Assert.That(proxy, Is.Not.SameAs(lifecycle.ReplicatedState));
-            yield return Until(() => proxy.Phase == MatchLifecyclePhase.InProgress && proxy.MatchClock < 1);
+            yield return Until(() => proxy.Phase == MatchLifecyclePhase.InProgress && proxy.MatchClock < duration - .25);
             Assert.That(proxy.MatchClock, Is.EqualTo(lifecycle.Session.ClockRemaining(NetworkTime.localTime)).Within(.25));
-            yield return Until(() => lifecycle.Session.ClockRemaining(NetworkTime.localTime) < .15);
-            Assert.That(ServerOwner.TakeDamage(10), Is.True); // Respawn deadline falls after the match deadline.
+            Assert.That(lifecycle.Session.Phase, Is.EqualTo(MatchLifecyclePhase.InProgress));
+            Assert.That(lifecycle.Session.ClockRemaining(NetworkTime.localTime), Is.GreaterThan(duration / 2), "Damage requires ample live match time.");
+            var life = ServerOwner.LifeId;
+            Assert.That(ServerOwner.TakeDamage(10), Is.True);
+            var respawnAt = lifecycle.Session.ByConnection(1).Character.RespawnAtSeconds.Value;
+            Assert.That(respawnAt, Is.GreaterThan(lifecycle.Session.Match.DeadlineSeconds.Value));
             yield return Until(() => proxy.Phase == MatchLifecyclePhase.Ended && owner.Result == PlayerMatchResult.Defeat);
             yield return null;
+            Assert.That(proxy.MatchClock, Is.Zero);
             Assert.That(hud.GetComponent<MatchLifecycleHudView>().RespawnText, Is.Empty);
+            // Observe beyond the scheduled respawn, rather than only checking immediately at expiry.
+            yield return Until(() => NetworkTime.localTime > respawnAt + .1);
+            Assert.That(proxy.Phase, Is.EqualTo(MatchLifecyclePhase.Ended));
+            Assert.That(proxy.MatchClock, Is.Zero);
+            Assert.That(lifecycle.Session.ClockRemaining(NetworkTime.localTime), Is.Zero);
+            Assert.That(ServerOwner.LifeId, Is.EqualTo(life));
             Assert.That(ServerOwner.CurrentHealth, Is.Zero, "No resurrection after the match deadline.");
             Assert.That(ServerOwner.CanAct, Is.False); Assert.That(ServerOwner.TakeDamage(1), Is.False);
             Assert.That(hud.GetComponent<MatchResultHudView>().HeaderText, Is.EqualTo("DEFEAT — Rank #2"));
