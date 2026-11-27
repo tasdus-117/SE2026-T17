@@ -39,17 +39,17 @@ PR -> main / push main
   |     XML regression (pwsh 7), scaffold, Input Actions
   +-- Static quality (windows-2022)
   |     XML regression (pwsh 7 + Windows PowerShell 5.1), scaffold, Input Actions
-  +-- Unity EditMode and PlayMode (windows-2022, nhánh nội bộ)
-        resolve/pull Editor image -> cố định digest
+  +-- Unity EditMode and PlayMode (windows-2022, nhánh nội bộ, khi classifier yêu cầu)
+        Library cache Windows -> resolve/pull Editor image -> cố định digest
         GameCI native PlayMode + EditMode -> XML validations luôn chạy
         cùng image + checkout/Library đã import:
           Editor/scaffold -> strict 7-asmdef compile -> physics/URP -> arena/prefab/UI
         upload kết quả luôn chạy
   +-- Windows Standalone Build (ubuntu-latest cross-build Mono, nhánh nội bộ)
-        code/asset/tool/workflow PR hoặc mọi push main -> Library cache -> build
+        code/asset/tool/workflow PR hoặc mọi push main -> Library cache -> swap/cache RAM -> build
         verify output + BuildReport -> ZIP/SHA256/source commit -> artifact 3 ngày
-        PR chỉ sửa tài liệu được bỏ qua riêng job build
-  \-- CI Quality Gate: tests/static phải success; build phải success khi được yêu cầu
+        PR chỉ sửa docs/** hoặc *.md được bỏ qua cả hai job Unity/build
+  \-- CI Quality Gate: diff/static phải success; Unity/build phải success khi được yêu cầu
 ```
 
 GameCI chạy Editor **trong Docker**, không cài vào Hub trên runner host. Vì vậy
@@ -170,9 +170,9 @@ full suites không được chạy lại; chỉ kiểm report native cũ và th�
 ## 6. Đề xuất bảo vệ `main`
 
 **Required check tối thiểu: `CI Quality Gate`.** Job này dùng `if: always()` và chỉ
-chấp nhận `success` của Git diff, toàn bộ static matrix và Unity. Windows build cũng
-phải `success` khi classifier yêu cầu; chỉ được `skipped` nếu PR chỉ sửa tài liệu.
-`failure`/`cancelled`, thiếu classifier hoặc skip build của PR code đều không đạt.
+chấp nhận `success` của Git diff và toàn bộ static matrix. Unity/tests và Windows build
+phải cùng `success` khi classifier yêu cầu; chỉ cùng `skipped` nếu PR chỉ sửa tài liệu.
+`failure`/`cancelled`, thiếu classifier hoặc skip Unity/build của PR code đều không đạt.
 Có thể chọn thêm các check chi tiết sau để review trực quan:
 
 1. `Git diff`
@@ -183,7 +183,7 @@ Có thể chọn thêm các check chi tiết sau để review trực quan:
 
 Sau lượt chạy thật đầu tiên, chọn đúng tên hiển thị trong Settings → Branches/Rulesets,
 yêu cầu PR + review, resolve conversations, nhánh cập nhật với main và các checks trên.
-Không coi một job Unity bị skip là đủ điều kiện merge. Với fork, thành viên review
+Không coi Unity bị skip trên PR code là đủ điều kiện merge. Với fork, thành viên review
 rồi đưa commit lên nhánh nội bộ để có license và mở PR; không dùng `pull_request_target`
 để chạy mã fork với secrets. Đây là **đề xuất**, không phải cấu hình remote đã áp dụng.
 
@@ -270,8 +270,8 @@ không chứng minh exe đã chạy hoặc KCP nhiều process đã hoạt độ
   cache khi chỉ source/assets thay đổi; Unity vẫn kiểm dependency/import hiện hành.
   Prefix `windows-mono-cross-v2` và runner OS tách cache Linux khỏi cache Windows cũ.
   Không cache Builds, ZIP, Logs, Secrets hoặc xem cache hit là build đã đạt.
-- Classifier mặc định yêu cầu build cho mọi path ngoài allowlist `docs/**`,
-  `README.md`, `.github/workflows/README.md`. Git diff dùng `--no-renames` để asset/code
+- Classifier mặc định yêu cầu Unity/tests và build cho mọi path ngoài allowlist
+  `docs/**`, `*.md` ở mọi cấp. Git diff dùng `--no-renames` để asset/code
   bị chuyển vào docs vẫn tính là xóa code, không bị nhận nhầm thành docs-only.
   Mọi **push main luôn build**, kể cả tài liệu. PR fork không được cấp secrets và
   code PR fork không vượt gate; quy trình review/nhánh nội bộ giữ như Phase 1.
@@ -521,3 +521,32 @@ container/cgroup có thể đã bị xóa; thiếu counters không chứng minh 
 CI vẫn Phase1+Phase2, giữ project floors261/406 và toàn bộ verification gates.
 Sau khi người dùng review/commit/push PR #38, kiểm readiness step, cache v3 hit/miss,
 tests/XML và build thực trên GitHub; local syntax/regression không thay bằng chứng CI.
+
+### Ổn định tài nguyên và giảm thời gian CI
+
+Nhánh `fix/ci-stability-and-speed`, nền `89f2674`: concurrency dùng tên workflow và
+số PR (hoặc ref cho push), bật `cancel-in-progress` để hủy run cũ khi có commit mới.
+Không dùng `paths-ignore` ở trigger: Git diff, static matrix và CI Quality Gate vẫn
+xuất hiện trên PR chỉ sửa `docs/**` hoặc tệp `*.md` ở mọi cấp. Classifier chung cho
+hai job nặng; chỉ PR docs-only được skip Unity/tests và build, mọi push main vẫn
+chạy đầy đủ. `--no-renames` giữ việc di chuyển code vào docs là thay đổi cần kiểm thử.
+Job names không đổi, fork PR code vẫn không vượt gate khi không có license secrets.
+
+Job test Windows cache riêng **Library/** với prefix `windows-native-tests-v1-`;
+key gồm OS/arch, Unity6000.6.8f1, hash manifest/lock/ProjectSettings và SHA, fallback
+cùng cấu hình. Không dùng chung cache Ubuntu, không cache XML hay coi cache hit là pass.
+
+Sau restore Library Ubuntu, bước `Prepare runner memory and swap` ghi memory/swap,
+thử thêm tối đa **12 GiB** swap tại `/mnt/smallarena-ci.swap`, chừa **4 GiB** disk
+headroom. Nếu file đã tồn tại, thiếu dung lượng hoặc không bật được swap thì cảnh báo,
+giữ swap sẵn có; không ghi đè file cũ. Sau đó sync và thử drop page cache rồi ghi lại
+memory/swap. Builder nhận `-job-worker-count 2 -gc-max-time-slice 3`; không đổi backend,
+PlayerSettings, build method hay giới hạn Docker. Đây là biện pháp giảm áp lực bộ nhớ,
+không chứng minh exit137 trước đó do OOM và không đảm bảo mọi SIGKILL đều được sửa.
+Drop cache chỉ thu hồi cache filesystem có thể thu hồi, không giảm live heap của Unity.
+Chẩn đoán cgroup/Docker/kernel khi lỗi vẫn giữ nguyên để đối chiếu run thật tiếp theo.
+
+CI vẫn chỉ **Phase1 + Phase2**; không thêm smoke job/harness. Project pass floors
+**261/406**, zero project skips, XML `always()` và strict compilation không đổi khi
+có thay đổi cần Unity verification. Kiểm syntax/logic cục bộ không thay thế kết quả
+build/test/cache/swap trên GitHub; cần người review commit/push và kiểm run thật.

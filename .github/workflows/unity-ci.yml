@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: unity-ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: git diff --check "$BASE_SHA" HEAD --
-      - name: Classify Windows build changes
+      - name: Classify changes requiring Unity verification
         id: changes
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -42,7 +42,7 @@ jobs:
             git diff --no-renames --name-only -z "$BASE_SHA" HEAD -- > "$RUNNER_TEMP/windows-build-paths"
             while IFS= read -r -d '' file; do
               case "$file" in
-                docs/*|README.md|.github/workflows/README.md) ;;
+                docs/*|*.md) ;;
                 *) required=true ;;
               esac
             done < "$RUNNER_TEMP/windows-build-paths"
@@ -87,14 +87,22 @@ jobs:
 
   unity:
     name: Unity EditMode and PlayMode
+    needs: diff
     # Fork PRs do not have access to the repository's Unity credentials.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: ${{ needs.diff.outputs.build_required == 'true' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: windows-2022
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Cache Windows test Library
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: Library
+          key: windows-native-tests-v1-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-${{ github.sha }}
+          restore-keys: |
+            windows-native-tests-v1-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-
       - name: Check Unity license configuration
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -233,6 +241,33 @@ jobs:
           key: windows-mono-cross-v3-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-${{ github.sha }}
           restore-keys: |
             windows-mono-cross-v3-${{ runner.os }}-${{ runner.arch }}-6000.6.8f1-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}-
+      - name: Prepare runner memory and swap
+        shell: bash
+        run: |
+          free -h
+          swapon --show
+          swapfile=/mnt/smallarena-ci.swap
+          # Leave 4 GiB free for the build; never overwrite an existing swap file.
+          available_kib=$(df -Pk /mnt | awk 'NR == 2 {print $4}')
+          swap_gib=$((available_kib / 1048576 - 4))
+          (( swap_gib <= 12 )) || swap_gib=12
+          if [[ -e "$swapfile" ]]; then
+            echo '::warning::CI swap file already exists; leaving it unchanged.'
+          elif (( swap_gib >= 1 )); then
+            if sudo fallocate -l "${swap_gib}G" "$swapfile" &&
+               sudo chmod 600 "$swapfile" &&
+               sudo mkswap "$swapfile" &&
+               sudo swapon "$swapfile"; then
+              echo "Activated ${swap_gib} GiB of additional swap."
+            else
+              echo '::warning::Additional swap could not be activated; continuing with existing runner swap.'
+            fi
+          else
+            echo '::warning::Insufficient disk headroom for additional swap; using existing runner swap.'
+          fi
+          sync && echo 3 | sudo tee /proc/sys/vm/drop_caches >/dev/null || true
+          free -h
+          swapon --show
       - name: Cross-build production Windows x64 Mono player
         id: build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4 (pinned)
@@ -248,6 +283,7 @@ jobs:
           buildsPath: Builds
           buildMethod: SmallArena.Tools.SmallArenaBuildPipeline.BuildWindowsStandalone
           versioning: None
+          customParameters: -job-worker-count 2 -gc-max-time-slice 3
       - name: Diagnose build termination (cgroup & Docker state)
         if: failure()
         shell: bash
@@ -323,12 +359,14 @@ jobs:
           BUILD_RESULT: ${{ needs.windows-standalone-build.result }}
         shell: pwsh
         run: |
-          foreach ($name in @('DIFF_RESULT', 'STATIC_RESULT', 'UNITY_RESULT')) {
+          foreach ($name in @('DIFF_RESULT', 'STATIC_RESULT')) {
             $result = [Environment]::GetEnvironmentVariable($name)
             if ($result -ne 'success') { throw "$name=$result; all gates must succeed, including licensed Unity verification." }
           }
           if ($env:BUILD_REQUIRED -eq 'true') {
+            if ($env:UNITY_RESULT -ne 'success') { throw "Required Unity verification did not succeed: $env:UNITY_RESULT" }
             if ($env:BUILD_RESULT -ne 'success') { throw "Required Windows build did not succeed: $env:BUILD_RESULT" }
           } elseif ($env:BUILD_REQUIRED -eq 'false') {
+            if ($env:UNITY_RESULT -ne 'skipped') { throw "Unexpected documentation-only Unity state: $env:UNITY_RESULT" }
             if ($env:BUILD_RESULT -ne 'skipped') { throw "Unexpected documentation-only build state: $env:BUILD_RESULT" }
           } else { throw 'Missing/invalid Windows build classification.' }
