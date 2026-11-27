@@ -39,17 +39,16 @@ PR -> main / push main
   |     XML regression (pwsh 7), scaffold, Input Actions
   +-- Static quality (windows-2022)
   |     XML regression (pwsh 7 + Windows PowerShell 5.1), scaffold, Input Actions
-  +-- Unity EditMode and PlayMode (windows-2022, nhánh nội bộ)
-        resolve/pull Editor image -> cố định digest
+  +-- Unity EditMode and PlayMode (windows-2022, nhánh nội bộ, khi classifier yêu cầu)
+        Library cache Windows -> resolve/pull Editor image -> cố định digest
         GameCI native PlayMode + EditMode -> XML validations luôn chạy
         cùng image + checkout/Library đã import:
           Editor/scaffold -> strict 7-asmdef compile -> physics/URP -> arena/prefab/UI
-        upload kết quả luôn chạy
-  +-- Windows Standalone Build (ubuntu-latest cross-build Mono, nhánh nội bộ)
-        code/asset/tool/workflow PR hoặc mọi push main -> Library cache -> build
+        khi các gate trên đạt: Windows x64 Mono build trong cùng image/Library
         verify output + BuildReport -> ZIP/SHA256/source commit -> artifact 3 ngày
-        PR chỉ sửa tài liệu được bỏ qua riêng job build
-  \-- CI Quality Gate: tests/static phải success; build phải success khi được yêu cầu
+        upload test/build diagnostics luôn chạy
+        PR chỉ sửa docs/** hoặc *.md được bỏ qua toàn job unity
+  \-- CI Quality Gate: diff/static phải success; unity phải success khi được yêu cầu
 ```
 
 GameCI chạy Editor **trong Docker**, không cài vào Hub trên runner host. Vì vậy
@@ -170,9 +169,10 @@ full suites không được chạy lại; chỉ kiểm report native cũ và th�
 ## 6. Đề xuất bảo vệ `main`
 
 **Required check tối thiểu: `CI Quality Gate`.** Job này dùng `if: always()` và chỉ
-chấp nhận `success` của Git diff, toàn bộ static matrix và Unity. Windows build cũng
-phải `success` khi classifier yêu cầu; chỉ được `skipped` nếu PR chỉ sửa tài liệu.
-`failure`/`cancelled`, thiếu classifier hoặc skip build của PR code đều không đạt.
+chấp nhận `success` của Git diff và toàn bộ static matrix. Job `unity` bao gồm tests,
+XML, strict compilation và production build phải `success` khi classifier yêu cầu;
+chỉ được `skipped` nếu PR chỉ sửa tài liệu. `failure`/`cancelled`, thiếu classifier
+hoặc skip Unity của PR code đều không đạt.
 Có thể chọn thêm các check chi tiết sau để review trực quan:
 
 1. `Git diff`
@@ -183,7 +183,7 @@ Có thể chọn thêm các check chi tiết sau để review trực quan:
 
 Sau lượt chạy thật đầu tiên, chọn đúng tên hiển thị trong Settings → Branches/Rulesets,
 yêu cầu PR + review, resolve conversations, nhánh cập nhật với main và các checks trên.
-Không coi một job Unity bị skip là đủ điều kiện merge. Với fork, thành viên review
+Không coi Unity bị skip trên PR code là đủ điều kiện merge. Với fork, thành viên review
 rồi đưa commit lên nhánh nội bộ để có license và mở PR; không dùng `pull_request_target`
 để chạy mã fork với secrets. Đây là **đề xuất**, không phải cấu hình remote đã áp dụng.
 
@@ -253,32 +253,34 @@ không chứng minh exe đã chạy hoặc KCP nhiều process đã hoạt độ
 
 ### CI, cache và gate
 
-- Job **`windows-standalone-build` / Windows Standalone Build** chạy trên
-  `ubuntu-latest`, song song với Unity tests sau job Git diff; timeout **60 phút**.
-  Dùng GameCI unity-builder SHA `4423ee75828dff56037d1d1cfdac6b68e3a6ba00`, Unity
-  **6000.6.8f1**, `StandaloneWindows64`, production buildMethod và `versioning: None`.
-  Image chính thức: `unityci/editor:ubuntu-6000.6.8f1-windows-mono-3`.
-  Linux Editor cross-build Windows Mono; không cần Windows Docker daemon hoặc Docker Desktop trên máy lập trình.
-  Action có sẵn `-quit -batchmode -nographics`; không dùng `manualExit` hay GPU mode.
+- Production build nằm trong job **`unity` / Unity EditMode and PlayMode** trên
+  **windows-2022**, sau tests, hai XML floors và scaffold/compiler/configuration/layout
+  gates. Gate trước đó fail thì không build/package/upload player. Timeout chung
+  vẫn **60 phút**. Không còn job `windows-standalone-build` hay Linux cross-build.
+- Builder SHA pin hiện hữu nhận cùng **`steps.image.outputs.image` digest** Windows
+  Unity **6000.6.8f1** đã pull cho tests, `StandaloneWindows64`, production buildMethod
+  và `versioning: None`. Windows script gọi Unity trực tiếp với
+  `-quit -batchmode -nographics -executeMethod SmallArena.Tools.SmallArenaBuildPipeline.BuildWindowsStandalone`.
+  Custom parameters ghi `Logs/WindowsStandalone/editor.log`, giữ worker count 2 và
+  GC time slice 3. Image tên windows-il2cpp chứa module Windows; backend sản phẩm
+  vẫn **Mono2x**, không đổi PlayerSettings theo tên image.
 - Dùng đúng ba secrets hiện hữu `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`.
-  Không in giá trị, không upload license/environment dump. Report log chỉ ghi bước
-  build sau khi Editor đã khởi động; lỗi license/import trước entry point xem Actions
-  log của GameCI. Full local Editor log không được in tự động ra terminal.
-- Cache **chỉ `Library/`** bằng actions/cache SHA pin. Key bao gồm OS/architecture,
-  Unity version, hash `Packages/manifest.json`, `Packages/packages-lock.json`,
-  `ProjectSettings/**` và commit SHA. Restore prefix cùng config hash cho phép reuse
-  cache khi chỉ source/assets thay đổi; Unity vẫn kiểm dependency/import hiện hành.
-  Prefix `windows-mono-cross-v2` và runner OS tách cache Linux khỏi cache Windows cũ.
-  Không cache Builds, ZIP, Logs, Secrets hoặc xem cache hit là build đã đạt.
-- Classifier mặc định yêu cầu build cho mọi path ngoài allowlist `docs/**`,
-  `README.md`, `.github/workflows/README.md`. Git diff dùng `--no-renames` để asset/code
-  bị chuyển vào docs vẫn tính là xóa code, không bị nhận nhầm thành docs-only.
-  Mọi **push main luôn build**, kể cả tài liệu. PR fork không được cấp secrets và
-  code PR fork không vượt gate; quy trình review/nhánh nội bộ giữ như Phase 1.
-- `CI Quality Gate` giữ kiểm tra O(1), không chạy lại tests/build. Nó chờ build cần thiết
-  hoàn tất; chỉ chấp nhận skip khi classifier nói docs-only, không có default-green
-  khi thiếu output hoặc job lỗi. Nên required **CI Quality Gate**; không cần required
-  riêng Windows Standalone Build vì docs-only PR hợp lệ có job bị skip.
+  Builder quản lý activation/return license cho container build riêng; không giả
+  định license của container test còn hiệu lực sau tests. Không in secrets hay upload
+  license/activation log/environment dump. Lỗi khởi động xem Actions log của GameCI;
+  build Editor log ghi riêng vào artifact, không tự in ra terminal.
+- Cache chỉ **Library/** với prefix **windows-native-tests-v1-**, key OS/arch/Unity,
+  hash manifest/lock/ProjectSettings và SHA; restore prefix cùng cấu hình. Build
+  mount cùng checkout/Library ấm vừa được tests import. Không restore cache Linux,
+  không cache XML/build/log/secret và không xem cache hit là pass.
+- Classifier yêu cầu job `unity` cho mọi path ngoài allowlist `docs/**`, `*.md` ở
+  mọi cấp. `--no-renames` bảo vệ trường hợp di chuyển code vào docs. PR docs-only
+  vẫn có Git diff, static matrix, CI Quality Gate; mọi push main chạy đầy đủ.
+  Fork PR code không có license secrets vẫn không vượt gate.
+- `CI Quality Gate` chờ `[diff, static, unity]`: diff/static phải success; unity
+  phải success nếu `BUILD_REQUIRED=true`, chỉ được skipped nếu false. Thiếu classifier,
+  failure/cancelled hoặc skip trên PR code bị từ chối. Required check vẫn là
+  **CI Quality Gate**; không còn check riêng Windows Standalone Build.
 
 ### Artifact cho Phase 3
 
@@ -296,8 +298,9 @@ Giải nén ZIP vào một thư mục riêng sẽ có `SmallArena.exe`, `SmallAr
 ở root. ZIP chứa trọn player output, không chỉ exe; upload dùng compression-level 0
 để không nén lại ZIP. Phase 3 tải artifact **cùng workflow run/commit**, kiểm SHA256
 và source commit rồi giải nén, chạy exe cùng data/DLL để điều phối Mirror/KCP.
-Job build dùng Bash `zip`, `unzip -tq` và `sha256sum --check` trước upload để kiểm
-archive/checksum thực sự, không chỉ tạo file checksum. Job smoke tương lai chạy exe
+PowerShell/.NET tạo ZIP toàn bộ output, đọc lại từng entry và so kích thước/SHA256
+với file nguồn; sau đó ghi/đọc lại SHA256SUMS.txt để kiểm archive checksum.
+Không cần zip/unzip/sha256sum Linux. Job smoke tương lai chạy exe
 trên `windows-latest`, không gọi GameCI builder/Docker trên Windows.
 Phase 2 chưa thêm tự động host/join hoặc instrumented smoke entry vào player.
 
@@ -343,7 +346,11 @@ và `TestResults/`; không thêm exe, DLL output, ZIP hoặc log vào Git.
   số đó cho lượt chạy mới. GitHub Windows-latest/container/cache/artifact handoff
   chưa thực thi trong nhiệm vụ cục bộ này.
 
-## 8. Sửa incident Windows Docker — Ubuntu cross-build Mono
+## 8. Lịch sử sửa incident Windows Docker — Ubuntu cross-build Mono
+
+Mục này ghi phương án cũ; workflow hiện hành đã chuyển production build sang job
+`unity` Windows theo mục 7 và phần Direction1 cuối tài liệu. Các lệnh PR/cross-build
+dưới đây là lịch sử, không phải cấu hình CI hiện hành.
 
 Baseline sửa lỗi: `b134d1e`, nhánh `feat/ci-phase2-standalone-build`, ngày 23/11/2026.
 Job build cũ chạy GameCI trên Windows và không kết nối được Docker daemon
@@ -521,3 +528,33 @@ container/cgroup có thể đã bị xóa; thiếu counters không chứng minh 
 CI vẫn Phase1+Phase2, giữ project floors261/406 và toàn bộ verification gates.
 Sau khi người dùng review/commit/push PR #38, kiểm readiness step, cache v3 hit/miss,
 tests/XML và build thực trên GitHub; local syntax/regression không thay bằng chứng CI.
+
+### Ổn định tài nguyên và giảm thời gian CI — Direction1
+
+Nhánh `fix/ci-stability-and-speed`: giữ concurrency theo workflow + số PR/ref,
+`cancel-in-progress`, docs-only classifier và cache **windows-native-tests-v1-**.
+Không dùng paths-ignore ở trigger nên các check vẫn xuất hiện trên PR tài liệu.
+
+Sau Direction2 vẫn gặp exit137, production Windows x64 Mono build được chuyển
+vào job `unity` trên **windows-2022** sau tất cả test/XML/strict compilation gates.
+Builder tái sử dụng chính Windows image digest đã pull và Library ấm trong cùng
+checkout; action quản lý activation/return license cho container build riêng.
+Không còn Linux Windows cross-build, nên bỏ hẳn đường chạy Linux SIGKILL này cùng
+swap/drop-page-cache/cgroup steps. Điều đó không đảm bảo Windows không thể thiếu
+RAM và chưa chứng minh giảm thời gian CI một nửa; cần so sánh run thực trên GitHub.
+
+Giữ preflight MainMenu → Bootstrap → Arena_MVP; verifier kiểm PE32+/AMD64, runtime
+DLL/data/scenes, BuildReport StandaloneWindows64/Mono2x/Succeeded/errors0, build log
+và project diagnostics. PowerShell/.NET ZIP kiểm từng entry và SHA256; artifact
+player/build diagnostics vẫn **3 ngày**, test artifacts **7 ngày**. Logs luôn được
+thử upload kể cả build lỗi; không upload secrets/activation logs.
+
+Aggregate chỉ chờ diff/static/unity; với code PR hoặc push main, success của unity
+nay bao gồm production build/verification/package/upload. PR docs-only chỉ nhận
+unity skipped có classifier hợp lệ. Job name **CI Quality Gate** giữ nguyên;
+không còn job/check riêng Windows Standalone Build.
+
+CI vẫn chỉ **Phase1 + Phase2**, không thêm smoke/harness. Project pass floors
+**261/406**, zero project skips, XML `always()` và strict compilation giữ nguyên.
+Local syntax/logic/package regression không thay bằng chứng native Windows Docker
+build/test/license trên Actions; không gán kết quả lịch sử thành lượt chạy mới.
