@@ -29,17 +29,30 @@ namespace SmallArena.Networking
         public override void OnStartClient() => OnDamageChanged?.Invoke(attackDamage);
         [Server]
         internal void GrantWeapon() { if (CanReceiveWeapon) attackDamage = health.BaseDamage + 1; }
-        [Server] public void ResetForLife() { if (isServer) { attackDamage = health.BaseDamage; nextAttackTime = 0; } }
+        [Server] public void ResetForLife()
+        {
+            if (!isServer) return;
+            attackDamage = health.BaseDamage;
+            if (!health.IsLifecycleBound) nextAttackTime = 0;
+        }
+        // Bound combat only mirrors the deadline committed by the match runtime.
+        [Server] public void PublishRuntimeDeadline(double deadline) { if (isServer) nextAttackTime = deadline; }
+        private bool TryBeginAttack()
+        {
+            if (health.IsLifecycleBound) return health.TryBeginRuntimeAttack();
+            var now = NetworkTime.localTime;
+            if (now < nextAttackTime) return false;
+            nextAttackTime = now + health.AttackCooldownSeconds;
+            return true;
+        }
         private void DamageChanged(int previous, int current) => OnDamageChanged?.Invoke(current);
 
         [Server] internal ShotRejection PerformShot(float aimX, float aimZ, out ShotOutcome outcome)
         {
             outcome = ShotOutcome.Rejected;
             if (!isServer || !health.IsLifecycleBound || !health.CanAct) return ShotRejection.NotPlaying;
-            if (NetworkTime.localTime < nextAttackTime) return ShotRejection.Cooldown;
             if (!CombatAim.TryNormalizeHorizontal(aimX, aimZ, out var dx, out var dz)) return ShotRejection.InvalidAim;
-            if (!health.TryBeginRuntimeAttack()) return ShotRejection.Cooldown;
-            nextAttackTime = NetworkTime.localTime + health.AttackCooldownSeconds;
+            if (!TryBeginAttack()) return ShotRejection.Cooldown;
             var origin = transform.position + ShotMuzzleOffset;
             // Unity rays do not report a collider containing their origin.
             foreach (var overlap in Physics.OverlapSphere(origin, .02f, 1 << 6, QueryTriggerInteraction.Ignore))
@@ -74,8 +87,7 @@ namespace SmallArena.Networking
             // This arena keeps world +Z facing. Requests cannot extend range or rotate the hitbox.
             if (!isServer || !health.CanAct
                 || !CombatAim.IsLegacyMeleeDirection(aimDirection.x, aimDirection.y, aimDirection.z)
-                || NetworkTime.localTime < nextAttackTime || !health.TryBeginRuntimeAttack()) return;
-            nextAttackTime = NetworkTime.localTime + health.AttackCooldownSeconds;
+                || !TryBeginAttack()) return;
             var center = MeleeHitGeometry.Center(transform, Offset);
             var hits = Physics.OverlapSphere(center, MeleeHitGeometry.CandidateRadius(Radius), (1 << 7) | (1 << 8), QueryTriggerInteraction.Ignore);
             damaged.Clear();

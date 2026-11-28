@@ -5,6 +5,46 @@ namespace SmallArena.Tests.EditMode
 {
     public sealed class ShotResolutionAndPresentationCleanupTests
     {
+        private static MatchSessionRuntime GunSession(double cooldown = .5)
+        {
+            var session = new MatchSessionRuntime("gun", new GameplayConfiguration(shotCooldownSeconds: cooldown,
+                countdownDurationSeconds: 0));
+            session.AddParticipant("a", 1, 0, 0); session.AddParticipant("b", 2, 1, 0);
+            session.LockRoster(0); session.BindSpawn(1, 0); session.BindSpawn(2, 0); session.Tick(0);
+            return session;
+        }
+        [TestCase(10.499999, false)]
+        [TestCase(10.5, true)]
+        [TestCase(10.500001, true)]
+        public void GunCooldownUsesInclusiveServerDeadline_IndependentCases(double now, bool accepted)
+        {
+            var session = GunSession();
+            Assert.That(session.TryAttack("a", 1, 10), Is.True);
+            Assert.That(session.ByParticipant("a").Character.NextShotAtSeconds, Is.EqualTo(10.5));
+            Assert.That(session.TryAttack("a", 1, now), Is.EqualTo(accepted));
+            Assert.That(session.ByParticipant("a").Character.NextShotAtSeconds, Is.EqualTo(accepted ? now + .5 : 10.5));
+            Assert.That(session.ByParticipant("b").Character.Health, Is.EqualTo(100));
+        }
+        [Test] public void FreshFutureClientTimestampCannotShortenCustomServerCooldown()
+        {
+            var session = GunSession(.75); var gate = new ShotRequestGate();
+            Assert.That(session.TryAttack("a", 1, 10), Is.True);
+            Assert.That(gate.Process(1, 1, 1, 999, 10.5), Is.EqualTo(ShotRejection.None));
+            Assert.That(session.TryAttack("a", 1, 10.5), Is.False);
+            Assert.That(session.ByParticipant("a").Character.NextShotAtSeconds, Is.EqualTo(10.75));
+            Assert.That(session.TryAttack("a", 99, 10.75), Is.False);
+            Assert.That(session.TryAttack("a", 1, 10.75), Is.True);
+            Assert.That(session.ByParticipant("a").Character.NextShotAtSeconds, Is.EqualTo(11.5));
+        }
+        [TestCase(29.999999, ShotOutcome.Hit)]
+        [TestCase(30, ShotOutcome.Hit)]
+        [TestCase(30.000001, ShotOutcome.Missed)]
+        public void GunRangeIncludesExactlyThirtyMetres(double distance, ShotOutcome expected)
+            => Assert.That(ShotHitRules.Resolve(distance, double.PositiveInfinity, 30), Is.EqualTo(expected));
+        [TestCase(0)] [TestCase(-1)] [TestCase(double.NaN)] [TestCase(double.PositiveInfinity)]
+        public void InvalidGunCooldownCannotBecomeMatchConfiguration(double cooldown)
+            => Assert.Throws<System.ArgumentOutOfRangeException>(() => new GameplayConfiguration(shotCooldownSeconds: cooldown));
+
         [TestCase(2d, 1d, 3d, ShotOutcome.Blocked)]
         [TestCase(1d, 2d, 3d, ShotOutcome.Hit)]
         [TestCase(1d, 1d, 3d, ShotOutcome.Blocked)]

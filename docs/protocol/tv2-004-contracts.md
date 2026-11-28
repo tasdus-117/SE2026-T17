@@ -1,6 +1,22 @@
 # TV2-004: input, shot, result and presentation contracts
 
-## Current reconciliation — 25-Nov-2026
+## Integrated FR-203 contract — 28-Nov-2026
+
+Integration base `89f2674` includes movement revocation #13 and the live contract
+reconciliation #30. TV2-005 retains `NextShotAtSeconds` as the sole bound gun/melee
+eligibility deadline, published exactly through `NetworkHealth.PublishRuntime`
+to the existing combat SyncVar. Accepted hit, miss and covered shots consume the
+configured cooldown once; rejected shots leave gameplay cooldown, HP and score
+unchanged. See [TV2-005 verification](../testing/tv2-005-results.md) for the
+Configure-path H100/D25/C.5/R30 profile and retained production M3 defaults.
+Movement, death/respawn and control revocation from #13 remain integrated.
+
+The dated reconciliation below records its source SHAs and historical PR states;
+#13 and #30 are now merged. Current source audit and four-player oracle links
+remain applicable; team review, #26/#27 acceptance and #29 rollout decisions
+remain separate from this conflict resolution.
+
+## Historical reconciliation — 25-Nov-2026
 
 Runtime reference main `74a6c56f8e9baeddfa2ef11273b2bf5f21cf9837`.
 The [current CT/FR/source audit](../testing/tv2-current-contract-audit.md)
@@ -80,6 +96,7 @@ future-interface claims; they are historical feedback, **not exact-head sign-off
 This packet neither implements TV2-005 nor approves revised original criteria.
 
 ## Historical packet — 19-Nov-2026 (retained unchanged)
+4
 
 Revision 2026-11-19, prepared by Codex for TV1 network/ownership, TV2 gameplay
 (Long / 23001901), TV3 aim/HUD. **DRAFT: independent validation implemented;
