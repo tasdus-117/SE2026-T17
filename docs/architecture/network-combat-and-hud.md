@@ -1,5 +1,7 @@
 # Combat và HUD mạng
 
+> **[Historical Baseline — Early Combat Design]** Tài liệu này ghi lại thiết kế tại thời điểm triển khai mốc tương ứng. Đối với hành vi runtime và hợp đồng M3 hiện hành trên `main`, tham chiếu `README.md`, `docs/protocol/protocol.md`, `docs/protocol/tv2-004-contracts.md` và `docs/testing/tv2-current-contract-audit.md`.
+
 Giữ bảy assembly hiện hành, không thêm Gameplay.asmdef thứ tám. NetworkPlayer
 chỉ giữ lifecycle và bridge Command; NetworkCombat/NetworkHealth/NetworkMatchRules
 thuộc Networking. Client giữ input, HUD và billboard. Server/Simulation chỉ đọc

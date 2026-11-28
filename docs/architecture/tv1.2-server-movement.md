@@ -1,5 +1,7 @@
 # TV1.2 — mô phỏng di chuyển có thẩm quyền trên server
 
+> **[Historical Baseline — M1.2]** Tài liệu này ghi lại thiết kế tại thời điểm triển khai mốc tương ứng. Đối với hành vi runtime và hợp đồng M3 hiện hành trên `main`, tham chiếu `README.md`, `docs/protocol/protocol.md`, `docs/protocol/tv2-004-contracts.md` và `docs/testing/tv2-current-contract-audit.md`.
+
 ## Luồng dữ liệu và ranh giới
 
 `PlayerInputHandler` và `PlayerController` trong Client đọc input của local owner. Khi có NetworkIdentity, PlayerController chỉ gọi NetworkMovement, không đổi position/rotation hoặc gọi CharacterController.Move. Khi không có identity, giữ nguyên di chuyển/nhảy offline.

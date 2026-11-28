@@ -1,5 +1,7 @@
 # M2 TV1 — phòng chờ Host/Join
 
+> **[Historical Baseline — M2]** Tài liệu này ghi lại thiết kế tại thời điểm triển khai mốc tương ứng. Đối với hành vi runtime và hợp đồng M3 hiện hành trên `main`, tham chiếu `README.md`, `docs/protocol/protocol.md`, `docs/protocol/tv2-004-contracts.md` và `docs/testing/tv2-current-contract-audit.md`.
+
 ## Luồng vào phòng
 
 MainMenu giữ nguyên Single Player → Arena_MVP offline. Multiplayer mở ConnectionPanel ngay trong MainMenu, gồm địa chỉ mặc định localhost, Host Room, Join Room và Back. Không cần NetworkManagerHUD hoặc lệnh debug. Tutorial vẫn Coming Soon.

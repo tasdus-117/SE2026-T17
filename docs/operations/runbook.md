@@ -42,7 +42,11 @@ Chưa có script build/chạy server trong các thư mục `scripts/` nêu trên
 
 ## CI và build
 
-[Workflow kiểm thử](../../.github/workflows/unity-ci.yml) chạy EditMode và PlayMode khi có PR vào `main` và khi `main` nhận commit. Build tự động cho server và client vẫn là phần tiếp theo.
+[Workflow CI](../../.github/workflows/unity-ci.yml) có Git diff, Static quality (Ubuntu/Windows), Unity EditMode and PlayMode và CI Quality Gate. Job Unity trên `windows-2022` chạy native tests, XML gates và strict compilation/configuration/layout; khi đạt, gọi `SmallArena.Tools.SmallArenaBuildPipeline.BuildWindowsStandalone` để build production Windows x64 Mono, dùng lại Windows Editor image pin digest và Library đã import. Output/BuildReport được kiểm trước khi đóng ZIP kèm SHA256/source commit; player/build diagnostics giữ 3 ngày, test artifacts giữ 7 ngày. Không có job Ubuntu cross-build riêng hoặc Phase 3 smoke trong CI.
+
+PR chỉ đổi đường dẫn khớp `docs/*` hoặc `*.md` skip cả tests và build trong job Unity, nhưng vẫn chạy diff/static/quality. Code/asset/tool/workflow PR và mọi push `main` phải qua Unity verification; fork PR cần Unity không thể đạt gate nếu thiếu lượt kiểm chứng có license. XML giữ project pass floors 261 EditMode/406 PlayMode và không cho project skip.
+
+Build cục bộ bằng `powershell -NoProfile -ExecutionPolicy Bypass -File tools/Build-WindowsStandalone.ps1`; wrapper gọi cùng Editor entry point, không cần Docker Desktop. Dùng `-ValidateOnly` để chỉ kiểm preflight, không coi đó là build đã chạy. Xem [hướng dẫn build/CI](../ci/ci-pipeline.md) để biết điều kiện Editor, output và commands. Build này là player Windows; không chứng nhận Dedicated Server build, tự phát hành hoặc nghiệm thu mạng nhiều process.
 
 ## Git
 
