@@ -1,5 +1,7 @@
 # TV1.1 — vòng đời kết nối, spawn và giới hạn điều khiển
 
+> **[Historical Baseline — M1.1]** Tài liệu này ghi lại thiết kế tại thời điểm triển khai mốc tương ứng. Đối với hành vi runtime và hợp đồng M3 hiện hành trên `main`, tham chiếu `README.md`, `docs/protocol/protocol.md`, `docs/protocol/tv2-004-contracts.md` và `docs/testing/tv2-current-contract-audit.md`.
+
 ## Phạm vi
 
 `ArenaNetworkManager` và `NetworkPlayer` thuộc `SmallArena.Networking`. Assembly không tham chiếu Server hoặc Client; bridge không chứa mô phỏng, combat hoặc HUD. Bảy assembly được giữ nguyên; PlayMode.Tests thêm tham chiếu Mirror để kiểm tra API thật.

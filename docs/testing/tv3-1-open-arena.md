@@ -59,31 +59,31 @@ HP nạn nhân bằng 0, Defeat, và HUD DEFEAT/VICTORY của người chơi loc
 Log, NUnit XML và JSON của từng tiến trình nằm trong TestResults/TV31 (Git ignore).
 Kết quả chạy thực tế và các hạn chế được ghi trong mô tả PR.
 
-## K?t qu? local ng?y 15/11/2026
+## Kết quả local ngày 15/11/2026
 
-Unity Editor 6000.6.8f1, Windows; ch?y trong worktree ri?ng t? commit c?c b?
-52fe2fe, checkout main g?c v? ba file ch?a commit ???c gi? nguy?n.
+Unity Editor 6000.6.8f1, Windows; chạy trong worktree riêng từ commit cục bộ
+52fe2fe, checkout main gốc và ba file chưa commit được giữ nguyên.
 
-| Ki?m tra | ??t | L?i | B? qua |
+| Kiểm tra | Đạt | Lỗi | Bỏ qua |
 | --- | ---: | ---: | ---: |
 | Unity EditMode | 142 | 0 | 0 |
-| Unity PlayMode (g?m 1.000 seed, offline/replay v? Mirror fall) | 287 | 0 | 2 |
-| Hai ti?n tr?nh Host/Join, client r?i | 1 | 0 | 0 |
-| Hai ti?n tr?nh Host/Join, host r?i | 1 | 0 | 0 |
+| Unity PlayMode (gồm 1.000 seed, offline/replay và Mirror fall) | 287 | 0 | 2 |
+| Hai tiến trình Host/Join, client rơi | 1 | 0 | 0 |
+| Hai tiến trình Host/Join, host rơi | 1 | 0 | 0 |
 
-Hai ca b? qua thu?c dependency: IntegrationTests.WindowsInput_MouseMovements_AreDetected
-v? WindowsInput_RemoteDesktopMouseMovements_AreDetected, c?ng l? do c? s?n
-?Unstable due to 1252825?. C?c test d? ?n ??u ??t. Domain runner ??c l?p ??t
-142 ca v? ph?t hi?n 13/13 mutation; kh?ng c?ng l?p c?c ca n?y v?o t?ng Unity.
-Saved-layout verifier ??t 4.215 assertion. Standalone build Succeeded, 0 l?i;
-15 c?nh b?o analyzer t? m? Mirror/dependency c? s?n.
+Hai ca bỏ qua thuộc dependency: IntegrationTests.WindowsInput_MouseMovements_AreDetected
+và WindowsInput_RemoteDesktopMouseMovements_AreDetected, cùng lý do có sẵn
+“Unstable due to 1252825”. Các test dự án đều đạt. Domain runner độc lập đạt
+142 ca và phát hiện 13/13 mutation; không cộng lặp các ca này vào tổng Unity.
+Saved-layout verifier đạt 4.215 assertion. Standalone build Succeeded, 0 lỗi;
+15 cảnh báo analyzer từ mã Mirror/dependency có sẵn.
 
-- `19e1382be4d04b669299ca023dd4b356`: host r?i; 4 v?t c?n; layout v? collider hai ph?a gi?ng nhau; HP server = 0; HUD n?n nh?n DEFEAT, ng??i c?n l?i VICTORY; 0 l?i runtime.
-- `a0e78705d9bd4ee5ae13615ea4fda57c`: client r?i; 3 v?t c?n; layout v? collider hai ph?a gi?ng nhau; HP server = 0; HUD n?n nh?n DEFEAT, ng??i c?n l?i VICTORY; 0 l?i runtime.
+- `19e1382be4d04b669299ca023dd4b356`: host rơi; 4 vật cản; layout và collider hai phía giống nhau; HP server = 0; HUD nạn nhân DEFEAT, người còn lại VICTORY; 0 lỗi runtime.
+- `a0e78705d9bd4ee5ae13615ea4fda57c`: client rơi; 3 vật cản; layout và collider hai phía giống nhau; HP server = 0; HUD nạn nhân DEFEAT, người còn lại VICTORY; 0 lỗi runtime.
 
-Ch?a ki?m ch?ng b?ng m?t ch?t l??ng h?nh ?nh/material v? tr?i nghi?m ?i?u khi?n
-qua m?ng Internet c? ?? tr?/m?t g?i. Hai ti?n tr?nh ch?y localhost, headless;
-harness ??a nh?n v?t ra m?p r?i d?ng gravity th?t, kh?ng gi? l?p vi?c ng??i d?ng
-b?m ph?m ?i h?t qu?ng ???ng. Ch?a ch?y ca standalone dedicated server v? client
-v?o mu?n; c?c ca n?y kh?ng n?m trong hai k?ch b?n Host/Join n?u tr?n. K?t qu? CI
-v? Copilot review cho commit PR m?i nh?t ???c c?p nh?t tr?c ti?p tr?n PR.
+Chưa kiểm chứng bằng mắt chất lượng hình ảnh/material và trải nghiệm điều khiển
+qua mạng Internet có độ trễ/mất gói. Hai tiến trình chạy localhost, headless;
+harness đưa nhân vật ra mép rồi dùng gravity thật, không giả lập việc người dùng
+bấm phím đi hết quãng đường. Chưa chạy ca standalone dedicated server và client
+vào muộn; các ca này không nằm trong hai kịch bản Host/Join nêu trên. Kết quả CI
+và Copilot review cho commit PR mới nhất được cập nhật trực tiếp trên PR.

@@ -1,5 +1,7 @@
 # TV3 input, aim and presentation integration
 
+> **[Historical Baseline — Early TV3 Design]** Tài liệu này ghi lại thiết kế tại thời điểm triển khai mốc tương ứng. Đối với hành vi runtime và hợp đồng M3 hiện hành trên `main`, tham chiếu `README.md`, `docs/protocol/protocol.md`, `docs/protocol/tv2-004-contracts.md` và `docs/testing/tv2-current-contract-audit.md`.
+
 Status: draft integration; implementation choices below are TV3 proposals for review,
 not signatures or agreement by TV1/TV2. See [execution evidence](../testing/tv3-input-aim-hud.md).
 
