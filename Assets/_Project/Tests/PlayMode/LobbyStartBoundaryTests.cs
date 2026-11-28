@@ -106,6 +106,7 @@ namespace SmallArena.Tests.PlayMode
             int admitted = 0;
             manager.ServerConnected += _ => admitted++;
             manager.OnServerConnect(incoming);
+            if (count <= 4) RoomAdmissionTestMessages.Send(manager.transport, incoming.connectionId);
             Assert.That(admitted, Is.EqualTo(count <= 4 ? 1 : 0), "Authenticated count 4 must be admitted; 5 rejected.");
             Assert.That(incoming.isAuthenticated, Is.EqualTo(count <= 4));
             Assert.That(server.Room.Count, Is.LessThanOrEqualTo(4));

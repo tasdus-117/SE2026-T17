@@ -23,6 +23,7 @@ namespace SmallArena.Server.Sessions
             manager.ServerConnected += Join;
             manager.ServerDisconnected += Leave;
             manager.ServerSceneLoaded += SceneLoaded;
+            manager.RoomDirectoryIdentityChanged += Publish;
             manager.ServerCanSpawnPlayer = CanSpawn;
         }
         private void OnDisable()
@@ -33,6 +34,7 @@ namespace SmallArena.Server.Sessions
             manager.ServerConnected -= Join;
             manager.ServerDisconnected -= Leave;
             manager.ServerSceneLoaded -= SceneLoaded;
+            manager.RoomDirectoryIdentityChanged -= Publish;
             manager.ServerCanSpawnPlayer = null;
             Close();
         }
@@ -102,9 +104,11 @@ namespace SmallArena.Server.Sessions
         {
             if (!NetworkServer.active) return;
             var members = room.Members;
+            manager.UpdateRoomDirectory(room.Phase, members.Length);
             foreach (var connection in NetworkServer.connections.Values)
-                if (connection.isAuthenticated)
-                    connection.Send(new LobbySnapshot { Phase = room.Phase, LocalConnectionId = connection.connectionId, CanStart = room.CanStart, Members = members });
+                if (connection.isAuthenticated && System.Array.Exists(members, member => member.ConnectionId == connection.connectionId))
+                    connection.Send(new LobbySnapshot { Phase = room.Phase, LocalConnectionId = connection.connectionId, CanStart = room.CanStart, Members = members,
+                        RoomCode = manager.CurrentRoomCode, RoomInstanceId = manager.RoomInstanceId, IsPublic = manager.IsRoomPublic });
         }
     }
 }

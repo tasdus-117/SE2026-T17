@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 namespace SmallArena.Networking
 {
     /// <summary>Server-owned connection, spawn reservation and teardown lifecycle.</summary>
-    public sealed class ArenaNetworkManager : NetworkManager
+    public sealed partial class ArenaNetworkManager : NetworkManager
     {
         private readonly Dictionary<NetworkConnectionToClient, Transform> reservedSpawns = new Dictionary<NetworkConnectionToClient, Transform>();
         private readonly Queue<Transform> releasedSpawns = new Queue<Transform>();
@@ -50,16 +50,13 @@ namespace SmallArena.Networking
 
         public void HostRoom()
         {
-            if (!roomEnabled || NetworkServer.active || NetworkClient.active) return;
-            ConfigureRoom();
-            ConnectionStatus = "Creating room...";
-            StartHost();
-            RoomChanged?.Invoke();
+            StartHostedRoom();
         }
         public void JoinRoom(string address)
         {
             if (!roomEnabled || NetworkServer.active || NetworkClient.active) return;
             ConfigureRoom();
+            expectedDirectoryRoom = expectedDirectoryCode = null;
             networkAddress = string.IsNullOrWhiteSpace(address) ? "localhost" : address.Trim();
             ConnectionStatus = "Connecting...";
             StartClient();
@@ -165,6 +162,9 @@ namespace SmallArena.Networking
             // before disconnect. It never joins the roster or becomes authenticated.
             if (roomEnabled)
             {
+                // A full-room peer is already unauthenticated; ignore its in-flight admission
+                // without preempting the separate rejection/ACK exchange.
+                NetworkServer.RegisterHandler<LobbyAdmissionRequest>(ReceiveRoomAdmission, false);
                 NetworkServer.maxConnections = LobbyLimits.Capacity + 1;
                 NetworkServer.RegisterHandler<LobbyRejectionAcknowledged>((connection, _) =>
                 {
@@ -172,6 +172,7 @@ namespace SmallArena.Networking
                 }, false);
             }
             base.OnStartServer();
+            if (roomEnabled) BeginDirectoryHosting();
             ServerStarted?.Invoke();
         }
         public override void OnStartClient()
@@ -184,6 +185,7 @@ namespace SmallArena.Networking
             {
                 NetworkClient.RegisterHandler<LobbySnapshot>(snapshot =>
                 {
+                    if (!AcceptDirectorySnapshot(snapshot)) return;
                     CurrentRoom = snapshot;
                     ConnectionStatus = "";
                     RoomChanged?.Invoke();
@@ -201,6 +203,9 @@ namespace SmallArena.Networking
         }
         public override void OnClientConnect()
         {
+            if (roomEnabled)
+                NetworkClient.Send(new LobbyAdmissionRequest { Version = LobbyAdmissionRequest.CurrentVersion,
+                    RoomCode = expectedDirectoryCode, RoomInstanceId = expectedDirectoryRoom });
             // Lobby messages do not need scene readiness. Wait until admission and the arena load
             // before Ready/AddPlayer; a rejected client must not send gameplay messages.
             if (roomEnabled && string.IsNullOrEmpty(onlineScene)) return;
@@ -223,6 +228,9 @@ namespace SmallArena.Networking
         }
         public override void OnStopClient()
         {
+            CancelRoomCodeJoin();
+            expectedDirectoryRoom = expectedDirectoryCode = null;
+            if (!NetworkServer.active) CurrentRoomCode = "";
             EndClientArenaLoad(false);
             CurrentRoom = default;
             RoomChanged?.Invoke();
@@ -243,6 +251,8 @@ namespace SmallArena.Networking
         public override void Start()
         {
             var launch = ArenaLaunchOptions.Read(System.Environment.GetCommandLineArgs());
+            DiscoveryPort = launch.DiscoveryPort;
+            assignedRoomCode = launch.RoomCode;
             if (launch.Role == ArenaNetworkRole.None) { base.Start(); return; }
             // Explicit client/host roles take precedence over the headless server default.
             networkAddress = launch.Address;
@@ -266,6 +276,11 @@ namespace SmallArena.Networking
             if (roomEnabled && NetworkServer.connections.Values.Count(connection => connection.isAuthenticated) > LobbyLimits.Capacity)
             {
                 RejectRoomConnection(conn, LobbyLimits.FullReason);
+                return;
+            }
+            if (roomEnabled)
+            {
+                if (pendingRoomAdmissions.Add(conn)) StartCoroutine(ExpireRoomAdmission(conn));
                 return;
             }
             base.OnServerConnect(conn);
@@ -350,6 +365,7 @@ namespace SmallArena.Networking
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
             if (conn == null) return;
+            pendingRoomAdmissions.Remove(conn);
             rejectedConnections.Remove(conn);
             reservedSpawns.TryGetValue(conn, out var released);
             try
@@ -368,6 +384,8 @@ namespace SmallArena.Networking
 
         public override void OnStopServer()
         {
+            pendingRoomAdmissions.Clear();
+            StopDirectoryHosting();
             rejectedConnections.Clear();
             reservedSpawns.Clear();
             releasedSpawns.Clear();

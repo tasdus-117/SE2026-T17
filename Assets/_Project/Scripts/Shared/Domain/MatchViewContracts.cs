@@ -9,6 +9,19 @@ namespace SmallArena.Domain
         event Action<MatchState> OnMatchStateChanged;
     }
 
+    public interface IRoomBrowserPort
+    {
+        string CurrentRoomCode { get; }
+        bool IsRoomPublic { get; }
+        event Action RoomsDiscovered;
+        void StartHostedRoom(string roomName = null, bool isPublic = true);
+        bool TryJoinRoomByCode(string roomCode, out RoomJoinFailureReason failureReason);
+        void JoinRoomByCode(string roomCode, Action<RoomJoinFailureReason> completed);
+        void CancelRoomCodeJoin();
+        System.Collections.Generic.IReadOnlyList<RoomListingInfo> GetDiscoveredPublicRooms();
+        void RefreshDiscoveredRooms();
+    }
+
     public interface IHealthSource
     {
         int CurrentHealth { get; }
