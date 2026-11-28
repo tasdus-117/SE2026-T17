@@ -38,3 +38,7 @@ State position/rotation đi Server → mọi client quan sát, gồm owner, bằ
 Lịch sử 22/11/2026, main `995e6a4`: xem [CT-201–205/runtime/evidence](tv2-004-contracts.md). M3 đã thêm LifeId vào movement, attack và pickup; client/server phải cùng build. Attack hiện là reliable owner Command `(Vector3 aimDirection, long lifeId)`, pickup `(uint itemNetId, long lifeId)`. Các thay đổi tài liệu này không đổi wire. Raycast/reconnect và revisioned presentation adapter vẫn chờ scope/owner; không coi bảng thông điệp dự kiến đầu trang là danh sách API production.
 
 Hiện hành 25/11/2026 tại main74a6c56: #31/#37 đã có CmdSubmitShot(ShotIntent), server-origin raycast, shooter TargetFeedback và production presentation provider. Xem [source audit CT-201–205](../testing/tv2-current-contract-audit.md); các câu chờ adapter ở trên là lịch sử. Retained reconnect vẫn ngoài scope.
+
+## Draft giao thức Milestone 4
+
+[M4.0 — Room Directory/Code, Public Multiplayer Hub và Retained-Session Reconnect](tv1-m4-contracts.md) đề xuất CT-401–408, baseline ACK barrier và checklist review TV1/TV2/TV3. Đây là draft chưa ký duyệt/chưa triển khai; không thay wire, luật hoặc phạm vi nghiệm thu M3 hiện hữu.
