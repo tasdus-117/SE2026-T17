@@ -377,7 +377,12 @@ namespace SmallArena.Tests.PlayMode
         public void ConnectVirtual(int id)
         {
             visible[id] = new HashSet<uint>(); states[id] = new Dictionary<uint, int>();
-            pending.Enqueue(() => OnServerConnectedWithAddress.Invoke(id, "memory-virtual"));
+            pending.Enqueue(() =>
+            {
+                OnServerConnectedWithAddress.Invoke(id, "memory-virtual");
+                if (NetworkManager.singleton is ArenaNetworkManager manager && manager.RoomEnabled)
+                    SendFromVirtual(id, new LobbyAdmissionRequest { Version = LobbyAdmissionRequest.CurrentVersion });
+            });
         }
         public override void ClientSend(ArraySegment<byte> segment, int channelId = Channels.Reliable)
         {

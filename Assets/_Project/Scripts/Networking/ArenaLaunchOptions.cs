@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SmallArena.Domain;
 
 namespace SmallArena.Networking
 {
@@ -12,6 +13,8 @@ namespace SmallArena.Networking
         public ArenaNetworkRole Role { get; private set; }
         public string Address { get; private set; } = "localhost";
         public ushort Port { get; private set; }
+        public ushort DiscoveryPort { get; private set; } = LanRoomDirectoryService.DefaultDiscoveryPort;
+        public string RoomCode { get; private set; }
 
         public static ArenaLaunchOptions Read(string[] arguments)
         {
@@ -36,6 +39,18 @@ namespace SmallArena.Networking
                 {
                     if (++index >= arguments.Length || !ushort.TryParse(arguments[index], out var port) || port == 0) throw new ArgumentException("--arena-port requires a port between 1 and 65535.");
                     result.Port = port;
+                }
+                else if (argument == "--arena-discovery-port")
+                {
+                    if (++index >= arguments.Length || !ushort.TryParse(arguments[index], out var port) || port == 0)
+                        throw new ArgumentException("--arena-discovery-port requires a port between 1 and 65535.");
+                    result.DiscoveryPort = port;
+                }
+                else if (argument == "--arena-room-code")
+                {
+                    if (++index >= arguments.Length || !RoomCodeGenerator.IsValid(RoomCodeGenerator.Normalize(arguments[index])))
+                        throw new ArgumentException("--arena-room-code requires six unambiguous letters/digits.");
+                    result.RoomCode = RoomCodeGenerator.Normalize(arguments[index]);
                 }
             }
             return result;

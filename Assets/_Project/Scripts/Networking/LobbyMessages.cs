@@ -14,6 +14,9 @@ namespace SmallArena.Networking
 
     public struct LobbySnapshot : NetworkMessage
     {
+        public string RoomCode;
+        public string RoomInstanceId;
+        public bool IsPublic;
         public LobbyPhase Phase;
         public int LocalConnectionId;
         public bool CanStart;
@@ -21,6 +24,13 @@ namespace SmallArena.Networking
     }
 
     public struct LobbyReadyRequest : NetworkMessage { public bool IsReady; }
+    public struct LobbyAdmissionRequest : NetworkMessage
+    {
+        public const int CurrentVersion = 1;
+        public int Version;
+        public string RoomCode;
+        public string RoomInstanceId;
+    }
     public struct LobbyStartRequest : NetworkMessage { }
     public struct LobbyReturnRequest : NetworkMessage { }
     public static class LobbyLimits
